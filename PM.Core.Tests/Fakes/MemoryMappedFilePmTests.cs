@@ -3,6 +3,7 @@ using Xunit;
 
 namespace PM.Core.Tests.Fakes
 {
+    [Collection("PM.UnitTests")]
     public class MemoryMappedFilePmTests
     {
         [Fact]

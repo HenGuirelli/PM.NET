@@ -11,6 +11,7 @@ using System.Collections.Concurrent;
 
 namespace PM.Transactions.Tests
 {
+    [Collection("PM.UnitTests")]
     public class TransactionExtensionsTests
     {
         public TransactionExtensionsTests()

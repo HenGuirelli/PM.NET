@@ -5,6 +5,7 @@ using Xunit;
 
 namespace PM.Tests.UserFinalTests
 {
+    [Collection("PM.UnitTests")]
     public class UserDefinedObjectWithProxyTests
     {
         private static readonly Random _random = new();

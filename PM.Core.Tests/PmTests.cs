@@ -5,6 +5,7 @@ using Xunit;
 
 namespace PM.Core.Tests
 {
+    [Collection("PM.UnitTests")]
     public class PmTests
     {
         private static readonly Random _random = new();

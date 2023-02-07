@@ -6,6 +6,7 @@ using Xunit;
 
 namespace PM.Tests.PerformanceTests
 {
+    [Collection("PM.UnitTests")]
     public class PerformanceTest
     {
         private readonly static Random _random = new();
@@ -15,8 +16,6 @@ namespace PM.Tests.PerformanceTests
         {
             checked
             {
-                PmGlobalConfiguration.PmTarget = PmTargets.InVolatileMemory;
-
                 var seconds = 10;
                 IPersistentFactory factory = new PersistentFactory();
                 var obj = factory.CreateRootObject<DomainObject>(nameof(OnWriteReadOperation_ShouldRunWithoutThorwException));
