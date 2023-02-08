@@ -20,6 +20,7 @@ namespace PM.Collections
 
         public PmStringArray(string filepath, int length)
         {
+            Length = length;
             _pmULongArray = new PmULongArray(filepath, length);
         }
 

@@ -96,7 +96,16 @@ namespace PM.Core.Fakes
             try
             {
                 _lock.EnterReadLock();
-                return _pmFake.ContainsKey(PmMemoryMappedFileConfig.FilePath);
+                if (!_pmFake.ContainsKey(PmMemoryMappedFileConfig.FilePath)) return false;
+                if (_pmFake[PmMemoryMappedFileConfig.FilePath].Length == PmMemoryMappedFileConfig.SizeBytes)
+                {
+                    return true;
+                }
+
+                var newArray = new byte[PmMemoryMappedFileConfig.SizeBytes];
+                Array.Copy(_pmFake[PmMemoryMappedFileConfig.FilePath], newArray, _pmFake[PmMemoryMappedFileConfig.FilePath].Length);
+                _pmFake[PmMemoryMappedFileConfig.FilePath] = newArray;
+                return true;
             }
             finally
             {
