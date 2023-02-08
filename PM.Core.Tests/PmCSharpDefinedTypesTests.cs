@@ -155,11 +155,16 @@ namespace PM.Core.Tests
 
         private PmCSharpDefinedTypes CreatePrimitive(string methodName)
         {
+            return new PmCSharpDefinedTypes(CreatePm(methodName));
+        }
+
+        private static IPm CreatePm(string mappedMemoryFilePath)
+        {
             if (Constraints.UseFakePm)
             {
-                return new PmCSharpDefinedTypes(new FakeInMemoryPm(new PmMemoryMappedFileConfig(methodName)));
+                return new FakeInMemoryPm(new PmMemoryMappedFileConfig(mappedMemoryFilePath));
             }
-            return new PmCSharpDefinedTypes(methodName);
+            return new Pm(mappedMemoryFilePath);
         }
     }
 }

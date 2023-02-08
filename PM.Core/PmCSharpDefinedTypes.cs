@@ -7,12 +7,6 @@ namespace PM.Core
     {
         private readonly IPm _pm;
 
-        public PmCSharpDefinedTypes(string pmMemoryMappedFilePath)
-            : this(new PmMemoryMappedFileConfig(pmMemoryMappedFilePath)) { }
-
-        public PmCSharpDefinedTypes(PmMemoryMappedFileConfig pmMemoryMappedFile)
-            : this (new Pm(pmMemoryMappedFile)) { } 
-        
         public PmCSharpDefinedTypes(IPm pm)
         {
             _pm = pm;
