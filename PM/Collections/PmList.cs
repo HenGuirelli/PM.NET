@@ -54,8 +54,9 @@ namespace PM.Collections
 
         public string Filepath { get; }
 
-        private PmStringArray _items;
-        private int _size;
+        internal PmStringArray _items;
+        internal int _size;
+        internal int _version;
         public const int DefaultCapacity = 4;
 
         public PmList(string filepath, int initialCapacity = DefaultCapacity)
@@ -88,9 +89,7 @@ namespace PM.Collections
             if (index >= _size) throw new IndexOutOfRangeException();
 
             var pmFile = _items[index];
-            IPersistentFactory persistentFactory = new PersistentFactory();
-            var obj = persistentFactory.CreateRootObject<T>(pmFile);
-
+            var obj = _persistentFactory.CreateRootObject<T>(pmFile);
             return obj;
         }
 
@@ -124,6 +123,7 @@ namespace PM.Collections
         public void Clear()
         {
             _items.Clear();
+            _size = 0;
         }
 
         public bool Contains(T item)
@@ -138,7 +138,7 @@ namespace PM.Collections
 
         public IEnumerator<T> GetEnumerator()
         {
-            throw new NotImplementedException();
+            return new Enumerator<T>(this);
         }
 
         public int IndexOf(T item)
@@ -163,7 +163,87 @@ namespace PM.Collections
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            throw new NotImplementedException();
+            return new Enumerator<T>(this);
+        }
+    }
+
+    [Serializable]
+    public struct Enumerator<T> : IEnumerator<T>, System.Collections.IEnumerator
+        where T : class, new()
+    {
+        private PmList<T> _list;
+        private int _index;
+        private int _version;
+        private string _current;
+        private readonly IPersistentFactory _persistentFactory = new PersistentFactory();
+
+        internal Enumerator(PmList<T> list)
+        {
+            _list = list;
+            _index = 0;
+            _version = list._version;
+            _current = default(string);
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public bool MoveNext()
+        {
+            PmList<T> localList = _list;
+
+            if (_version == localList._version && ((uint)_index < (uint)localList._size))
+            {
+                _current = localList._items[_index];
+                _index++;
+                return true;
+            }
+            return MoveNextRare();
+        }
+
+        private bool MoveNextRare()
+        {
+            if (_version != _list._version)
+            {
+                throw new ApplicationException("Version updated while a interation");
+            }
+
+            _index = _list._size + 1;
+            _current = default;
+            return false;
+        }
+
+        public T Current
+        {
+            get
+            {
+                var obj = _persistentFactory.CreateRootObject<T>(_current);
+                return obj;
+            }
+        }
+
+        Object System.Collections.IEnumerator.Current
+        {
+            get
+            {
+                if (_index == 0 || _index == _list._size + 1)
+                {
+                    throw new ApplicationException("Index out of bounds");
+                }
+                return Current;
+            }
+        }
+
+        void System.Collections.IEnumerator.Reset()
+        {
+            if (_version != _list._version)
+            {
+                throw new ApplicationException("Version updated while a interation");
+            }
+
+            _index = 0;
+            _current = default;
         }
     }
 }
