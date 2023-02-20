@@ -1,4 +1,5 @@
-﻿using PM.Configs;
+﻿using PM.CastleHelpers;
+using PM.Configs;
 using PM.Core;
 using PM.Factories;
 using PM.Managers;
@@ -97,6 +98,10 @@ namespace PM.Collections
         {
             if (item is null) throw new ArgumentNullException(nameof(item));
             if (_size == _items.Length) EnsureCapacity(_size + 1);
+            if (CastleManager.TryGetInterceptor(item, out _)) 
+            {
+                throw new ArgumentException($"{nameof(item)} argument cannot be persistent object");
+            }
 
             var pointer = _pointersToPersistentObjects.GetNext().ToString();
             var obj = _persistentFactory.CreateRootObjectByObject(item, pointer);

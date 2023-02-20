@@ -5,6 +5,7 @@ using Castle.DynamicProxy;
 using System.Reflection;
 using PM.Configs;
 using PM.Managers;
+using PM.CastleHelpers;
 
 namespace PM.Transactions
 {
@@ -58,12 +59,9 @@ namespace PM.Transactions
             LogFile = new LogFile(new PmCSharpDefinedTypes(pm));
 
 
-            if (_obj is IProxyTargetAccessor proxyObj)
+            if (CastleManager.TryGetInterceptor(_obj, out var interceptor))
             {
-                _interceptor =
-                    (PersistentInterceptor)proxyObj
-                        .GetInterceptors()
-                        .Single(x => x is PersistentInterceptor);
+                _interceptor = interceptor;
             }
             else
             {

@@ -66,7 +66,6 @@ namespace PM.Tests.Collections
             }
 
             list.Clear();
-
             Assert.Empty(list);
         }
     }
