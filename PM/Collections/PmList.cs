@@ -123,7 +123,7 @@ namespace PM.Collections
 
         public void Clear()
         {
-            throw new NotImplementedException();
+            _items.Clear();
         }
 
         public bool Contains(T item)

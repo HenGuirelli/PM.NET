@@ -10,7 +10,7 @@ namespace PM.Collections
         private readonly PmULongArray _pmULongArray;
         private static readonly PointersToPersistentObjects _pointersToPersistentObjects = new();
 
-        public int Length { get; private set; }
+        public int Length => _pmULongArray.Length;
 
         public string this[int index]
         {
@@ -20,7 +20,6 @@ namespace PM.Collections
 
         public PmStringArray(string filepath, int length)
         {
-            Length = length;
             _pmULongArray = new PmULongArray(filepath, length);
         }
 
@@ -53,6 +52,11 @@ namespace PM.Collections
             var cSharpDefinedPm = new PmCSharpDefinedTypes(pm);
 
             return cSharpDefinedPm.ReadString();
+        }
+
+        public void Clear()
+        {
+            _pmULongArray.Clear();
         }
     }
 }

@@ -34,9 +34,13 @@ namespace PM.Collections
             return InternalGet(index);
         }
 
+        public virtual void Clear()
+        {
+            Length = 0;
+        }
+
         protected abstract void InternalSet(int index, T value);
         protected abstract T InternalGet(int index);
-
     }
 
     public abstract class PmPrimitiveArray

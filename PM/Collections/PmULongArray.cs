@@ -16,5 +16,12 @@
         {
             return _cSharpDefinedPm.ReadULong(sizeof(ulong) * index);
         }
+
+        public override void Clear()
+        {
+            _cSharpDefinedPm.DeleteFile();
+            _cSharpDefinedPm.CreateFile();
+            base.Clear();
+        }
     }
 }

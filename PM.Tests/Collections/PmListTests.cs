@@ -53,5 +53,21 @@ namespace PM.Tests.Collections
             Assert.Equal(0, list[0].Bar);
             Assert.Equal(count - 1, list[list.Count - 1].Bar);
         }
+
+        [Fact]
+        public void OnClear_ShouldClearEntireList()
+        {
+            var count = 3;
+            var list = new PmList<Foo>(nameof(OnClear_ShouldClearEntireList));
+
+            for (int i = 0; i < count; i++)
+            {
+                list.AddPersistent(new Foo { Bar = i });
+            }
+
+            list.Clear();
+
+            Assert.Empty(list);
+        }
     }
 }

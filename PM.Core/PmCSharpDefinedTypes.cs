@@ -254,6 +254,11 @@ namespace PM.Core
             _pm.DeleteFile();
         }
 
+        public void CreateFile()
+        {
+            _pm.CreateFile();
+        }
+
         public void Lock()
         {
             _pm.Lock();
