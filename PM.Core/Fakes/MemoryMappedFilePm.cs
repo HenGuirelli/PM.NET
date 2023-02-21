@@ -3,14 +3,19 @@ using System.IO.MemoryMappedFiles;
 
 namespace PM.Core.Fakes
 {
+    class MemoryMappedFileItems
+    {
+        public string MapName { get; set; }
+        public MemoryMappedFile MemoryMappedFile { get; set; }
+        public MemoryMappedViewAccessor MemoryMappedViewAccessor { get; set; }
+        public PmMemoryMappedFileConfig PmMemoryMappedFileConfig { get; set; }
+    }
+
     public class MemoryMappedFilePm : IPm, IDisposable
     {
-        private readonly MemoryMappedFile _mmf;
-        private readonly MemoryMappedViewAccessor _acessor;
-
         public PmMemoryMappedFileConfig PmMemoryMappedFileConfig { get; }
 
-        private static readonly ConcurrentDictionary<string, List<(MemoryMappedFile, MemoryMappedViewAccessor)>>
+        private static readonly ConcurrentDictionary<string, MemoryMappedFileItems>
             _memoryMappedFiles = new();
         private readonly string _mapName;
         private readonly ReaderWriterLockSlim _lock = new();
@@ -19,27 +24,61 @@ namespace PM.Core.Fakes
         {
             PmMemoryMappedFileConfig = pmMemoryMappedFile;
             if (!FileExists()) CreateFile();
-            _mapName = PmMemoryMappedFileConfig.FilePath.Replace("\\", "_").Replace("/", "_");
-            try
+            _mapName = PmMemoryMappedFileConfig.FilePath.Replace("\\", "/");//.Replace("\\", "_").Replace("/", "_");
+            if (!_memoryMappedFiles.ContainsKey(_mapName))
             {
-                _mmf = MemoryMappedFile.CreateFromFile(
-                    PmMemoryMappedFileConfig.FilePath,
+                var mmf = MemoryMappedFile.CreateFromFile(
+                    _mapName,
                     FileMode.OpenOrCreate,
-                    _mapName);
+                    _mapName,
+                    PmMemoryMappedFileConfig.SizeBytes,
+                    MemoryMappedFileAccess.ReadWrite);
+                var acessor = mmf.CreateViewAccessor(0, PmMemoryMappedFileConfig.SizeBytes, MemoryMappedFileAccess.ReadWrite);
+
+                _memoryMappedFiles[_mapName] =
+                    new MemoryMappedFileItems
+                    {
+                        MemoryMappedFile = mmf,
+                        MemoryMappedViewAccessor = acessor,
+                        MapName = _mapName,
+                        PmMemoryMappedFileConfig = PmMemoryMappedFileConfig
+                    };
             }
-            catch (IOException)
+            else
             {
-                _mmf = MemoryMappedFile.OpenExisting(_mapName);
+                var oldmemoryMappedFile = _memoryMappedFiles[_mapName];
+                if (oldmemoryMappedFile.PmMemoryMappedFileConfig.SizeBytes != PmMemoryMappedFileConfig.SizeBytes)
+                {
+                    // Resize memory mapped File
+                    oldmemoryMappedFile.MemoryMappedViewAccessor.Flush();
+                    oldmemoryMappedFile.MemoryMappedViewAccessor.Dispose();
+                    oldmemoryMappedFile.MemoryMappedFile.Dispose();
+
+                    SetLengthExistingFile(_mapName, PmMemoryMappedFileConfig.SizeBytes);
+
+                    var mmf = MemoryMappedFile.CreateFromFile(
+                        _mapName,
+                        FileMode.OpenOrCreate,
+                        _mapName,
+                        0,
+                        MemoryMappedFileAccess.ReadWrite);
+                    var acessor = mmf.CreateViewAccessor(0, PmMemoryMappedFileConfig.SizeBytes, MemoryMappedFileAccess.ReadWrite);
+
+                    _memoryMappedFiles[_mapName] = new MemoryMappedFileItems
+                    {
+                        MemoryMappedFile = mmf,
+                        MemoryMappedViewAccessor = acessor,
+                        MapName = _mapName,
+                        PmMemoryMappedFileConfig = PmMemoryMappedFileConfig
+                    };
+                }
             }
-            _acessor = _mmf.CreateViewAccessor(0, PmMemoryMappedFileConfig.SizeBytes);
-            var result = _memoryMappedFiles.GetOrAdd(_mapName, _ => new());
-            result.Add((_mmf, _acessor));
         }
 
         public void CreateFile()
         {
             var directory = Path.GetDirectoryName(PmMemoryMappedFileConfig.FilePath);
-            if (!string.IsNullOrWhiteSpace(directory)) 
+            if (!string.IsNullOrWhiteSpace(directory))
                 Directory.CreateDirectory(directory);
 
             using var fs = new FileStream(
@@ -48,6 +87,16 @@ namespace PM.Core.Fakes
                 FileAccess.Write,
                 FileShare.None);
             fs.SetLength(PmMemoryMappedFileConfig.SizeBytes);
+        }
+
+        private void SetLengthExistingFile(string mapName, int sizeBytes)
+        {
+            using var fs = new FileStream(
+                mapName,
+                FileMode.Open,
+                FileAccess.Write,
+                FileShare.None);
+            fs.SetLength(sizeBytes);
         }
 
         public void DeleteFile()
@@ -76,7 +125,7 @@ namespace PM.Core.Fakes
             try
             {
                 _lock.EnterReadLock();
-                return _acessor.ReadByte(offset);
+                return _memoryMappedFiles[_mapName].MemoryMappedViewAccessor.ReadByte(offset);
             }
             finally
             {
@@ -89,7 +138,7 @@ namespace PM.Core.Fakes
             try
             {
                 _lock.EnterReadLock();
-                _acessor.Write(offset, value);
+                _memoryMappedFiles[_mapName].MemoryMappedViewAccessor.Write(offset, value);
                 return true;
             }
             finally
@@ -119,10 +168,10 @@ namespace PM.Core.Fakes
 
         public void Dispose()
         {
-            foreach (var item in _memoryMappedFiles[_mapName])
+            foreach (var item in _memoryMappedFiles.Values)
             {
-                item.Item1?.Dispose();
-                item.Item2?.Dispose();
+                item.MemoryMappedViewAccessor?.Dispose();
+                item.MemoryMappedFile?.Dispose();
             }
         }
     }
