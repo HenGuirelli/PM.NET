@@ -43,11 +43,8 @@ namespace PM.Collections
                 {
                     if (value > 0)
                     {
-                        if (_size > 0)
-                        {
-                            var newItems = new PmStringArray(Filepath, value);
-                            _items = newItems;
-                        }
+                        var newItems = new PmStringArray(Filepath, value);
+                        _items = newItems;
                     }
                 }
             }
