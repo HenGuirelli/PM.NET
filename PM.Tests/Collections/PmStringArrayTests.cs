@@ -31,7 +31,7 @@ namespace PM.Tests.Collections
         [Fact]
         public void OnSetAndGetStringOutOfBounds_ShouldThrowException()
         {
-            var array = new PmStringArray(nameof(OnSetAndGet_ShouldRunWithoutException), length: 1);
+            var array = new PmStringArray(nameof(OnSetAndGetStringOutOfBounds_ShouldThrowException), length: 1);
 
             Assert.Throws<IndexOutOfRangeException>(() => array[1] = Guid.NewGuid().ToString());
             Assert.Throws<IndexOutOfRangeException>(() => array[1]);
