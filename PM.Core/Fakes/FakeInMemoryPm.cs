@@ -115,7 +115,12 @@ namespace PM.Core.Fakes
 
         public static int GetFileSize(string fileName)
         {
-            return _pmFake[fileName].Length;
+            if (_pmFake.TryGetValue(fileName, out var arr))
+            {
+                return arr.Length;
+            }
+            // Simulate file system
+            throw new FileNotFoundException("File nome found", fileName);
         }
 
         public void CreateFile()

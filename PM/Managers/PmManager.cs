@@ -163,13 +163,20 @@ namespace PM.Managers
                         {
                             var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString());
                             var filesize = TransactionFolderFactory.Create();
-                            var pm = PmFactory.CreatePm(
-                                new PmMemoryMappedFileConfig(
-                                    name: path,
-                                    size: (int)filesize.GetFileSize(path)));
-                            var stringPmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
-                            _pmInnerObjectsByPointer[pointer] = stringPmCSharpDefinedTypes;
-                            return stringPmCSharpDefinedTypes.ReadString();
+                            try
+                            {
+                                var pm = PmFactory.CreatePm(
+                                    new PmMemoryMappedFileConfig(
+                                        name: path,
+                                        size: (int)filesize.GetFileSize(path)));
+                                var stringPmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
+                                _pmInnerObjectsByPointer[pointer] = stringPmCSharpDefinedTypes;
+                                return stringPmCSharpDefinedTypes.ReadString();
+                            } 
+                            catch(FileNotFoundException) 
+                            {
+                                return null;
+                            }
                         }
                     }
                 }

@@ -55,7 +55,7 @@ namespace PM.Tests.UserFinalTests
         public void ExampleFullObject()
         {
             IPersistentFactory persistentFactory = new PersistentFactory();
-            var obj = persistentFactory.CreateRootObject<ComplexClassRoot>(nameof(ExampleWithPrimitives));
+            var obj = persistentFactory.CreateRootObject<ComplexClassRoot>(nameof(ExampleFullObject));
 
             obj.PropStr = "Hello World!";
             obj.PropInt = int.MinValue;
@@ -96,7 +96,7 @@ namespace PM.Tests.UserFinalTests
         public void ExampleFullObjectSetInAPersistentObject()
         {
             IPersistentFactory persistentFactory = new PersistentFactory();
-            var obj = persistentFactory.CreateRootObject<ComplexClassRoot>(nameof(ExampleWithPrimitives));
+            var obj = persistentFactory.CreateRootObject<ComplexClassRoot>(nameof(ExampleFullObjectSetInAPersistentObject));
 
             var inMemoryObject = new ComplexClassInner1
             {
@@ -123,10 +123,19 @@ namespace PM.Tests.UserFinalTests
         public void ExampleMergeTwoPersistentObjects()
         {
             IPersistentFactory persistentFactory = new PersistentFactory();
-            var obj1 = persistentFactory.CreateRootObject<ComplexClassRoot>(nameof(ExampleWithPrimitives));
-            var obj2 = persistentFactory.CreateRootObject<ComplexClassInner1>(nameof(ExampleWithPrimitives) + "2");
+            var obj1 = persistentFactory.CreateRootObject<ComplexClassRoot>(nameof(ExampleMergeTwoPersistentObjects));
+            var obj2 = persistentFactory.CreateRootObject<ComplexClassInner1>(nameof(ExampleMergeTwoPersistentObjects) + "2");
 
             Assert.Throws<ApplicationException>(() => obj1.PropComplexClassInner1 = obj2);
+        }
+
+        [Fact]
+        public void ExampleReadReferenceObjBeforeWrite_ShouldGetNull()
+        {
+            IPersistentFactory persistentFactory = new PersistentFactory();
+            var obj1 = persistentFactory.CreateRootObject<ComplexClassRoot>(nameof(ExampleReadReferenceObjBeforeWrite_ShouldGetNull));
+            Assert.Null(obj1.PropStr);
+            Assert.Null(obj1.PropComplexClassInner1);
         }
     }
 }
