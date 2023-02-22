@@ -56,7 +56,7 @@ namespace PM.Managers
                     if (value is string valuestr)
                     {
                         var pointer = _pointersToPersistentObjects.GetNext();
-                        var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(pointer.ToString()));
+                        var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString())));
                         var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
                         _pmInnerObjectsByPointer[pointer] = pmCSharpDefinedTypes;
                         pmCSharpDefinedTypes.WriteString(valuestr);
