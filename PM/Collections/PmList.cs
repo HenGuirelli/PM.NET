@@ -41,13 +41,10 @@ namespace PM.Collections
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }
 
-                if (value != _items.Length)
+                if (value != _items.Length && value > 0)
                 {
-                    if (value > 0)
-                    {
-                        var newItems = new PmStringArray(Filepath, value);
-                        _items = newItems;
-                    }
+                    var newItems = new PmStringArray(Filepath, value);
+                    _items = newItems;
                 }
             }
         }

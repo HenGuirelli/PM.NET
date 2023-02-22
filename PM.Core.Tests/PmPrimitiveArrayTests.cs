@@ -5,7 +5,7 @@ using PM.Tests.Common;
 using System;
 using Xunit;
 
-namespace PM.Tests.Collections
+namespace PM.Core.Tests
 {
     public class PmPrimitiveArrayTests
     {
