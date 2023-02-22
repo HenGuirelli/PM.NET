@@ -44,7 +44,7 @@ namespace PM.Tests.Collections
         public void OnAddPersistentWhenOverflowDefaultCapacity_ShouldAdd()
         {
             var count = 300;
-            var list = new PmList<Foo>("D:\\Projetos\\Git\\quickfixPM\\Examples\\Executor\\bin\\Debug\\net6.0\\store\\" + nameof(OnAddPersistentWhenOverflowDefaultCapacity_ShouldAdd));
+            var list = new PmList<Foo>(nameof(OnAddPersistentWhenOverflowDefaultCapacity_ShouldAdd));
 
             for (int i = 0; i < count; i++)
             {
@@ -76,14 +76,32 @@ namespace PM.Tests.Collections
         [Fact]
         public void OnSetsAndGets_ShouldRunCorretly()
         {
-            var count = 3;
-            var list = new PmList<Foo>(nameof(OnClear_ShouldClearEntireList));
+            var list = new PmList<Foo>(nameof(OnSetsAndGets_ShouldRunCorretly));
 
             list.AddPersistent(new Foo { Bar = 1 });
             list.AddPersistent(new Foo { Bar = 2 });
 
             Assert.Equal(1, list[0].Bar);    
-            Assert.Equal(2, list[1].Bar);    
+            Assert.Equal(2, list[1].Bar);
+        }
+
+        [Fact]
+        public void OnEnumerator_ShouldRunCorretly()
+        {
+            var count = 3;
+            var list = new PmList<Foo>(nameof(OnEnumerator_ShouldRunCorretly));
+
+            for (int i = 0; i < count; i++)
+            {
+                list.AddPersistent(new Foo { Bar = i });
+            }
+
+            int j = 0;
+            foreach(var item in list)
+            {
+                Assert.Equal(list[j].Bar, item.Bar);
+                j++;
+            }
         }
     }
 }

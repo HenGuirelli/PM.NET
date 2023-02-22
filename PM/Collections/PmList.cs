@@ -132,12 +132,29 @@ namespace PM.Collections
 
         public bool Contains(T item)
         {
-            throw new NotImplementedException();
+            if (item == null)
+            {
+                for (int i = 0; i < _size; i++)
+                    if (_items[i] == null)
+                        return true;
+                return false;
+            }
+            else
+            {
+                for (int i = 0; i < _size; i++)
+                {
+                    if (Get(i) == item) return true;
+                }
+                return false;
+            }
         }
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
+            for (int i = 0; i < _items.Length; i++)
+            {
+                array[i] = Get(i);
+            }
         }
 
         public IEnumerator<T> GetEnumerator()
@@ -147,22 +164,70 @@ namespace PM.Collections
 
         public int IndexOf(T item)
         {
-            throw new NotImplementedException();
+            for (int i = 0; i < _items.Length; i++)
+            {
+                var internalItem = Get(i);
+                if (item == internalItem) return i;
+            }
+            return -1;
         }
 
+        public T InsertPersistent(int index, T item)
+        {
+            // Note that insertions at the end are legal.
+            if (index > _size)
+            {
+                throw new IndexOutOfRangeException();
+            }
+            if (_size == _items.Length) EnsureCapacity(_size + 1);
+            if (CastleManager.TryGetInterceptor(item, out _))
+            {
+                throw new ArgumentException($"{nameof(item)} argument cannot be persistent object");
+            }
+
+            var pointer = _pointersToPersistentObjects.GetNext().ToString();
+            var obj = _persistentFactory.CreateRootObjectByObject(
+                item,
+                Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer));
+
+            _items[_size++] = pointer;
+            return (T)obj;
+        }
+
+        [Obsolete("Use InsertPersistent() instead")]
         public void Insert(int index, T item)
         {
-            throw new NotImplementedException();
+            InsertPersistent(index, item);
         }
 
         public bool Remove(T item)
         {
-            throw new NotImplementedException();
+            int index = IndexOf(item);
+            if (index >= 0)
+            {
+                RemoveAt(index);
+                return true;
+            }
+            return false;
         }
 
         public void RemoveAt(int index)
         {
-            throw new NotImplementedException();
+            if (index >= _size)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index));
+            }
+            if (index < _size)
+            {
+                for (int i = index; i < _items.Length - 1; i++)
+                {
+                    _items[i] = _items[i + 1];
+                }
+            }
+            _items[_size] = default;
+            _size--;
+            var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, _items[index])));
+            pm.DeleteFile();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
