@@ -53,7 +53,11 @@ namespace PM.Core.Fakes
                                     _mapName,
                                     0,
                                     MemoryMappedFileAccess.ReadWrite);
-            var acessor = mmf.CreateViewAccessor(0, PmMemoryMappedFileConfig.SizeBytes, MemoryMappedFileAccess.ReadWrite);
+
+            var acessor = mmf.CreateViewAccessor(
+                0,
+                PmMemoryMappedFileConfig.SizeBytes,
+                MemoryMappedFileAccess.ReadWrite);
 
             _memoryMappedFiles[_mapName] = new MemoryMappedFileItems
             {
@@ -157,10 +161,11 @@ namespace PM.Core.Fakes
 
         public void Dispose()
         {
-            foreach (var item in _memoryMappedFiles.Values)
+            if (_memoryMappedFiles.TryGetValue(_mapName, out var mmf))
             {
-                item.MemoryMappedViewAccessor?.Dispose();
-                item.MemoryMappedFile?.Dispose();
+                mmf.MemoryMappedViewAccessor?.Dispose();
+                mmf.MemoryMappedFile?.Dispose();
+                _memoryMappedFiles.TryRemove(_mapName, out _);
             }
         }
     }
