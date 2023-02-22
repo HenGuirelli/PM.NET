@@ -59,6 +59,10 @@ namespace PM.Collections
         {
             Filepath = filepath;
             _items = CreateNewInternalArray(filepath, initialCapacity);
+            for(int i = 0; i < _items.Length; i++)
+            {
+                if (_items[i] != 0) _size++;
+            }
         }
 
         private PmPrimitiveArray<ulong> CreateNewInternalArray(string filepath, int length)
