@@ -1,8 +1,8 @@
-﻿namespace PM
+﻿namespace PM.Core
 {
     public class SupportedTypesTable
     {
-        private static SupportedTypesTable _instance;
+        private static SupportedTypesTable? _instance;
         public static SupportedTypesTable Instance
         {
             get
@@ -17,7 +17,7 @@
 
         private readonly Dictionary<int, PmType> _pmemTypetypesByInt = new();
         private readonly Dictionary<Type, PmType> _pmemTypeByTypes = new();
-        private static PmType ComplexObjectPmemType = new PmType(typeof(object), 14, 64); // 64 bits pointer
+        private readonly static PmType ComplexObjectPmemType = new PmType(typeof(object), 14, 64); // 64 bits pointer
 
         private int _minID;
         private int _maxID;

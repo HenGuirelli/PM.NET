@@ -1,6 +1,6 @@
-﻿using PM.Collections;
-using PM.Configs;
+﻿using PM.Configs;
 using PM.Core;
+using PM.Factories;
 using PM.Tests.Common;
 using System;
 using Xunit;
@@ -9,18 +9,21 @@ namespace PM.Tests.Collections
 {
     public class PmPrimitiveArrayTests
     {
+        private const string PrefixPath = "D:\\temp\\pm_tests\\";
+
         public PmPrimitiveArrayTests()
         {
             if (Constraints.UseFakePm)
-                PmGlobalConfiguration.PmTarget = PmTargets.InVolatileMemory;
+                PmGlobalConfiguration.PmTarget = PmTargets.TraditionalMemoryMappedFile;
         }
 
         [Fact]
         public void OnSetAndGet_ShouldRunWithoutException()
         {
             var array = PmPrimitiveArray.CreateNewArray<ulong>(
-                nameof(OnSetAndGet_ShouldRunWithoutException),
-                length: 2);
+                PmFactory.CreatePm(new PmMemoryMappedFileConfig(
+                    PrefixPath + nameof(OnSetAndGet_ShouldRunWithoutException))),
+                    length: 2);
 
             array[0] = ulong.MaxValue;
             array[1] = ulong.MinValue;
@@ -33,11 +36,28 @@ namespace PM.Tests.Collections
         public void OnSetAndGetOutOfBounds_ShouldThrowException()
         {
             var array = PmPrimitiveArray.CreateNewArray<ulong>(
-                nameof(OnSetAndGetOutOfBounds_ShouldThrowException),
-                length: 1);
+                PmFactory.CreatePm(new PmMemoryMappedFileConfig(
+                     PrefixPath + nameof(OnSetAndGetOutOfBounds_ShouldThrowException))),
+                    length: 1);
 
             Assert.Throws<IndexOutOfRangeException>(() => array[1] = ulong.MaxValue);
             Assert.Throws<IndexOutOfRangeException>(() => array[1]);
+            Assert.Throws<IndexOutOfRangeException>(() => array[-1]);
+        }
+
+        [Fact]
+        public void OnHighVolume_ShouldNotThrowException()
+        {
+            var count = 500;
+            var array = PmPrimitiveArray.CreateNewArray<ulong>(
+                PmFactory.CreatePm(new PmMemoryMappedFileConfig(
+                     PrefixPath + nameof(OnHighVolume_ShouldNotThrowException))),
+                    length: count);
+
+            for (int i = 0; i < count; i++)
+            {
+                array[i] = (ulong)count;
+            }
         }
     }
 }

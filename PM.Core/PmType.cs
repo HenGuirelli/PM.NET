@@ -1,4 +1,4 @@
-﻿namespace PM
+﻿namespace PM.Core
 {
     public class PmType
     {

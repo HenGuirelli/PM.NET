@@ -1,4 +1,5 @@
-﻿using PM.PmContent;
+﻿using PM.Core;
+using PM.PmContent;
 using System.Reflection;
 
 namespace PM

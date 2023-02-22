@@ -48,6 +48,7 @@
         {
             var type = typeof(T);
             CheckType(type);
+            CheckFileSize<T>(pm, length);
 
             if (type == typeof(ulong))
             {
@@ -56,6 +57,16 @@
             }
 
             throw new ArgumentException($"Type {typeof(T)} not recongnized");
+        }
+
+        private static void CheckFileSize<T>(IPm pm, int length)
+            where T : struct
+        {
+            var typeSize = SupportedTypesTable.Instance.GetPmType(typeof(T)).SizeBytes;
+            if (pm.PmMemoryMappedFileConfig.SizeBytes < length * typeSize)
+            {
+                throw new PmInsufficientFileSizeException(pm.PmMemoryMappedFileConfig.SizeBytes, length * typeSize);
+            }
         }
 
         private static void CheckType(Type type)
