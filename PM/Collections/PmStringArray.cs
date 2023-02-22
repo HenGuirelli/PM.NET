@@ -1,8 +1,8 @@
-﻿using Castle.Components.DictionaryAdapter;
-using PM.Configs;
+﻿using PM.Configs;
 using PM.Core;
 using PM.Factories;
 using PM.Managers;
+using System.Reflection;
 
 namespace PM.Collections
 {
@@ -21,7 +21,12 @@ namespace PM.Collections
 
         public PmStringArray(string filepath, int length)
         {
-            _pmULongArray = new PmULongArray(filepath, length);
+            var pm = PmFactory.CreatePm(
+                new PmMemoryMappedFileConfig(
+                    filepath,
+                    sizeof(char) * (length + 1)));
+
+            _pmULongArray = new PmULongArray(pm, length);
         }
 
         private void Set(int index, string value)

@@ -1,7 +1,4 @@
-﻿using PM.Core;
-using PM.Factories;
-
-namespace PM.Collections
+﻿namespace PM.Core
 {
     public abstract class PmPrimitiveArray<T>
         where T : struct
@@ -15,27 +12,28 @@ namespace PM.Collections
             set => Set(index, value);
         }
 
-        protected PmPrimitiveArray(string filepath, int capacity)
+        protected PmPrimitiveArray(IPm pm, int length)
         {
-            Length = capacity;
-            var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(filepath, sizeof(ulong) * capacity));
+            Length = length;
             _cSharpDefinedPm = new PmCSharpDefinedTypes(pm);
         }
 
         private void Set(int index, T value)
         {
-            if (index > Length) throw new IndexOutOfRangeException();
+            if (index >= Length || index < 0) throw new IndexOutOfRangeException();
             InternalSet(index, value);
         }
 
         private T Get(int index)
         {
-            if (index > Length) throw new IndexOutOfRangeException();
+            if (index >= Length || index < 0) throw new IndexOutOfRangeException();
             return InternalGet(index);
         }
 
         public virtual void Clear()
         {
+            _cSharpDefinedPm.DeleteFile();
+            _cSharpDefinedPm.CreateFile();
             Length = 0;
         }
 
@@ -45,7 +43,7 @@ namespace PM.Collections
 
     public abstract class PmPrimitiveArray
     {
-        public static PmPrimitiveArray<T> CreateNewArray<T>(string filepath, int length)
+        public static PmPrimitiveArray<T> CreateNewArray<T>(IPm pm, int length)
             where T : struct
         {
             var type = typeof(T);
@@ -53,7 +51,7 @@ namespace PM.Collections
 
             if (type == typeof(ulong))
             {
-                var obj = new PmULongArray(filepath, length);
+                var obj = new PmULongArray(pm, length);
                 return obj as PmPrimitiveArray<T> ?? throw new ArgumentException($"Type {typeof(T)} not recongnized");
             }
 

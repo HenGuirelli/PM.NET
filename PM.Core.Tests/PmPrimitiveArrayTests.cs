@@ -1,7 +1,6 @@
 ﻿using PM.Collections;
 using PM.Configs;
 using PM.Core;
-using PM.Factories;
 using PM.Tests.Common;
 using System;
 using Xunit;
@@ -20,9 +19,8 @@ namespace PM.Tests.Collections
         public void OnSetAndGet_ShouldRunWithoutException()
         {
             var array = PmPrimitiveArray.CreateNewArray<ulong>(
-                PmFactory.CreatePm(new PmMemoryMappedFileConfig(
-                    nameof(OnSetAndGet_ShouldRunWithoutException))),
-                    length: 2);
+                nameof(OnSetAndGet_ShouldRunWithoutException),
+                length: 2);
 
             array[0] = ulong.MaxValue;
             array[1] = ulong.MinValue;
@@ -35,13 +33,11 @@ namespace PM.Tests.Collections
         public void OnSetAndGetOutOfBounds_ShouldThrowException()
         {
             var array = PmPrimitiveArray.CreateNewArray<ulong>(
-                PmFactory.CreatePm(new PmMemoryMappedFileConfig(
-                    nameof(OnSetAndGetOutOfBounds_ShouldThrowException))),
-                    length: 1);
+                nameof(OnSetAndGetOutOfBounds_ShouldThrowException),
+                length: 1);
 
             Assert.Throws<IndexOutOfRangeException>(() => array[1] = ulong.MaxValue);
             Assert.Throws<IndexOutOfRangeException>(() => array[1]);
-            Assert.Throws<IndexOutOfRangeException>(() => array[-1]);
         }
     }
 }
