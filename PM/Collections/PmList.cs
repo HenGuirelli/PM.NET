@@ -243,7 +243,7 @@ namespace PM.Collections
         private PmList<T> _list;
         private int _index;
         private int _version;
-        private string _current;
+        private T _current;
         private readonly IPersistentFactory _persistentFactory = new PersistentFactory();
 
         internal Enumerator(PmList<T> list)
@@ -251,7 +251,7 @@ namespace PM.Collections
             _list = list;
             _index = 0;
             _version = list._version;
-            _current = default(string);
+            _current = default;
         }
 
         public void Dispose()
@@ -262,9 +262,9 @@ namespace PM.Collections
         {
             PmList<T> localList = _list;
 
-            if (_version == localList._version && ((uint)_index < (uint)localList._size))
+            if (_version == localList._version && _index < localList._size)
             {
-                _current = localList._items[_index];
+                _current = localList[_index];
                 _index++;
                 return true;
             }
@@ -287,8 +287,7 @@ namespace PM.Collections
         {
             get
             {
-                var obj = _persistentFactory.CreateRootObject<T>(_current);
-                return obj;
+                return _current;
             }
         }
 
