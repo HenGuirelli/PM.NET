@@ -88,7 +88,7 @@ namespace PM.Tests.Collections
         [Fact]
         public void OnEnumerator_ShouldRunCorretly()
         {
-            var count = 3;
+            var count = 300;
             var list = new PmList<Foo>(nameof(OnEnumerator_ShouldRunCorretly));
 
             for (int i = 0; i < count; i++)
@@ -102,6 +102,38 @@ namespace PM.Tests.Collections
                 Assert.Equal(list[j].Bar, item.Bar);
                 j++;
             }
+        }
+
+        [Fact]
+        public void OnCopyTo_ShouldCopyEntireList()
+        {
+            var count = 300;
+            var list = new PmList<Foo>(nameof(OnCopyTo_ShouldCopyEntireList));
+            
+            for (int i = 0; i < count / 2; i++)
+            {
+                list.AddPersistent(new Foo { Bar = i });
+            }
+
+            Foo[] vet = new Foo[count];
+            list.CopyTo(vet, count);
+
+            for (int i = 0; i < count / 2; i++)
+                Assert.Equal(i, vet[i].Bar);
+        }
+
+        [Fact]
+        public void OnRemove_ShouldCopyEntireList()
+        {
+            var list = new PmList<Foo>(nameof(OnRemove_ShouldCopyEntireList));
+
+            list.AddPersistent(new Foo { Bar = 1 });
+            var item = list.AddPersistent(new Foo { Bar = 2 });
+            list.AddPersistent(new Foo { Bar = 3 });
+
+            Assert.Equal(3, list.Count);
+            Assert.True(list.Remove(item));
+            Assert.Equal(2, list.Count);
         }
     }
 }

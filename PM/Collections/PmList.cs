@@ -4,6 +4,7 @@ using PM.Core;
 using PM.Factories;
 using PM.Managers;
 using System.Collections;
+using System.Collections.Concurrent;
 
 namespace PM.Collections
 {
@@ -12,6 +13,7 @@ namespace PM.Collections
     {
         private readonly IPersistentFactory _persistentFactory = new PersistentFactory();
         private static readonly PointersToPersistentObjects _pointersToPersistentObjects = new();
+        private ConcurrentDictionary<string, T> _cacheItems = new();
 
         public T this[int index]
         {
@@ -79,6 +81,7 @@ namespace PM.Collections
             var obj = _persistentFactory.CreateRootObjectByObject(item, pmFile);
 
             _items[index] = pointer;
+            _cacheItems[pointer] = (T)obj;
             return (T)obj;
         }
 
@@ -86,8 +89,16 @@ namespace PM.Collections
         {
             if (index >= _size) throw new IndexOutOfRangeException();
 
-            var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, _items[index]);
+            var pointer = _items[index];
+            if (_cacheItems.TryGetValue(pointer, out var result))
+            {
+                return result;
+            }
+            var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer);
             var obj = _persistentFactory.CreateRootObject<T>(pmFile);
+
+            _cacheItems.TryAdd(pointer, obj);
+
             return obj;
         }
 
@@ -106,6 +117,7 @@ namespace PM.Collections
                 Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer));
 
             _items[_size++] = pointer;
+            _cacheItems[pointer] = (T)obj;
             return (T)obj;
         }
 
@@ -151,25 +163,26 @@ namespace PM.Collections
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            for (int i = 0; i < _items.Length; i++)
+            for (int i = 0; i < _size; i++)
             {
                 array[i] = Get(i);
             }
         }
 
-        public IEnumerator<T> GetEnumerator()
-        {
-            return new Enumerator<T>(this);
-        }
-
         public int IndexOf(T item)
         {
-            for (int i = 0; i < _items.Length; i++)
+            for (int i = 0; i < _size; i++)
             {
                 var internalItem = Get(i);
                 if (item == internalItem) return i;
             }
             return -1;
+        }
+
+        [Obsolete("Use InsertPersistent() instead")]
+        public void Insert(int index, T item)
+        {
+            InsertPersistent(index, item);
         }
 
         public T InsertPersistent(int index, T item)
@@ -191,13 +204,8 @@ namespace PM.Collections
                 Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer));
 
             _items[_size++] = pointer;
+            _cacheItems[pointer] = (T)obj;
             return (T)obj;
-        }
-
-        [Obsolete("Use InsertPersistent() instead")]
-        public void Insert(int index, T item)
-        {
-            InsertPersistent(index, item);
         }
 
         public bool Remove(T item)
@@ -219,18 +227,23 @@ namespace PM.Collections
             }
             if (index < _size)
             {
-                for (int i = index; i < _items.Length - 1; i++)
+                for (int i = index; i < _size - 1; i++)
                 {
                     _items[i] = _items[i + 1];
                 }
             }
-            _items[_size] = default;
+            _items[_size - 1] = default;
             _size--;
             var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, _items[index])));
             pm.DeleteFile();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
+        {
+            return new Enumerator<T>(this);
+        }
+
+        public IEnumerator<T> GetEnumerator()
         {
             return new Enumerator<T>(this);
         }

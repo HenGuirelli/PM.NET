@@ -1,4 +1,5 @@
-﻿using PM.Configs;
+﻿using Castle.Components.DictionaryAdapter;
+using PM.Configs;
 using PM.Core;
 using PM.Factories;
 using PM.Managers;
@@ -26,6 +27,11 @@ namespace PM.Collections
         private void Set(int index, string value)
         {
             if (index > Length) throw new IndexOutOfRangeException();
+            if (value is null)
+            {
+                _pmULongArray[index] = 0;
+                return;
+            }
 
             var pointer = _pointersToPersistentObjects.GetNext();
             var pm = PmFactory.CreatePm(
