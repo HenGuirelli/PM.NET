@@ -12,8 +12,8 @@ namespace PM.Collections
         where T : class, new()
     {
         private readonly IPersistentFactory _persistentFactory = new PersistentFactory();
-        private static readonly PointersToPersistentObjects _pointersToPersistentObjects = new();
-        private ConcurrentDictionary<string, T> _cacheItems = new();
+        private readonly static PointersToPersistentObjects _pointersToPersistentObjects = new();
+        private readonly ConcurrentDictionary<ulong, T> _cacheItems = new();
 
         public T this[int index]
         {
@@ -43,15 +43,14 @@ namespace PM.Collections
 
                 if (value != _items.Length && value > 0)
                 {
-                    var newItems = new PmStringArray(Filepath, value);
-                    _items = newItems;
+                    _items = CreateNewInternalArray(Filepath, value);
                 }
             }
         }
 
         public string Filepath { get; }
 
-        internal PmStringArray _items;
+        internal PmPrimitiveArray<ulong> _items;
         internal int _size;
         internal int _version;
         public const int DefaultCapacity = 4;
@@ -59,7 +58,17 @@ namespace PM.Collections
         public PmList(string filepath, int initialCapacity = DefaultCapacity)
         {
             Filepath = filepath;
-            _items = new PmStringArray(filepath, initialCapacity);
+            _items = CreateNewInternalArray(filepath, initialCapacity);
+        }
+
+        private PmPrimitiveArray<ulong> CreateNewInternalArray(string filepath, int length)
+        {
+            var pm = PmFactory.CreatePm(
+                new PmMemoryMappedFileConfig(
+                    filepath,
+                    sizeof(ulong) * length));
+
+            return PmPrimitiveArray.CreateNewArray<ulong>(pm, length);
         }
 
         [Obsolete("Use AddPersistent(T) instead")]
@@ -73,8 +82,8 @@ namespace PM.Collections
             if (item is null) throw new ArgumentNullException(nameof(item));
             if (index > _size) throw new ArgumentOutOfRangeException(nameof(item));
 
-            var pointer = _pointersToPersistentObjects.GetNext().ToString();
-            var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer);
+            var pointer = _pointersToPersistentObjects.GetNext();
+            var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString());
             var obj = _persistentFactory.CreateRootObjectByObject(item, pmFile);
 
             _items[index] = pointer;
@@ -91,7 +100,7 @@ namespace PM.Collections
             {
                 return result;
             }
-            var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer);
+            var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString());
             var obj = _persistentFactory.CreateRootObject<T>(pmFile);
 
             _cacheItems.TryAdd(pointer, obj);
@@ -108,10 +117,10 @@ namespace PM.Collections
                 throw new ArgumentException($"{nameof(item)} argument cannot be persistent object");
             }
 
-            var pointer = _pointersToPersistentObjects.GetNext().ToString();
+            var pointer = _pointersToPersistentObjects.GetNext();
             var obj = _persistentFactory.CreateRootObjectByObject(
                 item,
-                Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer));
+                Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()));
 
             _items[_size++] = pointer;
             _cacheItems[pointer] = (T)obj;
@@ -195,10 +204,10 @@ namespace PM.Collections
                 throw new ArgumentException($"{nameof(item)} argument cannot be persistent object");
             }
 
-            var pointer = _pointersToPersistentObjects.GetNext().ToString();
+            var pointer = _pointersToPersistentObjects.GetNext();
             var obj = _persistentFactory.CreateRootObjectByObject(
                 item,
-                Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer));
+                Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()));
 
             _items[_size++] = pointer;
             _cacheItems[pointer] = (T)obj;
@@ -231,7 +240,9 @@ namespace PM.Collections
             }
             _items[_size - 1] = default;
             _size--;
-            var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, _items[index])));
+            var pm = PmFactory.CreatePm(
+                new PmMemoryMappedFileConfig(
+                    Path.Combine(PmGlobalConfiguration.PmInternalsFolder, _items[index].ToString())));
             pm.DeleteFile();
         }
 

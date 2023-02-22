@@ -3,6 +3,7 @@ using PM.Configs;
 using PM.Tests.Common;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,14 +23,14 @@ namespace PM.Tests.Collections
             if (Constraints.UseFakePm)
             {
                 PmGlobalConfiguration.PmTarget = PmTargets.TraditionalMemoryMappedFile;
-                PmGlobalConfiguration.PmInternalsFolder = "D:\\Projetos\\Git\\quickfixPM\\Examples\\Executor\\bin\\Debug\\net6.0\\store";
+                PmGlobalConfiguration.PmInternalsFolder = "D:\\temp\\pm_tests";
             }
         }
 
         [Fact]
         public void OnAddPersistent_ShouldAdd()
         {
-            var list = new PmList<Foo>(nameof(OnAddPersistent_ShouldAdd));
+            var list = new PmList<Foo>(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, nameof(OnAddPersistent_ShouldAdd)));
 
             list.AddPersistent(new Foo { Bar = 1 });
             list.AddPersistent(new Foo { Bar = 2 });
