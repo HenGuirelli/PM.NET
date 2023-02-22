@@ -8,7 +8,7 @@ namespace PM.Collections
 {
     public class PmStringArray
     {
-        private readonly PmULongArray _pmULongArray;
+        private readonly PmPrimitiveArray<ulong> _pmULongArray;
         private static readonly PointersToPersistentObjects _pointersToPersistentObjects = new();
 
         public int Length => _pmULongArray.Length;
@@ -24,9 +24,9 @@ namespace PM.Collections
             var pm = PmFactory.CreatePm(
                 new PmMemoryMappedFileConfig(
                     filepath,
-                    sizeof(char) * (length + 1)));
-
-            _pmULongArray = new PmULongArray(pm, length);
+                    sizeof(ulong) * (length + 1)));
+            
+            _pmULongArray = PmPrimitiveArray.CreateNewArray<ulong>(pm, length);
         }
 
         private void Set(int index, string value)
