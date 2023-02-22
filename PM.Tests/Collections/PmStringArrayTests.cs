@@ -28,6 +28,23 @@ namespace PM.Tests.Collections
             Assert.Equal(val1, array[1]);
         }
 
+
+        [Fact]
+        public void OnSetAndGetNull_ShouldRunWithoutException()
+        {
+            var array = new PmStringArray(nameof(OnSetAndGetNull_ShouldRunWithoutException), length: 2);
+
+            Assert.Null(array[0]);
+            Assert.Null(array[1]);
+
+            var val = Guid.NewGuid().ToString();
+            array[1] = val;
+            Assert.Equal(val, array[1]);
+
+            array[1] = null;
+            Assert.Null(array[1]);
+        }
+
         [Fact]
         public void OnSetAndGetStringOutOfBounds_ShouldThrowException()
         {

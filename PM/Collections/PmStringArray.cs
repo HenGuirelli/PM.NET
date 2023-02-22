@@ -13,7 +13,7 @@ namespace PM.Collections
 
         public int Length => _pmULongArray.Length;
 
-        public string this[int index]
+        public string? this[int index]
         {
             get => Get(index);
             set => Set(index, value);
@@ -50,11 +50,13 @@ namespace PM.Collections
             _pmULongArray[index] = pointer;
         }
 
-        private string Get(int index)
+        private string? Get(int index)
         {
             if (index > Length) throw new IndexOutOfRangeException();
 
             var pointer = _pmULongArray[index];
+            if (pointer == 0) return null;
+
             var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString());
             var pm = PmFactory.CreatePm(
                 new PmMemoryMappedFileConfig(
