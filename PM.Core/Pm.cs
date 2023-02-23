@@ -18,6 +18,15 @@ namespace PM.Core
         {
             PmMemoryMappedFileConfig = pmMemoryMappedFile;
             if (!FileExists()) CreateFile();
+            else
+            {
+                var fileSize = FileSize();
+                if (fileSize > PmMemoryMappedFileConfig.SizeBytes)
+                {
+                    PmMemoryMappedFileConfig.SizeBytes = (int)fileSize;
+                }
+                
+            }
             _startAddress = MemoryMapFile();
         }
 

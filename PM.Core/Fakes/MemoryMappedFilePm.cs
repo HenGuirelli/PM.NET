@@ -24,6 +24,15 @@ namespace PM.Core.Fakes
         {
             PmMemoryMappedFileConfig = pmMemoryMappedFile;
             if (!FileExists()) CreateFile();
+            else
+            {
+                var fileSize = FileSize();
+                if (fileSize > PmMemoryMappedFileConfig.SizeBytes)
+                {
+                    PmMemoryMappedFileConfig.SizeBytes = (int)fileSize;
+                }
+
+            }
             _mapName = PmMemoryMappedFileConfig.FilePath.Replace("\\", "_").Replace("/", "_").Replace(":", "_");
             if (!_memoryMappedFiles.ContainsKey(_mapName))
             {
