@@ -139,6 +139,15 @@ namespace PM.Core.Fakes
             }
         }
 
+        public long FileSize()
+        {
+            if (_pmFake.TryGetValue(PmMemoryMappedFileConfig.FilePath, out var vet))
+            {
+                return vet.LongLength;
+            }
+            return 0;
+        }
+
         public void Lock()
         {
             _lock.EnterWriteLock();

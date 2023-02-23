@@ -103,6 +103,16 @@ namespace PM.Core
             fs.SetLength(PmMemoryMappedFileConfig.SizeBytes);
         }
 
+        public long FileSize()
+        {
+            using var fs = new FileStream(
+                PmMemoryMappedFileConfig.FilePath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.ReadWrite);
+            return fs.Length;
+        }
+
         public void Lock()
         {
             _lock.EnterWriteLock();

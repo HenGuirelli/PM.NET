@@ -82,10 +82,10 @@ namespace PM.Core.Fakes
             fs.SetLength(PmMemoryMappedFileConfig.SizeBytes);
         }
 
-        private void SetLengthExistingFile(string mapName, int sizeBytes)
+        private void SetLengthExistingFile(string fileName, int sizeBytes)
         {
             using var fs = new FileStream(
-                mapName,
+                fileName,
                 FileMode.Open,
                 FileAccess.Write,
                 FileShare.None);
@@ -101,6 +101,16 @@ namespace PM.Core.Fakes
         public bool FileExists()
         {
             return File.Exists(PmMemoryMappedFileConfig.FilePath);
+        }
+
+        public long FileSize()
+        {
+            using var fs = new FileStream(
+                PmMemoryMappedFileConfig.FilePath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.ReadWrite);            
+            return fs.Length;
         }
 
         public byte[] Load(int byteCount, int offset = 0)
@@ -146,6 +156,12 @@ namespace PM.Core.Fakes
             {
                 Store(values[i], offset + (i * sizeof(byte)));
             }
+
+            if (_memoryMappedFiles.TryGetValue(_mapName, out var mmf))
+            {
+                mmf.MemoryMappedViewAccessor.Flush();
+            }
+
             return true;
         }
 
@@ -163,6 +179,7 @@ namespace PM.Core.Fakes
         {
             if (_memoryMappedFiles.TryGetValue(_mapName, out var mmf))
             {
+                mmf.MemoryMappedViewAccessor.Flush();
                 mmf.MemoryMappedViewAccessor?.Dispose();
                 mmf.MemoryMappedFile?.Dispose();
                 _memoryMappedFiles.TryRemove(_mapName, out _);

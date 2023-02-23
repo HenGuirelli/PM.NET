@@ -12,6 +12,7 @@
         void CreateFile();
         void DeleteFile();
         bool FileExists();
+        long FileSize();
 
         void Lock();
         void Release();
