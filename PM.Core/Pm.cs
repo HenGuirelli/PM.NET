@@ -2,31 +2,18 @@
 
 namespace PM.Core
 {
-    public class Pm : IPm
+    public class Pm : FileBasedStorage
     {
         private const string PmemLibHelperPath = "libpmem_helper.so";
         private const string PmemLibPath = "libpmem.so";
 
         private readonly IntPtr _startAddress;
-        private readonly ReaderWriterLockSlim _lock = new();
-
-        public PmMemoryMappedFileConfig PmMemoryMappedFileConfig { get; }
 
         public Pm(string pmMemoryMappedFilePath) : this(new PmMemoryMappedFileConfig(pmMemoryMappedFilePath)) { }
 
         public Pm(PmMemoryMappedFileConfig pmMemoryMappedFile)
+            : base(pmMemoryMappedFile)
         {
-            PmMemoryMappedFileConfig = pmMemoryMappedFile;
-            if (!FileExists()) CreateFile();
-            else
-            {
-                var fileSize = FileSize();
-                if (fileSize > PmMemoryMappedFileConfig.SizeBytes)
-                {
-                    PmMemoryMappedFileConfig.SizeBytes = (int)fileSize;
-                }
-                
-            }
             _startAddress = MemoryMapFile();
         }
 
@@ -40,7 +27,7 @@ namespace PM.Core
 
         [DllImport(PmemLibHelperPath, EntryPoint = "pmemclr_pmem_memcpy_persist")]
         private static extern IntPtr _PmMemcpyPersist(IntPtr address, int sizeBytes);
-        public byte[] Load(int byteCount, int offset = 0)
+        public override byte[] Load(int byteCount, int offset = 0)
         {
             var result = new byte[byteCount];
             for (int i = 0; i < byteCount; i++)
@@ -49,7 +36,7 @@ namespace PM.Core
             }
             return result;
         }
-        public byte Load(int offset = 0)
+        public override byte Load(int offset = 0)
         {
             try
             {
@@ -66,7 +53,7 @@ namespace PM.Core
         #region Store
         [DllImport(PmemLibPath, EntryPoint = "pmem_memset_persist")]
         private static extern bool PmMemsetPersist(IntPtr address, int value, int count);
-        public bool Store(byte[] values, int offset = 0)
+        public override bool Store(byte[] values, int offset = 0)
         {
             int count = 0;
             foreach (var value in values)
@@ -79,7 +66,7 @@ namespace PM.Core
             return true;
         }
 
-        public bool Store(byte value, int offset = 0)
+        public override bool Store(byte value, int offset = 0)
         {
             try
             {
@@ -92,44 +79,5 @@ namespace PM.Core
             }
         }
         #endregion
-
-        public void DeleteFile()
-        {
-            File.Delete(PmMemoryMappedFileConfig.FilePath);
-        }
-
-        public bool FileExists()
-        {
-            return File.Exists(PmMemoryMappedFileConfig.FilePath);
-        }
-
-        public void CreateFile()
-        {
-            var directory = Path.GetDirectoryName(PmMemoryMappedFileConfig.FilePath);
-            if (!string.IsNullOrWhiteSpace(directory))
-                Directory.CreateDirectory(directory);
-            using var fs = new FileStream(PmMemoryMappedFileConfig.FilePath, FileMode.Create, FileAccess.Write, FileShare.None);
-            fs.SetLength(PmMemoryMappedFileConfig.SizeBytes);
-        }
-
-        public long FileSize()
-        {
-            using var fs = new FileStream(
-                PmMemoryMappedFileConfig.FilePath,
-                FileMode.Open,
-                FileAccess.Read,
-                FileShare.ReadWrite);
-            return fs.Length;
-        }
-
-        public void Lock()
-        {
-            _lock.EnterWriteLock();
-        }
-
-        public void Release()
-        {
-            _lock.ExitWriteLock();
-        }
     }
 }
