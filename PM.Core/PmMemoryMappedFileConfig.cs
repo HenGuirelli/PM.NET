@@ -9,7 +9,7 @@
         /// <summary>
         /// Indicates the total size in bytes of the memory-mapped file.
         /// </summary>
-        public int SizeBytes { get; }
+        public int SizeBytes { get; set; }
         public const int DefaultPmFileSizeBytes = 4096;
 
         public PmMemoryMappedFileConfig(string name, int size = DefaultPmFileSizeBytes)
