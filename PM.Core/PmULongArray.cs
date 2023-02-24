@@ -16,11 +16,16 @@
                         count++;
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
 
                 }
-                Length = count;
+                if (count > length)
+                    Length = count;
+            }
+            else
+            {
+                Length = length;
             }
         }
 
