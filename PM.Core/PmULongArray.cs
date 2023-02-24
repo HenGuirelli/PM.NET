@@ -5,6 +5,23 @@
         public PmULongArray(IPm pm, int length)
             : base(pm, length)
         {
+            int count = 0;
+            var fileSize = pm.FileSize();
+            if (pm.FileExists())
+            {
+                try
+                {
+                    while ((sizeof(ulong) * count) < fileSize && InternalGet(count) != 0)
+                    {
+                        count++;
+                    }
+                }
+                catch(Exception ex)
+                {
+
+                }
+                Length = count;
+            }
         }
 
         protected override void InternalSet(int index, ulong value)

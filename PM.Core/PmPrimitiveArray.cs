@@ -4,7 +4,7 @@
         where T : struct
     {
         protected readonly PmCSharpDefinedTypes _cSharpDefinedPm;
-        public int Length { get; private set; }
+        public int Length { get; protected set; }
 
         public T this[int index]
         {
