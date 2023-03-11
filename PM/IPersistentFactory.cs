@@ -5,6 +5,7 @@ using PM.Factories;
 using PM.Managers;
 using PM.PmContent;
 using PM.Proxies;
+using System.IO;
 
 namespace PM
 {
@@ -59,9 +60,21 @@ namespace PM
         object CreateRootObject(Type type, string pmSymbolicLink, int fileSizeBytes = 4096)
         {
             var generator = new ProxyGenerator();
-            var pointer = _pointersToPersistentObjects.GetNext();
-            var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString());
-            File.CreateSymbolicLink(pmSymbolicLink, pmFile);
+
+            var pointer = default(string);
+            var pmFile = default(string);
+            if (!File.Exists(pmSymbolicLink))
+            {
+                pointer = _pointersToPersistentObjects.GetNext().ToString();
+                pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer);
+                File.CreateSymbolicLink(pmSymbolicLink, pmFile);
+            }
+            else if ((File.GetAttributes(pmSymbolicLink) & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint)
+            {
+                var fi = new FileInfo(pmSymbolicLink);
+                pointer = fi.LinkTarget;
+                pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer);
+            }
             var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(pmFile, fileSizeBytes));
 
             var pmContentGenerator = new PmContentGenerator(
