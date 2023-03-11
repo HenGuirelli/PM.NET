@@ -2,11 +2,7 @@
 using PM.Configs;
 using PM.Tests.Common;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace PM.Tests.Collections
@@ -31,6 +27,7 @@ namespace PM.Tests.Collections
         public void OnAddPersistent_ShouldAdd()
         {
             var list = new PmList<Foo>(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, nameof(OnAddPersistent_ShouldAdd)));
+            list.Clear();
 
             list.AddPersistent(new Foo { Bar = 1 });
             list.AddPersistent(new Foo { Bar = 2 });
@@ -42,10 +39,33 @@ namespace PM.Tests.Collections
         }
 
         [Fact]
+        public void OnOpenListWithFileAlreadyExists()
+        {
+            var count = 10;
+            var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, nameof(OnAddPersistent_ShouldAdd));
+            var list1 = new PmList<Foo>(path);
+            list1.Clear();
+
+            for (int i = 0; i < count; i++)
+            {
+                list1.AddPersistent(new Foo { Bar = i });
+            }
+
+            var list2 = new PmList<Foo>(path);
+            Assert.Equal(count, list2.Count);
+
+            for (int i = 0; i < count; i++)
+            {
+                Assert.Equal(i, list2[i].Bar);
+            }
+        }
+
+        [Fact]
         public void OnAddPersistentWhenOverflowDefaultCapacity_ShouldAdd()
         {
             var count = 300;
             var list = new PmList<Foo>(nameof(OnAddPersistentWhenOverflowDefaultCapacity_ShouldAdd));
+            list.Clear();
 
             for (int i = 0; i < count; i++)
             {
@@ -63,6 +83,7 @@ namespace PM.Tests.Collections
         {
             var count = 3;
             var list = new PmList<Foo>(nameof(OnClear_ShouldClearEntireList));
+            list.Clear();
 
             for (int i = 0; i < count; i++)
             {
@@ -78,6 +99,7 @@ namespace PM.Tests.Collections
         public void OnSetsAndGets_ShouldRunCorretly()
         {
             var list = new PmList<Foo>(nameof(OnSetsAndGets_ShouldRunCorretly));
+            list.Clear();
 
             list.AddPersistent(new Foo { Bar = 1 });
             list.AddPersistent(new Foo { Bar = 2 });
@@ -110,7 +132,8 @@ namespace PM.Tests.Collections
         {
             var count = 300;
             var list = new PmList<Foo>(nameof(OnCopyTo_ShouldCopyEntireList));
-            
+            list.Clear();
+
             for (int i = 0; i < count / 2; i++)
             {
                 list.AddPersistent(new Foo { Bar = i });
@@ -127,6 +150,7 @@ namespace PM.Tests.Collections
         public void OnRemove_ShouldCopyEntireList()
         {
             var list = new PmList<Foo>(nameof(OnRemove_ShouldCopyEntireList));
+            list.Clear();
 
             list.AddPersistent(new Foo { Bar = 1 });
             var item = list.AddPersistent(new Foo { Bar = 2 });

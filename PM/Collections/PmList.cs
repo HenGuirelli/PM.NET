@@ -61,7 +61,10 @@ namespace PM.Collections
             _items = CreateNewInternalArray(filepath, initialCapacity);
             for(int i = 0; i < _items.Length; i++)
             {
-                if (_items[i] != 0) _size++;
+                if (_items[i] != 0)
+                {
+                    _size++;
+                }
             }
         }
 
