@@ -10,8 +10,8 @@ namespace PM.Tests.Collections
     {
         public PmStringArrayTests()
         {
-            if (Constraints.UseFakePm)
-                PmGlobalConfiguration.PmTarget = PmTargets.InVolatileMemory;
+            PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
+            PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
         }
 
         [Fact]

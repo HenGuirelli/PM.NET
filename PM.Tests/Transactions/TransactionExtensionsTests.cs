@@ -16,8 +16,8 @@ namespace PM.Transactions.Tests
     {
         public TransactionExtensionsTests()
         {
-            if (Constraints.UseFakePm)
-                PmGlobalConfiguration.PmTarget = PmTargets.InVolatileMemory;
+            PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
+            PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
         }
 
         [Fact]

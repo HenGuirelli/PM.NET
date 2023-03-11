@@ -16,11 +16,8 @@ namespace PM.Tests.Collections
     {
         public PmListTests()
         {
-            if (Constraints.UseFakePm)
-            {
-                PmGlobalConfiguration.PmTarget = PmTargets.TraditionalMemoryMappedFile;
-                PmGlobalConfiguration.PmInternalsFolder = "D:\\temp\\pm_tests";
-            }
+            PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
+            PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
         }
 
         [Fact]

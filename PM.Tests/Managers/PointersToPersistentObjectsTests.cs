@@ -15,10 +15,8 @@ namespace PM.Tests.Managers
     {
         public PointersToPersistentObjectsTests()
         {
-            if (Constraints.UseFakePm)
-                PmGlobalConfiguration.PmTarget = PmTargets.InVolatileMemory;
-            else
-                File.Delete(PmGlobalConfiguration.PmInternalsFolder);
+            PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
+            PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
         }
 
         [Fact]

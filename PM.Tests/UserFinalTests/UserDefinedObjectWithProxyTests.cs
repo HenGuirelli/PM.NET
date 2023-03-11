@@ -12,8 +12,8 @@ namespace PM.Tests.UserFinalTests
 
         public UserDefinedObjectWithProxyTests()
         {
-            if (Constraints.UseFakePm)
-                PmGlobalConfiguration.PmTarget = PmTargets.InVolatileMemory;
+            PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
+            PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
         }
 
         [Fact]

@@ -13,8 +13,8 @@ namespace PM.Tests
     {
         public PmUserDefinedTypesTests()
         {
-            if (Constraints.UseFakePm)
-                PmGlobalConfiguration.PmTarget = PmTargets.InVolatileMemory;
+            PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
+            PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
         }
 
         [Fact]

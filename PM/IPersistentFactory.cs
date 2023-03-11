@@ -1,4 +1,5 @@
 ﻿using Castle.DynamicProxy;
+using PM.Configs;
 using PM.Core;
 using PM.Factories;
 using PM.Managers;
@@ -55,10 +56,13 @@ namespace PM
             return proxyObj;
         }
 
-        object CreateRootObject(Type type, string pmFilename, int fileSizeBytes = 4096)
+        object CreateRootObject(Type type, string pmSymbolicLink, int fileSizeBytes = 4096)
         {
             var generator = new ProxyGenerator();
-            var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(pmFilename, fileSizeBytes));
+            var pointer = _pointersToPersistentObjects.GetNext();
+            var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString());
+            File.CreateSymbolicLink(pmSymbolicLink, pmFile);
+            var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(pmFile, fileSizeBytes));
 
             var pmContentGenerator = new PmContentGenerator(
                 new PmCSharpDefinedTypes(pm),
@@ -70,7 +74,8 @@ namespace PM
                 new PmManager(
                     new PmUserDefinedTypes(pm, objectPropertiesInfoMapper),
                     objectPropertiesInfoMapper),
-                type);
+                type,
+                pointer);
 
             return generator.CreateClassProxy(type, interceptor);
         }

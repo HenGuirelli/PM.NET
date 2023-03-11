@@ -1,5 +1,6 @@
 using PM.Configs;
 using PM.Examples.UserDefinedClassExampleDomainClasses;
+using PM.Tests.Common;
 using Xunit;
 
 namespace PM.Examples
@@ -8,9 +9,8 @@ namespace PM.Examples
     {
         public UserDefinedClassExample()
         {
-            // Uses persistent memory so you don't need
-            // the hardware for persistent memory
-            PmGlobalConfiguration.PmTarget = PmTargets.InVolatileMemory;
+            PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
+            PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
         }
 
         [Fact]

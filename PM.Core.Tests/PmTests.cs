@@ -1,3 +1,4 @@
+using PM.Configs;
 using PM.Core.Fakes;
 using PM.Tests.Common;
 using System;
@@ -59,11 +60,15 @@ namespace PM.Core.Tests
 
         private IPm CreatePm(string mappedMemoryFilePath)
         {
-            if (Constraints.UseFakePm)
+            if (Constraints.PmTarget == PmTargets.InVolatileMemory)
             {
                 return new FakeInMemoryPm(new PmMemoryMappedFileConfig(mappedMemoryFilePath));
             }
-            return new Pm(mappedMemoryFilePath);
+            if (Constraints.PmTarget == PmTargets.PM)
+            {
+                return new Pm(mappedMemoryFilePath);
+            }
+            return new MemoryMappedFilePm(new PmMemoryMappedFileConfig(mappedMemoryFilePath));
         }
     }
 }

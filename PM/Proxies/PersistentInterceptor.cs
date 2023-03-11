@@ -15,11 +15,14 @@ namespace PM.Proxies
         private readonly Type _targetType;
         private readonly Dictionary<MethodInfo, PropertyInfo> _methodToPropCache = new();
 
-        public PersistentInterceptor(PmManager pmManager, Type targetType)
+        public ulong FileAddress { get; }
+
+        public PersistentInterceptor(PmManager pmManager, Type targetType, ulong fileAddress)
         {
             OriginalFileInterceptorRedirect = pmManager;
             PmMemoryMappedFile = pmManager.PmMemoryMappedFile;
             _targetType = targetType;
+            FileAddress = fileAddress;
         }
 
         public void Intercept(IInvocation invocation)

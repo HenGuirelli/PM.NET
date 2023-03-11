@@ -13,8 +13,7 @@ namespace PM.Core.Tests
 
         public PmPrimitiveArrayTests()
         {
-            if (Constraints.UseFakePm)
-                PmGlobalConfiguration.PmTarget = PmTargets.TraditionalMemoryMappedFile;
+            PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
         }
 
         [Fact]
