@@ -17,12 +17,12 @@ namespace PM.Proxies
 
         public string FilePointer { get; }
 
-        public PersistentInterceptor(PmManager pmManager, Type targetType, string fileAddress)
+        public PersistentInterceptor(PmManager pmManager, Type targetType, string filePointer)
         {
-            OriginalFileInterceptorRedirect = pmManager;
+            OriginalFileInterceptorRedirect = pmManager ?? throw new ArgumentNullException(nameof(pmManager));
             PmMemoryMappedFile = pmManager.PmMemoryMappedFile;
-            _targetType = targetType;
-            FilePointer = fileAddress;
+            _targetType = targetType ?? throw new ArgumentNullException(nameof(targetType));
+            FilePointer = filePointer ?? throw new ArgumentNullException(nameof(filePointer));
         }
 
         public void Intercept(IInvocation invocation)
