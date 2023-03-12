@@ -5,7 +5,6 @@ using Xunit;
 
 namespace PM.Tests.UserFinalTests
 {
-    [Collection("PM.UnitTests")]
     public class UserDefinedObjectWithProxyTests : UnitTest
     {
         private static readonly Random _random = new();
@@ -14,7 +13,7 @@ namespace PM.Tests.UserFinalTests
         public void ExampleWithPrimitives()
         {
             IPersistentFactory persistentFactory = new PersistentFactory();
-            var obj = persistentFactory.CreateRootObject<ComplexClassWithPrimitiveProperties>(nameof(ExampleWithPrimitives));
+            var obj = persistentFactory.CreateRootObject<ComplexClassWithPrimitiveProperties>(CreateFilePath(nameof(ExampleWithPrimitives)));
 
             obj.Prop1 = int.MaxValue;
             obj.Prop2 = float.MaxValue;
@@ -49,7 +48,7 @@ namespace PM.Tests.UserFinalTests
         public void ExampleFullObject()
         {
             IPersistentFactory persistentFactory = new PersistentFactory();
-            var obj = persistentFactory.CreateRootObject<ComplexClassRoot>(nameof(ExampleFullObject));
+            var obj = persistentFactory.CreateRootObject<ComplexClassRoot>(CreateFilePath(nameof(ExampleFullObject)));
 
             obj.PropStr = "Hello World!";
             obj.PropInt = int.MinValue;
@@ -90,7 +89,7 @@ namespace PM.Tests.UserFinalTests
         public void ExampleFullObjectSetInAPersistentObject()
         {
             IPersistentFactory persistentFactory = new PersistentFactory();
-            var obj = persistentFactory.CreateRootObject<ComplexClassRoot>(nameof(ExampleFullObjectSetInAPersistentObject));
+            var obj = persistentFactory.CreateRootObject<ComplexClassRoot>(CreateFilePath(nameof(ExampleFullObjectSetInAPersistentObject)));
 
             var inMemoryObject = new ComplexClassInner1
             {
@@ -117,8 +116,8 @@ namespace PM.Tests.UserFinalTests
         public void ExampleMergeTwoPersistentObjects()
         {
             IPersistentFactory persistentFactory = new PersistentFactory();
-            var obj1 = persistentFactory.CreateRootObject<ComplexClassRoot>(nameof(ExampleMergeTwoPersistentObjects));
-            var obj2 = persistentFactory.CreateRootObject<ComplexClassInner1>(nameof(ExampleMergeTwoPersistentObjects) + "2");
+            var obj1 = persistentFactory.CreateRootObject<ComplexClassRoot>(CreateFilePath(nameof(ExampleMergeTwoPersistentObjects)));
+            var obj2 = persistentFactory.CreateRootObject<ComplexClassInner1>(CreateFilePath(nameof(ExampleMergeTwoPersistentObjects) + "2"));
 
             Assert.Throws<ApplicationException>(() => obj1.PropComplexClassInner1 = obj2);
         }
@@ -127,7 +126,7 @@ namespace PM.Tests.UserFinalTests
         public void ExampleReadReferenceObjBeforeWrite_ShouldGetNull()
         {
             IPersistentFactory persistentFactory = new PersistentFactory();
-            var obj1 = persistentFactory.CreateRootObject<ComplexClassRoot>(nameof(ExampleReadReferenceObjBeforeWrite_ShouldGetNull));
+            var obj1 = persistentFactory.CreateRootObject<ComplexClassRoot>(CreateFilePath(nameof(ExampleReadReferenceObjBeforeWrite_ShouldGetNull)));
             Assert.Null(obj1.PropStr);
             Assert.Null(obj1.PropComplexClassInner1);
         }

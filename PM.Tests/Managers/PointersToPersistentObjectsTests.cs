@@ -10,7 +10,6 @@ using Xunit;
 
 namespace PM.Tests.Managers
 {
-    [Collection("PM.UnitTests")]
     public class PointersToPersistentObjectsTests : UnitTest
     {
         [Fact]

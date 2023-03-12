@@ -1,10 +1,10 @@
 ﻿using PM.Core.Fakes;
+using PM.Tests.Common;
 using Xunit;
 
 namespace PM.Core.Tests.Fakes
 {
-    [Collection("PM.UnitTests")]
-    public class MemoryMappedFilePmTests
+    public class MemoryMappedFilePmTests : UnitTest
     {
         [Fact]
         public void OnStoreAndLoadByte_ShouldWriteAndLoadCorrectly()

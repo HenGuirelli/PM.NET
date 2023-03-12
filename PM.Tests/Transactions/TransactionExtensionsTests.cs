@@ -10,14 +10,13 @@ using System.Collections.Concurrent;
 
 namespace PM.Transactions.Tests
 {
-    [Collection("PM.UnitTests")]
     public class TransactionExtensionsTests : UnitTest
     {
         [Fact]
         public void OnRunTransaction_ShouldCommitValues()
         {
             IPersistentFactory factory = new PersistentFactory();
-            var obj = factory.CreateRootObject<DomainObject>(nameof(OnRunTransaction_ShouldCommitValues));
+            var obj = factory.CreateRootObject<DomainObject>(CreateFilePath(nameof(OnRunTransaction_ShouldCommitValues)));
 
             obj.Transaction(() =>
             {
@@ -56,7 +55,7 @@ namespace PM.Transactions.Tests
         public void OnRunTransaction_ShouldValuesInnerTransactionOnlyVisibleInsideTransction()
         {
             IPersistentFactory factory = new PersistentFactory();
-            var obj = factory.CreateRootObject<DomainObject>(nameof(OnRunTransaction_ShouldValuesInnerTransactionOnlyVisibleInsideTransction));
+            var obj = factory.CreateRootObject<DomainObject>(CreateFilePath(nameof(OnRunTransaction_ShouldValuesInnerTransactionOnlyVisibleInsideTransction)));
 
             var t1 = Task.Run(() =>
             {
@@ -90,7 +89,7 @@ namespace PM.Transactions.Tests
             PmGlobalConfiguration.PmTarget = PmTargets.TraditionalMemoryMappedFile;
 
             IPersistentFactory factory = new PersistentFactory();
-            var obj = factory.CreateRootObject<DomainObject>(nameof(OnApplyPendingTransactions_WhenTransactionCrashCopingToOriginalFile_ShouldApplyTransaction));
+            var obj = factory.CreateRootObject<DomainObject>(CreateFilePath(nameof(OnApplyPendingTransactions_WhenTransactionCrashCopingToOriginalFile_ShouldApplyTransaction)));
 
             var transactionManager = new TransactionManager<DomainObject>(obj);
             transactionManager.Begin();
@@ -102,7 +101,7 @@ namespace PM.Transactions.Tests
 
             TransactionManager<DomainObject>.ApplyPendingTransactions();
 
-            var obj2 = factory.CreateRootObject<DomainObject>(nameof(OnApplyPendingTransactions_WhenTransactionCrashCopingToOriginalFile_ShouldApplyTransaction));
+            var obj2 = factory.CreateRootObject<DomainObject>(CreateFilePath(nameof(OnApplyPendingTransactions_WhenTransactionCrashCopingToOriginalFile_ShouldApplyTransaction)));
             Assert.Equal(int.MaxValue, obj2.PropInt);
 
             PmGlobalConfiguration.PmTarget = oldPmTarget;
@@ -143,7 +142,7 @@ namespace PM.Transactions.Tests
             for (int i = 0; i < parallelDegree; i++)
             {
                 queue.Enqueue(objectGeneratorWithRandomData.Generate());
-                queueobj.Enqueue(factory.CreateRootObject<DomainObject>(nameof(OnMultipleTransactionRunnings_ShouldNotThrowEception)));
+                queueobj.Enqueue(factory.CreateRootObject<DomainObject>(CreateFilePath(nameof(OnMultipleTransactionRunnings_ShouldNotThrowEception))));
             }
 
             var tasks = new List<Task>();

@@ -11,7 +11,7 @@ namespace PM.Examples
         public void BasicSetAndGet()
         {
             IPersistentFactory factory = new PersistentFactory();
-            var obj = factory.CreateRootObject<BasicSetAndGetClass>("PmFilename");
+            var obj = factory.CreateRootObject<BasicSetAndGetClass>(CreateFilePath("PmFilename"));
 
             // Call persitent memory (PM) and write
             // content into file called "PmFilename"

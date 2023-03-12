@@ -7,7 +7,6 @@ using Xunit;
 
 namespace PM.Tests
 {
-    [Collection("PM.UnitTests")]
     public class PmUserDefinedTypesTests : UnitTest
     {
         [Fact]
