@@ -10,10 +10,12 @@ namespace PM.Core.Tests
         [Fact]
         public void OnSetAndGet_ShouldRunWithoutException()
         {
+            var length = 2;
             var array = PmPrimitiveArray.CreateNewArray<ulong>(
                 PmFactory.CreatePm(new PmMemoryMappedFileConfig(
-                    CreateFilePath(nameof(OnSetAndGet_ShouldRunWithoutException)))),
-                    length: 2);
+                    CreateFilePath(nameof(OnSetAndGet_ShouldRunWithoutException)),
+                    size: length * sizeof(ulong))),
+                    length: length);
 
             array[0] = ulong.MaxValue;
             array[1] = ulong.MinValue;

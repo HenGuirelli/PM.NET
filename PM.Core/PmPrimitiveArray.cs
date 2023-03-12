@@ -1,10 +1,19 @@
-﻿namespace PM.Core
+﻿using System;
+
+namespace PM.Core
 {
+    /// <summary>
+    /// Create a memory-mapped file:
+    ///     The file's first value (offset = 0) is the array length (Int32).
+    ///     Subsequent values are the array values.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public abstract class PmPrimitiveArray<T>
         where T : struct
     {
         protected readonly PmCSharpDefinedTypes _cSharpDefinedPm;
         public int Length { get; protected set; }
+        public const int MaxLength = int.MaxValue;
 
         public T this[int index]
         {

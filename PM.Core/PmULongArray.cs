@@ -5,28 +5,19 @@
         public PmULongArray(IPm pm, int length)
             : base(pm, length)
         {
-            int count = 0;
-            var fileSize = pm.FileSize();
             if (pm.FileExists())
             {
-                while ((sizeof(ulong) * count) < fileSize && InternalGet(count) != 0)
-                {
-                    count++;
-                }
-
-
-                if (count > length)
-                    Length = count;
+                var fileSize = pm.FileSize();
+                var oldArrayLength = (int)fileSize / sizeof(ulong);
+                if (oldArrayLength != length)
+                    throw new ArgumentException($"argument {nameof(length)}={length} invalid. Array alread defined with length={oldArrayLength}");
             }
-            else
-            {
-                Length = length;
-            }
+            Length = length;
         }
 
         protected override void InternalSet(int index, ulong value)
         {
-            _cSharpDefinedPm.WriteULong(value, sizeof(ulong) * index);
+            _cSharpDefinedPm.WriteULong(value, (sizeof(ulong) * index));
         }
 
         protected override ulong InternalGet(int index)
