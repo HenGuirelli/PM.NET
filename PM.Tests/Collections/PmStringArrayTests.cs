@@ -10,7 +10,9 @@ namespace PM.Tests.Collections
         [Fact]
         public void OnSetAndGet_ShouldRunWithoutException()
         {
-            var array = new PmStringArray(CreateFilePath(nameof(OnSetAndGet_ShouldRunWithoutException)), length: 2);
+            var array = new PmStringArray(
+                CreateFilePath(nameof(OnSetAndGet_ShouldRunWithoutException)),
+                length: 2);
 
             var val0 = Guid.NewGuid().ToString();
             var val1 = Guid.NewGuid().ToString();

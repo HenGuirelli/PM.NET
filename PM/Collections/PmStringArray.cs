@@ -21,11 +21,7 @@ namespace PM.Collections
 
         public PmStringArray(string filepath, int length)
         {
-            var pm = PmFactory.CreatePm(
-                new PmMemoryMappedFileConfig(
-                    filepath,
-                    sizeof(ulong) * (length + 1)));
-            
+            var pm = CollectionsPmFactory.CreateNewPm(filepath, length);            
             _pmULongArray = PmPrimitiveArray.CreateNewArray<ulong>(pm, length);
         }
 
