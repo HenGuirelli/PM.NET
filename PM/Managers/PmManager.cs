@@ -55,12 +55,7 @@ namespace PM.Managers
                     // User Defined Objects or reference types
                     if (value is string valuestr)
                     {
-                        var pointer = _pm.GetULongPropertValue(property);
-                        var pointerAlreadyExists = pointer != 0;
-                        if (!pointerAlreadyExists)
-                        {
-                            pointer = _pointersToPersistentObjects.GetNext();
-                        }
+                        ulong pointer = GetPointerIfExistsOrNew(property);
 
                         var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString())));
                         var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
@@ -71,8 +66,9 @@ namespace PM.Managers
                     }
                     else
                     {
+                        ulong pointer = GetPointerIfExistsOrNew(property);
+
                         // User defined objects
-                        var pointer = _pointersToPersistentObjects.GetNext();
                         IPersistentFactory persistentFactory = new PersistentFactory();
                         var proxy = persistentFactory.CreateInternalObjectByObject(
                             value,
@@ -81,6 +77,18 @@ namespace PM.Managers
                     }
                 }
             }
+        }
+
+        private ulong GetPointerIfExistsOrNew(PropertyInfo property)
+        {
+            var pointer = _pm.GetULongPropertValue(property);
+            var pointerAlreadyExists = pointer != 0;
+            if (!pointerAlreadyExists)
+            {
+                pointer = _pointersToPersistentObjects.GetNext();
+            }
+
+            return pointer;
         }
 
         public object? GetValuePm(PropertyInfo property)
