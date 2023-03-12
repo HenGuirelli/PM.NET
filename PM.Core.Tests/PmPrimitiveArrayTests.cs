@@ -27,10 +27,12 @@ namespace PM.Core.Tests
         [Fact]
         public void OnSetAndGetOutOfBounds_ShouldThrowException()
         {
+            var length = 1;
             var array = PmPrimitiveArray.CreateNewArray<ulong>(
                 PmFactory.CreatePm(new PmMemoryMappedFileConfig(
-                     CreateFilePath(nameof(OnSetAndGetOutOfBounds_ShouldThrowException)))),
-                    length: 1);
+                     CreateFilePath(nameof(OnSetAndGetOutOfBounds_ShouldThrowException)),
+                     size: length * sizeof(ulong))),
+                     length: length);
 
             Assert.Throws<IndexOutOfRangeException>(() => array[1] = ulong.MaxValue);
             Assert.Throws<IndexOutOfRangeException>(() => array[1]);
@@ -40,15 +42,16 @@ namespace PM.Core.Tests
         [Fact]
         public void OnHighVolume_ShouldNotThrowException()
         {
-            var count = 500;
+            var length = 500;
             var array = PmPrimitiveArray.CreateNewArray<ulong>(
                 PmFactory.CreatePm(new PmMemoryMappedFileConfig(
-                     CreateFilePath(nameof(OnHighVolume_ShouldNotThrowException)))),
-                    length: count);
+                     CreateFilePath(nameof(OnHighVolume_ShouldNotThrowException)),
+                     size: length * sizeof(ulong))),
+                     length: length);
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < length; i++)
             {
-                array[i] = (ulong)count;
+                array[i] = (ulong)length;
             }
         }
     }
