@@ -1,4 +1,3 @@
-using PM.Configs;
 using PM.Core;
 using PM.Factories;
 using PM.PmContent;
@@ -9,14 +8,8 @@ using Xunit;
 namespace PM.Tests
 {
     [Collection("PM.UnitTests")]
-    public class PmUserDefinedTypesTests
+    public class PmUserDefinedTypesTests : UnitTest
     {
-        public PmUserDefinedTypesTests()
-        {
-            PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
-            PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
-        }
-
         [Fact]
         public void OnUpdateAndGetIntPropertyValue_ShouldExecWithoutException()
         {

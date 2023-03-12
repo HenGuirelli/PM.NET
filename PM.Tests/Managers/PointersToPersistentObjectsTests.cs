@@ -11,14 +11,8 @@ using Xunit;
 namespace PM.Tests.Managers
 {
     [Collection("PM.UnitTests")]
-    public class PointersToPersistentObjectsTests
+    public class PointersToPersistentObjectsTests : UnitTest
     {
-        public PointersToPersistentObjectsTests()
-        {
-            PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
-            PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
-        }
-
         [Fact]
         public void OnGetNext_ShouldGetNextPointer()
         {

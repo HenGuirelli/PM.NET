@@ -6,14 +6,8 @@ using Xunit;
 
 namespace PM.Tests.Collections
 {
-    public class PmStringArrayTests
+    public class PmStringArrayTests : UnitTest
     {
-        public PmStringArrayTests()
-        {
-            PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
-            PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
-        }
-
         [Fact]
         public void OnSetAndGet_ShouldRunWithoutException()
         {

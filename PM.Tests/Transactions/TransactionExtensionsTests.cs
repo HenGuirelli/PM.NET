@@ -2,7 +2,6 @@ using Xunit;
 using PM.Configs;
 using System.Threading.Tasks;
 using PM.Tests.Common;
-using System;
 using Bogus;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,14 +11,8 @@ using System.Collections.Concurrent;
 namespace PM.Transactions.Tests
 {
     [Collection("PM.UnitTests")]
-    public class TransactionExtensionsTests
+    public class TransactionExtensionsTests : UnitTest
     {
-        public TransactionExtensionsTests()
-        {
-            PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
-            PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
-        }
-
         [Fact]
         public void OnRunTransaction_ShouldCommitValues()
         {

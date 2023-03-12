@@ -12,14 +12,8 @@ namespace PM.Tests.Collections
         public virtual int Bar { get; set; }
     }
 
-    public class PmListTests
+    public class PmListTests : UnitTest
     {
-        public PmListTests()
-        {
-            PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
-            PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
-        }
-
         [Fact]
         public void OnAddPersistent_ShouldAdd()
         {

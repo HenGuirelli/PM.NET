@@ -6,15 +6,9 @@ using Xunit;
 namespace PM.Tests.UserFinalTests
 {
     [Collection("PM.UnitTests")]
-    public class UserDefinedObjectWithProxyTests
+    public class UserDefinedObjectWithProxyTests : UnitTest
     {
         private static readonly Random _random = new();
-
-        public UserDefinedObjectWithProxyTests()
-        {
-            PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
-            PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
-        }
 
         [Fact]
         public void ExampleWithPrimitives()

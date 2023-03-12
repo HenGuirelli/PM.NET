@@ -5,14 +5,8 @@ using Xunit;
 
 namespace PM.Examples
 {
-    public class UserDefinedClassExample
+    public class UserDefinedClassExample : UnitTest
     {
-        public UserDefinedClassExample()
-        {
-            PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
-            PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
-        }
-
         [Fact]
         public void BasicSetAndGet()
         {
