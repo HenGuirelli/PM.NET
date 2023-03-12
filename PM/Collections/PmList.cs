@@ -59,7 +59,7 @@ namespace PM.Collections
         {
             Filepath = filepath;
             _items = CreateNewInternalArray(filepath, initialCapacity);
-            for(int i = 0; i < _items.Length; i++)
+            for (int i = 0; i < _items.Length; i++)
             {
                 if (_items[i] != 0)
                 {
@@ -90,8 +90,7 @@ namespace PM.Collections
             if (index > _size) throw new ArgumentOutOfRangeException(nameof(item));
 
             var pointer = _pointersToPersistentObjects.GetNext();
-            var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString());
-            var obj = _persistentFactory.CreateRootObjectByObject(item, pmFile);
+            var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer.ToString());
 
             _items[index] = pointer;
             _cacheItems[pointer] = (T)obj;
@@ -125,9 +124,7 @@ namespace PM.Collections
             }
 
             var pointer = _pointersToPersistentObjects.GetNext();
-            var obj = _persistentFactory.CreateRootObjectByObject(
-                item,
-                Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()));
+            var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer.ToString());
 
             _items[_size++] = pointer;
             _cacheItems[pointer] = (T)obj;
@@ -212,9 +209,7 @@ namespace PM.Collections
             }
 
             var pointer = _pointersToPersistentObjects.GetNext();
-            var obj = _persistentFactory.CreateRootObjectByObject(
-                item,
-                Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()));
+            var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer.ToString());
 
             _items[_size++] = pointer;
             _cacheItems[pointer] = (T)obj;

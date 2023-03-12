@@ -5,7 +5,7 @@ using PM.Factories;
 using PM.Managers;
 using PM.PmContent;
 using PM.Proxies;
-using System.IO;
+using System.Reflection;
 
 namespace PM
 {
@@ -13,8 +13,9 @@ namespace PM
     {
         private static readonly PointersToPersistentObjects _pointersToPersistentObjects = new();
 
-        object CreateRootObjectByObject(object obj, string pmFilename, int fileSizeBytes = 4096)
+        object CreateInternalObjectByObject(object obj, string pmFilename, int fileSizeBytes = 4096)
         {
+            pmFilename = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pmFilename);
             var objType = obj.GetType();
 
             if (obj is IProxyTargetAccessor innerInterceptor)
@@ -22,7 +23,7 @@ namespace PM
                 throw new ApplicationException($"object of type {objType} already has a proxy");
             }
 
-            var proxyObj = CreateRootObject(objType, pmFilename, fileSizeBytes);
+            var proxyObj = CreatePersistentProxy(objType, pmFilename, fileSizeBytes);
 
             foreach (var prop in objType.GetProperties())
             {
@@ -40,7 +41,7 @@ namespace PM
                     if (innerObj != null)
                     {
                         var pointer = _pointersToPersistentObjects.GetNext();
-                        var proxyInnerObj = CreateRootObjectByObject(
+                        var proxyInnerObj = CreateInternalObjectByObject(
                             innerObj,
                             pointer.ToString());
                         var interceptor =
@@ -57,25 +58,9 @@ namespace PM
             return proxyObj;
         }
 
-        object CreateRootObject(Type type, string pmSymbolicLink, int fileSizeBytes = 4096)
+        object CreatePersistentProxy(Type type, string filename, int fileSizeBytes = 4096)
         {
-            var generator = new ProxyGenerator();
-
-            var pointer = default(string);
-            var pmFile = default(string);
-            if (!File.Exists(pmSymbolicLink))
-            {
-                pointer = _pointersToPersistentObjects.GetNext().ToString();
-                pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer);
-                File.CreateSymbolicLink(pmSymbolicLink, pmFile);
-            }
-            else if ((File.GetAttributes(pmSymbolicLink) & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint)
-            {
-                var fi = new FileInfo(pmSymbolicLink);
-                pointer = fi.LinkTarget;
-                pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer);
-            }
-            var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(pmFile, fileSizeBytes));
+            var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(filename, fileSizeBytes));
 
             var pmContentGenerator = new PmContentGenerator(
                 new PmCSharpDefinedTypes(pm),
@@ -86,11 +71,34 @@ namespace PM
             var interceptor = new PersistentInterceptor(
                 new PmManager(
                     new PmUserDefinedTypes(pm, objectPropertiesInfoMapper),
-                    objectPropertiesInfoMapper),
-                type,
-                pointer);
+                        objectPropertiesInfoMapper),
+                        type,
+                        filename);
 
+            var generator = new ProxyGenerator();
             return generator.CreateClassProxy(type, interceptor);
+        }
+
+        object CreateRootObject(Type type, string pmSymbolicLink, int fileSizeBytes = 4096)
+        {
+            string? pmFile;
+            if (!File.Exists(pmSymbolicLink))
+            {
+                var pointer = _pointersToPersistentObjects.GetNext().ToString();
+                pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer);
+                File.CreateSymbolicLink(pmSymbolicLink, pmFile);
+            }
+            else if ((File.GetAttributes(pmSymbolicLink) & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint)
+            {
+                var fi = new FileInfo(pmSymbolicLink);
+                var pointer = fi.LinkTarget;
+                pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer);
+            }
+            else
+            {
+                throw new ApplicationException($"File {pmSymbolicLink} is not a symlink");
+            }
+            return CreatePersistentProxy(type, pmFile, fileSizeBytes);
         }
 
         T CreateRootObject<T>(string pmFilename, int fileSizeBytes = 4096)

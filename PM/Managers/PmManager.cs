@@ -22,9 +22,9 @@ namespace PM.Managers
             PmUserDefinedTypes pm,
             ObjectPropertiesInfoMapper objectPropertiesSizeMapper)
         {
-            _pm = pm;
+            _pm = pm ?? throw new ArgumentNullException(nameof(pm));
             PmMemoryMappedFile = pm.PmMemoryMappedFile;
-            ObjectMapper = objectPropertiesSizeMapper;
+            ObjectMapper = objectPropertiesSizeMapper ?? throw new ArgumentNullException(nameof(objectPropertiesSizeMapper));
         }
 
         public void InsertValuePm(PropertyInfo property, object value)
@@ -68,7 +68,7 @@ namespace PM.Managers
                         // User defined objects
                         var pointer = _pointersToPersistentObjects.GetNext();
                         IPersistentFactory persistentFactory = new PersistentFactory();
-                        var proxy = persistentFactory.CreateRootObjectByObject(
+                        var proxy = persistentFactory.CreateInternalObjectByObject(
                             value,
                             pointer.ToString());
                         UserDefinedObjectsByProperty[property] = proxy;
