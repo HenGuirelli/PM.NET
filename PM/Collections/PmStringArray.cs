@@ -29,7 +29,7 @@ namespace PM.Collections
             _pmULongArray = PmPrimitiveArray.CreateNewArray<ulong>(pm, length);
         }
 
-        private void Set(int index, string value)
+        private void Set(int index, string? value)
         {
             if (index > Length) throw new IndexOutOfRangeException();
             if (value is null)

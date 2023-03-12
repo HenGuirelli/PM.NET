@@ -55,7 +55,13 @@ namespace PM.Managers
                     // User Defined Objects or reference types
                     if (value is string valuestr)
                     {
-                        var pointer = _pointersToPersistentObjects.GetNext();
+                        var pointer = _pm.GetULongPropertValue(property);
+                        var pointerAlreadyExists = pointer != 0;
+                        if (!pointerAlreadyExists)
+                        {
+                            pointer = _pointersToPersistentObjects.GetNext();
+                        }
+
                         var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString())));
                         var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
                         _pmInnerObjectsByPointer[pointer] = pmCSharpDefinedTypes;

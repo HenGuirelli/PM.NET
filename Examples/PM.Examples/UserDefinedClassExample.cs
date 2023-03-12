@@ -1,4 +1,3 @@
-using PM.Configs;
 using PM.Examples.UserDefinedClassExampleDomainClasses;
 using PM.Tests.Common;
 using Xunit;

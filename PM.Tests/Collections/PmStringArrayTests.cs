@@ -1,5 +1,4 @@
 ﻿using PM.Collections;
-using PM.Configs;
 using PM.Tests.Common;
 using System;
 using Xunit;
@@ -11,7 +10,7 @@ namespace PM.Tests.Collections
         [Fact]
         public void OnSetAndGet_ShouldRunWithoutException()
         {
-            var array = new PmStringArray(nameof(OnSetAndGet_ShouldRunWithoutException), length: 2);
+            var array = new PmStringArray(CreateFilePath(nameof(OnSetAndGet_ShouldRunWithoutException)), length: 2);
 
             var val0 = Guid.NewGuid().ToString();
             var val1 = Guid.NewGuid().ToString();
@@ -26,7 +25,7 @@ namespace PM.Tests.Collections
         [Fact]
         public void OnSetAndGetNull_ShouldRunWithoutException()
         {
-            var array = new PmStringArray(nameof(OnSetAndGetNull_ShouldRunWithoutException), length: 2);
+            var array = new PmStringArray(CreateFilePath(nameof(OnSetAndGetNull_ShouldRunWithoutException)), length: 2);
 
             Assert.Null(array[0]);
             Assert.Null(array[1]);
@@ -42,7 +41,7 @@ namespace PM.Tests.Collections
         [Fact]
         public void OnSetAndGetStringOutOfBounds_ShouldThrowException()
         {
-            var array = new PmStringArray(nameof(OnSetAndGetStringOutOfBounds_ShouldThrowException), length: 1);
+            var array = new PmStringArray(CreateFilePath(nameof(OnSetAndGetStringOutOfBounds_ShouldThrowException)), length: 1);
 
             Assert.Throws<IndexOutOfRangeException>(() => array[1] = Guid.NewGuid().ToString());
             Assert.Throws<IndexOutOfRangeException>(() => array[1]);
