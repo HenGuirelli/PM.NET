@@ -56,18 +56,5 @@ namespace PM.Core.Tests
                 Assert.Equal(randomArray[i], byteArrayReadFromPm[i]);
             }
         }
-
-        private IPm CreatePm(string mappedMemoryFilePath)
-        {
-            if (Constraints.PmTarget == PmTargets.InVolatileMemory)
-            {
-                return new FakeInMemoryPm(new PmMemoryMappedFileConfig(mappedMemoryFilePath));
-            }
-            if (Constraints.PmTarget == PmTargets.PM)
-            {
-                return new Pm(mappedMemoryFilePath);
-            }
-            return new MemoryMappedFilePm(new PmMemoryMappedFileConfig(mappedMemoryFilePath));
-        }
     }
 }

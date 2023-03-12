@@ -9,17 +9,12 @@
             var fileSize = pm.FileSize();
             if (pm.FileExists())
             {
-                try
+                while ((sizeof(ulong) * count) < fileSize && InternalGet(count) != 0)
                 {
-                    while ((sizeof(ulong) * count) < fileSize && InternalGet(count) != 0)
-                    {
-                        count++;
-                    }
+                    count++;
                 }
-                catch (Exception ex)
-                {
 
-                }
+
                 if (count > length)
                     Length = count;
             }

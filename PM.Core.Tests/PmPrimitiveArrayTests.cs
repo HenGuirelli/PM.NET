@@ -1,27 +1,18 @@
-﻿using PM.Configs;
-using PM.Core;
-using PM.Factories;
+﻿using PM.Factories;
 using PM.Tests.Common;
 using System;
 using Xunit;
 
 namespace PM.Core.Tests
 {
-    public class PmPrimitiveArrayTests
+    public class PmPrimitiveArrayTests : UnitTest
     {
-        private const string PrefixPath = "D:\\temp\\pm_tests\\";
-
-        public PmPrimitiveArrayTests()
-        {
-            PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
-        }
-
         [Fact]
         public void OnSetAndGet_ShouldRunWithoutException()
         {
             var array = PmPrimitiveArray.CreateNewArray<ulong>(
                 PmFactory.CreatePm(new PmMemoryMappedFileConfig(
-                    PrefixPath + nameof(OnSetAndGet_ShouldRunWithoutException))),
+                    CreateFilePath(nameof(OnSetAndGet_ShouldRunWithoutException)))),
                     length: 2);
 
             array[0] = ulong.MaxValue;
@@ -36,7 +27,7 @@ namespace PM.Core.Tests
         {
             var array = PmPrimitiveArray.CreateNewArray<ulong>(
                 PmFactory.CreatePm(new PmMemoryMappedFileConfig(
-                     PrefixPath + nameof(OnSetAndGetOutOfBounds_ShouldThrowException))),
+                     CreateFilePath(nameof(OnSetAndGetOutOfBounds_ShouldThrowException)))),
                     length: 1);
 
             Assert.Throws<IndexOutOfRangeException>(() => array[1] = ulong.MaxValue);
@@ -50,7 +41,7 @@ namespace PM.Core.Tests
             var count = 500;
             var array = PmPrimitiveArray.CreateNewArray<ulong>(
                 PmFactory.CreatePm(new PmMemoryMappedFileConfig(
-                     PrefixPath + nameof(OnHighVolume_ShouldNotThrowException))),
+                     CreateFilePath(nameof(OnHighVolume_ShouldNotThrowException)))),
                     length: count);
 
             for (int i = 0; i < count; i++)
