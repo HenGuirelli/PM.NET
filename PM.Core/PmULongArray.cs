@@ -10,7 +10,7 @@
                 var fileSize = pm.FileSize();
                 var oldArrayLength = (int)fileSize / sizeof(ulong);
                 if (oldArrayLength != length)
-                    throw new ArgumentException($"argument {nameof(length)}={length} invalid. Array alread defined with length={oldArrayLength}");
+                    throw new ArgumentException($"argument {nameof(length)}={length} invalid. Array already defined with length={oldArrayLength}");
             }
             Length = length;
         }
