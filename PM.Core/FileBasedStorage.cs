@@ -43,11 +43,6 @@
             return File.Exists(PmMemoryMappedFileConfig.FilePath);
         }
 
-        public static void CreateSymbolicLink(string symlinkPath, string targetFile)
-        {
-            File.CreateSymbolicLink(symlinkPath, targetFile);
-        }
-
         public virtual long FileSize()
         {
             using var fs = new FileStream(
