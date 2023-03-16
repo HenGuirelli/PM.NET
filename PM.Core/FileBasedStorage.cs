@@ -1,8 +1,12 @@
-﻿namespace PM.Core
+﻿using System.Collections.Concurrent;
+
+namespace PM.Core
 {
     public abstract class FileBasedStorage : IPm
     {
         public PmMemoryMappedFileConfig PmMemoryMappedFileConfig { get; }
+        private static readonly ConcurrentDictionary<string, PmMemoryMappedFileConfig> _filesOpened
+            = new();
         public long FileSize { get; }
 
         protected readonly ReaderWriterLockSlim _lock = new();
@@ -17,7 +21,11 @@
             }
             else
             {
-                FileSize = InternalGetFileSize();
+                if (!_filesOpened.ContainsKey(PmMemoryMappedFileConfig.FilePath))
+                {
+                    _filesOpened[PmMemoryMappedFileConfig.FilePath] = pmMemoryMappedFile;
+                }
+                FileSize = _filesOpened[PmMemoryMappedFileConfig.FilePath].SizeBytes;
                 if (FileSize > PmMemoryMappedFileConfig.SizeBytes)
                 {
                     PmMemoryMappedFileConfig.SizeBytes = (int)FileSize;
@@ -37,6 +45,8 @@
                 FileAccess.Write,
                 FileShare.None);
             fs.SetLength(PmMemoryMappedFileConfig.SizeBytes);
+
+            _filesOpened[PmMemoryMappedFileConfig.FilePath] = PmMemoryMappedFileConfig;
         }
 
         public virtual void DeleteFile()

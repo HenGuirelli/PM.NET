@@ -15,6 +15,7 @@ namespace PM.Tests.Managers
         [Fact]
         public void OnGetNext_ShouldGetNextPointer()
         {
+            File.Delete(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, "__PointersToPersistentObjects"));
             var pointersToPersistentObjects = new PointersToPersistentObjects();
             
             Assert.Equal(ulong.MaxValue, pointersToPersistentObjects.GetNext());

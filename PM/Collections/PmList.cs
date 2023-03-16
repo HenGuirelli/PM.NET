@@ -4,6 +4,7 @@ using PM.Core;
 using PM.Factories;
 using PM.Managers;
 using System.Collections;
+using System.Collections.Concurrent;
 
 namespace PM.Collections
 {
@@ -12,10 +13,11 @@ namespace PM.Collections
     {
         private readonly IPersistentFactory _persistentFactory = new PersistentFactory();
         private readonly static PointersToPersistentObjects _pointersToPersistentObjects = new();
+        private readonly ConcurrentDictionary<ulong, object> _cache = new();
 
         public T this[int index]
         {
-            get => Get(index);
+            get => Get(index, false);
             set => Set(index, value);
         }
 
@@ -61,37 +63,38 @@ namespace PM.Collections
         }
         public const int DefaultCapacity = 4;
 
-        public PmList(string filepath, int initialCapacity = DefaultCapacity)
+        public PmList(string symbolicLink, int initialCapacity = DefaultCapacity)
         {
             if (initialCapacity <= 0) throw new ArgumentOutOfRangeException(nameof(initialCapacity));
-            Filepath = filepath;
-            _items = CreateOrLoadInternalArray(filepath, initialCapacity);
+            Filepath = symbolicLink;
+            _items = CreateOrLoadInternalArray(symbolicLink, initialCapacity);
             _listCount = (int)_items[0];
         }
 
-        private PmPrimitiveArray<ulong> CreateOrLoadInternalArray(string filepath, int capacity)
+        private PmPrimitiveArray<ulong> CreateOrLoadInternalArray(string symbolicLink, int capacity)
         {
-            if (!PmFileSystem.FileExists(filepath))
+            if (!PmFileSystem.FileExists(symbolicLink))
             {
-                return CreateNewPmFileList(filepath, capacity);
+                return CreateNewPmFileList(symbolicLink, capacity);
             }
             else
             {
-                return LoadPmFileList(filepath, capacity);
+                return LoadPmFileList(symbolicLink, capacity);
             }
         }
 
-        private PmPrimitiveArray<ulong> LoadPmFileList(string filepath, int capacity)
+        private PmPrimitiveArray<ulong> LoadPmFileList(string symbolicLink, int capacity)
         {
-            var size = PmFileSystem.GetFileSize(filepath);
+            var size = PmFileSystem.GetFileSize(symbolicLink);
+            var targetFilename = PmFileSystem.GetTargetOfSymbolicLink(symbolicLink);
             capacity = (int)(size / sizeof(ulong));
-            return CollectionsPmFactory.CreateULongArray(filepath, capacity);
+            return CollectionsPmFactory.CreateULongArray(targetFilename, capacity);
         }
 
-        private static PmPrimitiveArray<ulong> CreateNewPmFileList(string filepath, int capacity)
+        private static PmPrimitiveArray<ulong> CreateNewPmFileList(string symbolicLink, int capacity)
         {
             var pointer = _pointersToPersistentObjects.GetNext().ToString();
-            string targetFilename = PmFileSystem.CreateSymbolicLinkInInternalsFolder(filepath, pointer);
+            string targetFilename = PmFileSystem.CreateSymbolicLinkInInternalsFolder(symbolicLink, pointer);
             return CollectionsPmFactory.CreateULongArray(targetFilename, capacity + 1);
         }
 
@@ -104,7 +107,7 @@ namespace PM.Collections
         public T Set(int index, T item)
         {
             if (item is null) throw new ArgumentNullException(nameof(item));
-            if (index > ListCount) throw new ArgumentOutOfRangeException(nameof(item));
+            if (index > Count) throw new ArgumentOutOfRangeException(nameof(item));
 
             // Increment because first element is the Size
             index++;
@@ -112,19 +115,31 @@ namespace PM.Collections
             var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer.ToString());
 
             _items[index] = pointer;
+            _cache[pointer] = obj;
             return (T)obj;
         }
 
-        private T Get(int index)
+        private T Get(int index, bool ignoreFirstItem)
         {
-            if (index >= ListCount) throw new IndexOutOfRangeException();
+            if (ignoreFirstItem)
+            {
+                if (index > Count) throw new IndexOutOfRangeException();
+            }
+            else
+            {
+                if (index >= Count) throw new IndexOutOfRangeException();
+            }
 
             // Increment because first element is the Size
             index++;
 
             var pointer = _items[index];
+
+            if (_cache.TryGetValue(pointer, out var result)) return (T)result;
+
             var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString());
             var obj = (T)_persistentFactory.CreatePersistentProxy(typeof(T), pmFile);
+            _cache[pointer] = obj;
             return obj;
         }
 
@@ -141,6 +156,7 @@ namespace PM.Collections
             var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer.ToString());
 
             _items[ListCount++] = pointer;
+            _cache[pointer] = obj;
             return (T)obj;
         }
 
@@ -181,7 +197,7 @@ namespace PM.Collections
             {
                 for (int i = 0; i < ListCount; i++)
                 {
-                    if (Get(i) == item) return true;
+                    if (Get(i, false) == item) return true;
                 }
                 return false;
             }
@@ -191,7 +207,7 @@ namespace PM.Collections
         {
             for (int i = 0; i < ListCount; i++)
             {
-                array[i] = Get(i);
+                array[i] = Get(i, ignoreFirstItem: true);
             }
         }
 
@@ -199,7 +215,7 @@ namespace PM.Collections
         {
             for (int i = 0; i < ListCount; i++)
             {
-                var internalItem = Get(i);
+                var internalItem = Get(i, true);
                 if (item == internalItem) return i;
             }
             return -1;
@@ -298,7 +314,7 @@ namespace PM.Collections
         {
             PmList<T> localList = _list;
 
-            if (_index < localList.ListCount)
+            if (_index < localList.Count)
             {
                 _current = localList[_index];
                 _index++;

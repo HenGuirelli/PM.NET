@@ -95,7 +95,8 @@ namespace PM.Tests.Collections
         [Fact]
         public void OnSetsAndGets_ShouldRunCorretly()
         {
-            var list = new PmList<Foo>(nameof(OnSetsAndGets_ShouldRunCorretly));
+            var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, nameof(OnSetsAndGets_ShouldRunCorretly));
+            var list = new PmList<Foo>(path);
             list.Clear();
 
             list.AddPersistent(new Foo { Bar = 1 });
@@ -108,8 +109,9 @@ namespace PM.Tests.Collections
         [Fact]
         public void OnEnumerator_ShouldRunCorretly()
         {
-            var count = 300;
-            var list = new PmList<Foo>(nameof(OnEnumerator_ShouldRunCorretly));
+            var count = 300; 
+            var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, nameof(OnEnumerator_ShouldRunCorretly));
+            var list = new PmList<Foo>(path);
 
             for (int i = 0; i < count; i++)
             {
@@ -128,7 +130,8 @@ namespace PM.Tests.Collections
         public void OnCopyTo_ShouldCopyEntireList()
         {
             var count = 300;
-            var list = new PmList<Foo>(nameof(OnCopyTo_ShouldCopyEntireList));
+            var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, nameof(OnCopyTo_ShouldCopyEntireList));
+            var list = new PmList<Foo>(path);
             list.Clear();
 
             for (int i = 0; i < count / 2; i++)
@@ -144,9 +147,10 @@ namespace PM.Tests.Collections
         }
 
         [Fact]
-        public void OnRemove_ShouldCopyEntireList()
+        public void OnRemove_ShouldRemoveTheElement()
         {
-            var list = new PmList<Foo>(nameof(OnRemove_ShouldCopyEntireList));
+            var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, nameof(OnRemove_ShouldRemoveTheElement));
+            var list = new PmList<Foo>(path);
             list.Clear();
 
             list.AddPersistent(new Foo { Bar = 1 });

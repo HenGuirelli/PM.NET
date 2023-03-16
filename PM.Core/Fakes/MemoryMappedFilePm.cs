@@ -53,7 +53,7 @@ namespace PM.Core.Fakes
                                     PmMemoryMappedFileConfig.FilePath,
                                     FileMode.OpenOrCreate,
                                     _mapName,
-                                    0,
+                                    PmMemoryMappedFileConfig.SizeBytes,
                                     MemoryMappedFileAccess.ReadWrite);
 
             var acessor = mmf.CreateViewAccessor(

@@ -30,17 +30,17 @@ namespace PM.Managers
     public class PointersToPersistentObjects
     {
         private static readonly object _lock = new();
-        private readonly PmCSharpDefinedTypes _pmCSharpDefinedTypes;
+        private static PmCSharpDefinedTypes _pmCSharpDefinedTypes;
         public const string PmFileName = $"__{nameof(PointersToPersistentObjects)}";
+        public static string FilePath => Path.Combine(PmGlobalConfiguration.PmInternalsFolder, PmFileName);
 
         public const byte FirstPointerAvailable = 0;
         public const byte SecondPointerAvailable = 1;
         public const byte FileCreatedSuccesfully = 1;
 
-        public PointersToPersistentObjects()
+        static PointersToPersistentObjects()
         {
-            var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, PmFileName);
-            var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(path, (sizeof(ulong) + sizeof(byte)) * 2));
+            var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(FilePath, (sizeof(ulong) + sizeof(byte)) * 2));
             _pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
 
             if (!pm.FileExists() || GetFileCreatedSuccesfullyByte() != FileCreatedSuccesfully)
@@ -62,7 +62,7 @@ namespace PM.Managers
             }
         }
 
-        private void CreateInitialFileContent()
+        private static void CreateInitialFileContent()
         {
             SetFirstULong(ulong.MaxValue);
             SetSecondULong(ulong.MaxValue);
@@ -84,42 +84,42 @@ namespace PM.Managers
             }
         }
 
-        private void SetFileCreatedSuccesfullyByte()
+        private static void SetFileCreatedSuccesfullyByte()
         {
             _pmCSharpDefinedTypes.WriteByte(FileCreatedSuccesfully, (sizeof(ulong) * 2) + sizeof(byte));
         }
 
-        private byte GetFileCreatedSuccesfullyByte()
+        private static byte GetFileCreatedSuccesfullyByte()
         {
             return _pmCSharpDefinedTypes.ReadByte((sizeof(ulong) * 2) + sizeof(byte));
         }
 
-        private void SetIntegrityByte(byte value)
+        private static void SetIntegrityByte(byte value)
         {
             _pmCSharpDefinedTypes.WriteByte(value, offset: sizeof(ulong) * 2);
         }
 
-        private byte GetIntegrityByte()
+        private static byte GetIntegrityByte()
         {
             return _pmCSharpDefinedTypes.ReadByte(offset: sizeof(ulong) * 2);
         }
 
-        private void SetSecondULong(ulong value)
+        private static void SetSecondULong(ulong value)
         {
             _pmCSharpDefinedTypes.WriteULong(value, offset: sizeof(ulong));
         }
 
-        private ulong GetSecondULong()
+        private static ulong GetSecondULong()
         {
             return _pmCSharpDefinedTypes.ReadULong(offset: sizeof(ulong));
         }
 
-        private void SetFirstULong(ulong value)
+        private static void SetFirstULong(ulong value)
         {
             _pmCSharpDefinedTypes.WriteULong(value);
         }
 
-        private ulong GetFirstULong()
+        private static ulong GetFirstULong()
         {
             return _pmCSharpDefinedTypes.ReadULong();
         }
