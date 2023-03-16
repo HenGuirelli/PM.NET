@@ -1,4 +1,5 @@
 ﻿using PM.Configs;
+using PM.Core;
 using PM.Managers;
 using System.Reflection;
 
@@ -67,6 +68,31 @@ namespace PM
                 return;
             }
             throw new NotImplementedException();
+        }
+
+        internal static void ResizeFile(string filepath, long fileBytes)
+        {
+            using var fs = new FileStream(
+                filepath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None);
+            fs.SetLength(fileBytes);
+        }
+
+        internal static long GetFileSize(string filepath)
+        {
+            if (FileIsSymbolicLink(filepath))
+            {
+                var target = GetTargetOfSymbolicLink(filepath);
+                return GetFileSize(target);
+            }
+            using var fs = new FileStream(
+                filepath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.ReadWrite);
+            return fs.Length;
         }
     }
 }

@@ -3,18 +3,24 @@
     public abstract class FileBasedStorage : IPm
     {
         public PmMemoryMappedFileConfig PmMemoryMappedFileConfig { get; }
+        public long FileSize { get; }
+
         protected readonly ReaderWriterLockSlim _lock = new();
 
         public FileBasedStorage(PmMemoryMappedFileConfig pmMemoryMappedFile)
         {
             PmMemoryMappedFileConfig = pmMemoryMappedFile;
-            if (!FileExists()) CreateFile();
+            if (!FileExists())
+            {
+                CreateFile();
+                FileSize = pmMemoryMappedFile.SizeBytes;
+            }
             else
             {
-                var fileSize = FileSize();
-                if (fileSize > PmMemoryMappedFileConfig.SizeBytes)
+                FileSize = InternalGetFileSize();
+                if (FileSize > PmMemoryMappedFileConfig.SizeBytes)
                 {
-                    PmMemoryMappedFileConfig.SizeBytes = (int)fileSize;
+                    PmMemoryMappedFileConfig.SizeBytes = (int)FileSize;
                 }
             }
         }
@@ -43,14 +49,29 @@
             return File.Exists(PmMemoryMappedFileConfig.FilePath);
         }
 
-        public virtual long FileSize()
+        public virtual long InternalGetFileSize()
         {
             using var fs = new FileStream(
                 PmMemoryMappedFileConfig.FilePath,
-                FileMode.Open,
-                FileAccess.Read,
-                FileShare.ReadWrite);
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None);
             return fs.Length;
+        }
+
+        public virtual long GetFileSize()
+        {
+            return FileSize;
+        }
+
+        public virtual void Resize(long sizeBytes)
+        {
+            using var fs = new FileStream(
+                PmMemoryMappedFileConfig.FilePath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None);
+            fs.SetLength(PmMemoryMappedFileConfig.SizeBytes);
         }
 
         public abstract byte[] Load(int byteCount, int offset = 0);

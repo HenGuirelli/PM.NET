@@ -7,12 +7,18 @@
         {
             if (pm.FileExists())
             {
-                var fileSize = pm.FileSize();
+                var fileSize = pm.GetFileSize();
                 var oldArrayLength = (int)fileSize / sizeof(ulong);
                 if (oldArrayLength != length)
                     throw new ArgumentException($"argument {nameof(length)}={length} invalid. Array already defined with length={oldArrayLength}");
             }
             Length = length;
+        }
+
+        public override void Resize(int newLength)
+        {
+            _cSharpDefinedPm.Resize(newLength * sizeof(ulong));
+            Length = newLength;
         }
 
         protected override void InternalSet(int index, ulong value)

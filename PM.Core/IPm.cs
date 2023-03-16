@@ -12,7 +12,8 @@
         void CreateFile();
         void DeleteFile();
         bool FileExists();
-        long FileSize();
+        long GetFileSize();
+        void Resize(long sizeBytes);
 
         void Lock();
         void Release();

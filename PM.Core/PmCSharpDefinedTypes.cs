@@ -268,5 +268,10 @@ namespace PM.Core
         {
             _pm.Release();
         }
+
+        internal void Resize(long sizeBytes)
+        {
+            _pm.Resize(sizeBytes);
+        }
     }
 }

@@ -1,13 +1,5 @@
-﻿using System;
-
-namespace PM.Core
+﻿namespace PM.Core
 {
-    /// <summary>
-    /// Create a memory-mapped file:
-    ///     The file's first value (offset = 0) is the array length (Int32).
-    ///     Subsequent values are the array values.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
     public abstract class PmPrimitiveArray<T>
         where T : struct
     {
@@ -39,6 +31,7 @@ namespace PM.Core
             return InternalGet(index);
         }
 
+
         public virtual void Clear()
         {
             _cSharpDefinedPm.DeleteFile();
@@ -46,6 +39,7 @@ namespace PM.Core
             Length = 0;
         }
 
+        public abstract void Resize(int newLength);
         protected abstract void InternalSet(int index, T value);
         protected abstract T InternalGet(int index);
     }

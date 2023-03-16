@@ -27,17 +27,23 @@ namespace PM.Core.Fakes
             }
             else
             {
-                var oldmemoryMappedFile = _memoryMappedFiles[_mapName];
-                if (oldmemoryMappedFile.PmMemoryMappedFileConfig.SizeBytes != PmMemoryMappedFileConfig.SizeBytes)
-                {
-                    // Resize memory mapped File
-                    oldmemoryMappedFile.MemoryMappedViewAccessor.Flush();
-                    oldmemoryMappedFile.MemoryMappedViewAccessor.Dispose();
-                    oldmemoryMappedFile.MemoryMappedFile.Dispose();
+                Resize(PmMemoryMappedFileConfig.SizeBytes);
+            }
+        }
 
-                    SetLengthExistingFile(PmMemoryMappedFileConfig.FilePath, PmMemoryMappedFileConfig.SizeBytes);
-                    CreateMemoryMappedFile();
-                }
+        public override void Resize(long sizeBytes)
+        {
+            var oldmemoryMappedFile = _memoryMappedFiles[_mapName];
+            if (oldmemoryMappedFile.PmMemoryMappedFileConfig.SizeBytes != sizeBytes)
+            {
+                // Resize memory mapped File
+                oldmemoryMappedFile.MemoryMappedViewAccessor.Flush();
+                oldmemoryMappedFile.MemoryMappedViewAccessor.Dispose();
+                oldmemoryMappedFile.MemoryMappedFile.Dispose();
+
+                SetLengthExistingFile(PmMemoryMappedFileConfig.FilePath, sizeBytes);
+                PmMemoryMappedFileConfig.SizeBytes = (int)sizeBytes;
+                CreateMemoryMappedFile();
             }
         }
 
@@ -65,7 +71,7 @@ namespace PM.Core.Fakes
         }
 
 
-        private void SetLengthExistingFile(string fileName, int sizeBytes)
+        private void SetLengthExistingFile(string fileName, long sizeBytes)
         {
             using var fs = new FileStream(
                 fileName,

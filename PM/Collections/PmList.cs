@@ -4,7 +4,6 @@ using PM.Core;
 using PM.Factories;
 using PM.Managers;
 using System.Collections;
-using System.Collections.Concurrent;
 
 namespace PM.Collections
 {
@@ -13,7 +12,6 @@ namespace PM.Collections
     {
         private readonly IPersistentFactory _persistentFactory = new PersistentFactory();
         private readonly static PointersToPersistentObjects _pointersToPersistentObjects = new();
-        private readonly ConcurrentDictionary<ulong, T> _cacheItems = new();
 
         public T this[int index]
         {
@@ -21,7 +19,7 @@ namespace PM.Collections
             set => Set(index, value);
         }
 
-        public int Count => _size;
+        public int Count => ListCount - 1;
         public bool IsReadOnly => false;
 
         // Gets and sets the capacity of this list.  The capacity is the size of
@@ -36,14 +34,14 @@ namespace PM.Collections
             }
             set
             {
-                if (value < _size)
+                if (value < ListCount)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }
 
-                if (value != _items.Length && value > 0)
+                if (value >= _items.Length)
                 {
-                    _items = CreateNewInternalArray(Filepath, value);
+                    _items.Resize(value);
                 }
             }
         }
@@ -51,31 +49,50 @@ namespace PM.Collections
         public string Filepath { get; }
 
         internal PmPrimitiveArray<ulong> _items;
-        internal int _size;
-        internal int _version;
+        internal int _listCount;
+        internal int ListCount
+        {
+            get => _listCount;
+            set
+            {
+                _items[0] = (ulong)value;
+                _listCount = value;
+            }
+        }
         public const int DefaultCapacity = 4;
 
         public PmList(string filepath, int initialCapacity = DefaultCapacity)
         {
+            if (initialCapacity <= 0) throw new ArgumentOutOfRangeException(nameof(initialCapacity));
             Filepath = filepath;
-            _items = CreateNewInternalArray(filepath, initialCapacity);
-            for (int i = 0; i < _items.Length; i++)
+            _items = CreateOrLoadInternalArray(filepath, initialCapacity);
+            _listCount = (int)_items[0];
+        }
+
+        private PmPrimitiveArray<ulong> CreateOrLoadInternalArray(string filepath, int capacity)
+        {
+            if (!PmFileSystem.FileExists(filepath))
             {
-                if (_items[i] != 0)
-                {
-                    _size++;
-                }
+                return CreateNewPmFileList(filepath, capacity);
+            }
+            else
+            {
+                return LoadPmFileList(filepath, capacity);
             }
         }
 
-        private PmPrimitiveArray<ulong> CreateNewInternalArray(string filepath, int length)
+        private PmPrimitiveArray<ulong> LoadPmFileList(string filepath, int capacity)
         {
-            var pm = PmFactory.CreatePm(
-                new PmMemoryMappedFileConfig(
-                    filepath,
-                    sizeof(ulong) * length));
+            var size = PmFileSystem.GetFileSize(filepath);
+            capacity = (int)(size / sizeof(ulong));
+            return CollectionsPmFactory.CreateULongArray(filepath, capacity);
+        }
 
-            return PmPrimitiveArray.CreateNewArray<ulong>(pm, length);
+        private static PmPrimitiveArray<ulong> CreateNewPmFileList(string filepath, int capacity)
+        {
+            var pointer = _pointersToPersistentObjects.GetNext().ToString();
+            string targetFilename = PmFileSystem.CreateSymbolicLinkInInternalsFolder(filepath, pointer);
+            return CollectionsPmFactory.CreateULongArray(targetFilename, capacity + 1);
         }
 
         [Obsolete("Use AddPersistent(T) instead")]
@@ -87,37 +104,34 @@ namespace PM.Collections
         public T Set(int index, T item)
         {
             if (item is null) throw new ArgumentNullException(nameof(item));
-            if (index > _size) throw new ArgumentOutOfRangeException(nameof(item));
+            if (index > ListCount) throw new ArgumentOutOfRangeException(nameof(item));
 
+            // Increment because first element is the Size
+            index++;
             var pointer = _pointersToPersistentObjects.GetNext();
             var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer.ToString());
 
             _items[index] = pointer;
-            _cacheItems[pointer] = (T)obj;
             return (T)obj;
         }
 
         private T Get(int index)
         {
-            if (index >= _size) throw new IndexOutOfRangeException();
+            if (index >= ListCount) throw new IndexOutOfRangeException();
+
+            // Increment because first element is the Size
+            index++;
 
             var pointer = _items[index];
-            if (_cacheItems.TryGetValue(pointer, out var result))
-            {
-                return result;
-            }
             var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString());
-            var obj = _persistentFactory.CreateRootObject<T>(pmFile);
-
-            _cacheItems.TryAdd(pointer, obj);
-
+            var obj = (T)_persistentFactory.CreatePersistentProxy(typeof(T), pmFile);
             return obj;
         }
 
         public T AddPersistent(T item)
         {
             if (item is null) throw new ArgumentNullException(nameof(item));
-            if (_size == _items.Length) EnsureCapacity(_size + 1);
+            if (ListCount == _items.Length) EnsureCapacity(ListCount + 1);
             if (CastleManager.TryGetInterceptor(item, out _))
             {
                 throw new ArgumentException($"{nameof(item)} argument cannot be persistent object");
@@ -126,8 +140,7 @@ namespace PM.Collections
             var pointer = _pointersToPersistentObjects.GetNext();
             var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer.ToString());
 
-            _items[_size++] = pointer;
-            _cacheItems[pointer] = (T)obj;
+            _items[ListCount++] = pointer;
             return (T)obj;
         }
 
@@ -148,22 +161,25 @@ namespace PM.Collections
 
         public void Clear()
         {
-            _items.Clear();
-            _size = 0;
+            for (int i = 0; i < _items.Length; i++)
+            {
+                _items[i] = 0;
+            }
+            ListCount = 1;
         }
 
         public bool Contains(T item)
         {
             if (item == null)
             {
-                for (int i = 0; i < _size; i++)
+                for (int i = 0; i < ListCount; i++)
                     if (_items[i] == null)
                         return true;
                 return false;
             }
             else
             {
-                for (int i = 0; i < _size; i++)
+                for (int i = 0; i < ListCount; i++)
                 {
                     if (Get(i) == item) return true;
                 }
@@ -173,7 +189,7 @@ namespace PM.Collections
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            for (int i = 0; i < _size; i++)
+            for (int i = 0; i < ListCount; i++)
             {
                 array[i] = Get(i);
             }
@@ -181,7 +197,7 @@ namespace PM.Collections
 
         public int IndexOf(T item)
         {
-            for (int i = 0; i < _size; i++)
+            for (int i = 0; i < ListCount; i++)
             {
                 var internalItem = Get(i);
                 if (item == internalItem) return i;
@@ -198,11 +214,11 @@ namespace PM.Collections
         public T InsertPersistent(int index, T item)
         {
             // Note that insertions at the end are legal.
-            if (index > _size)
+            if (index > ListCount)
             {
                 throw new IndexOutOfRangeException();
             }
-            if (_size == _items.Length) EnsureCapacity(_size + 1);
+            if (ListCount == _items.Length) EnsureCapacity(ListCount + 1);
             if (CastleManager.TryGetInterceptor(item, out _))
             {
                 throw new ArgumentException($"{nameof(item)} argument cannot be persistent object");
@@ -211,8 +227,7 @@ namespace PM.Collections
             var pointer = _pointersToPersistentObjects.GetNext();
             var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer.ToString());
 
-            _items[_size++] = pointer;
-            _cacheItems[pointer] = (T)obj;
+            _items[ListCount++] = pointer;
             return (T)obj;
         }
 
@@ -229,19 +244,19 @@ namespace PM.Collections
 
         public void RemoveAt(int index)
         {
-            if (index >= _size)
+            if (index >= ListCount)
             {
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
-            if (index < _size)
+            if (index < ListCount)
             {
-                for (int i = index; i < _size - 1; i++)
+                for (int i = index; i < ListCount - 1; i++)
                 {
                     _items[i] = _items[i + 1];
                 }
             }
-            _items[_size - 1] = default;
-            _size--;
+            _items[ListCount - 1] = default;
+            ListCount--;
             var pm = PmFactory.CreatePm(
                 new PmMemoryMappedFileConfig(
                     Path.Combine(PmGlobalConfiguration.PmInternalsFolder, _items[index].ToString())));
@@ -265,7 +280,6 @@ namespace PM.Collections
     {
         private PmList<T> _list;
         private int _index;
-        private int _version;
         private T _current;
         private readonly IPersistentFactory _persistentFactory = new PersistentFactory();
 
@@ -273,7 +287,6 @@ namespace PM.Collections
         {
             _list = list;
             _index = 0;
-            _version = list._version;
             _current = default;
         }
 
@@ -285,7 +298,7 @@ namespace PM.Collections
         {
             PmList<T> localList = _list;
 
-            if (_version == localList._version && _index < localList._size)
+            if (_index < localList.ListCount)
             {
                 _current = localList[_index];
                 _index++;
@@ -296,12 +309,7 @@ namespace PM.Collections
 
         private bool MoveNextRare()
         {
-            if (_version != _list._version)
-            {
-                throw new ApplicationException("Version updated while a interation");
-            }
-
-            _index = _list._size + 1;
+            _index = _list.ListCount + 1;
             _current = default;
             return false;
         }
@@ -318,7 +326,7 @@ namespace PM.Collections
         {
             get
             {
-                if (_index == 0 || _index == _list._size + 1)
+                if (_index == 0 || _index == _list.ListCount + 1)
                 {
                     throw new ApplicationException("Index out of bounds");
                 }
@@ -328,11 +336,6 @@ namespace PM.Collections
 
         void System.Collections.IEnumerator.Reset()
         {
-            if (_version != _list._version)
-            {
-                throw new ApplicationException("Version updated while a interation");
-            }
-
             _index = 0;
             _current = default;
         }

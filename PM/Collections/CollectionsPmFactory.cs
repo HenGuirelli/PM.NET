@@ -2,12 +2,6 @@
 using PM.Core;
 using PM.Factories;
 using PM.Managers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PM.Collections
 {
@@ -22,7 +16,7 @@ namespace PM.Collections
             if (PmTargets.FileBasedTarget.HasFlag(PmGlobalConfiguration.PmTarget))
             {
                 var pointer = _pointsToPersistentObjects.GetNext().ToString();
-                FileBasedStorage.CreateSymbolicLink(filepath, pointer);
+                PmFileSystem.CreateSymbolicLink(filepath, pointer);
                 pmfilename = pointer;
             }
 
@@ -30,6 +24,18 @@ namespace PM.Collections
                         new PmMemoryMappedFileConfig(
                             pmfilename,
                             sizeof(ulong) * (length + 1)));
+        }
+
+        internal static PmPrimitiveArray<ulong> CreateULongArray(
+            string filename,
+            int length)
+        {
+
+            var pm = PmFactory.CreatePm(
+                        new PmMemoryMappedFileConfig(
+                            filename,
+                            sizeof(ulong) * (length/* + 1*/)));
+            return PmPrimitiveArray.CreateNewArray<ulong>(pm, length);
         }
     }
 }

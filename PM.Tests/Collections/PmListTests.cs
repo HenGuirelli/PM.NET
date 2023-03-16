@@ -17,7 +17,9 @@ namespace PM.Tests.Collections
         [Fact]
         public void OnAddPersistent_ShouldAdd()
         {
-            var list = new PmList<Foo>(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, nameof(OnAddPersistent_ShouldAdd)));
+            var list = new PmList<Foo>(Path.Combine(
+                PmGlobalConfiguration.PmInternalsFolder,
+                nameof(OnAddPersistent_ShouldAdd)));
             list.Clear();
 
             list.AddPersistent(new Foo { Bar = 1 });
@@ -33,7 +35,7 @@ namespace PM.Tests.Collections
         public void OnOpenListWithFileAlreadyExists()
         {
             var count = 10;
-            var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, nameof(OnAddPersistent_ShouldAdd));
+            var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, nameof(OnOpenListWithFileAlreadyExists));
             var list1 = new PmList<Foo>(path);
             list1.Clear();
 
@@ -55,7 +57,10 @@ namespace PM.Tests.Collections
         public void OnAddPersistentWhenOverflowDefaultCapacity_ShouldAdd()
         {
             var count = 300;
-            var list = new PmList<Foo>(nameof(OnAddPersistentWhenOverflowDefaultCapacity_ShouldAdd));
+            var path = Path.Combine(
+                PmGlobalConfiguration.PmInternalsFolder,
+                nameof(OnAddPersistentWhenOverflowDefaultCapacity_ShouldAdd));
+            var list = new PmList<Foo>(path);
             list.Clear();
 
             for (int i = 0; i < count; i++)
@@ -73,7 +78,8 @@ namespace PM.Tests.Collections
         public void OnClear_ShouldClearEntireList()
         {
             var count = 3;
-            var list = new PmList<Foo>(nameof(OnClear_ShouldClearEntireList));
+            var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, nameof(OnClear_ShouldClearEntireList));
+            var list = new PmList<Foo>(path);
             list.Clear();
 
             for (int i = 0; i < count; i++)

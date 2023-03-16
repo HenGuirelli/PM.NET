@@ -139,7 +139,7 @@ namespace PM.Core.Fakes
             }
         }
 
-        public long FileSize()
+        public long GetFileSize()
         {
             if (_pmFake.TryGetValue(PmMemoryMappedFileConfig.FilePath, out var vet))
             {
@@ -156,6 +156,11 @@ namespace PM.Core.Fakes
         public void Release()
         {
             _lock.ExitWriteLock();
+        }
+
+        public void Resize(long sizeBytes)
+        {
+            throw new NotImplementedException();
         }
     }
 }
