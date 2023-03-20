@@ -1,4 +1,5 @@
-﻿using System.IO.MemoryMappedFiles;
+﻿using System.Collections.Concurrent;
+using System.IO.MemoryMappedFiles;
 
 namespace PM.Core
 {
@@ -6,21 +7,32 @@ namespace PM.Core
     {
         private readonly MemoryMappedFile _memoryMappedFile;
         private readonly MemoryMappedViewStream _memoryMappedViewStream;
+        private readonly static ConcurrentDictionary<string, MemoryMappedStream> _cache = new();
 
         public MemoryMappedStream(string filePath, long size, long offset = 0, bool createFileIfNotExists = true)
         {
             FilePath = filePath;
-            if (createFileIfNotExists && !File.Exists(filePath))
+            if (_cache.TryGetValue(filePath, out var obj))
             {
-                using var fs = new FileStream(
-                    filePath,
-                    FileMode.Create,
-                    FileAccess.Write,
-                    FileShare.None);
-                fs.SetLength(size);
+                _memoryMappedFile = obj._memoryMappedFile;
+                _memoryMappedViewStream = obj._memoryMappedViewStream;
             }
-            _memoryMappedFile = MemoryMappedFile.CreateFromFile(filePath);
-            _memoryMappedViewStream = _memoryMappedFile.CreateViewStream(offset, size, MemoryMappedFileAccess.ReadWrite);
+            else
+            {
+                if (createFileIfNotExists && !File.Exists(filePath))
+                {
+                    using var fs = new FileStream(
+                        filePath,
+                        FileMode.Create,
+                        FileAccess.Write,
+                        FileShare.None);
+                    fs.SetLength(size);
+                }
+                _memoryMappedFile = MemoryMappedFile.CreateFromFile(filePath);
+                _memoryMappedViewStream = _memoryMappedFile.CreateViewStream(offset, size, MemoryMappedFileAccess.ReadWrite);
+
+                _cache[filePath] = this;
+            }
         }
 
         public override bool CanRead => true;
@@ -67,6 +79,7 @@ namespace PM.Core
         {
             _memoryMappedViewStream?.Dispose();
             _memoryMappedFile?.Dispose();
+            _cache.TryRemove(FilePath, out _);
             base.Dispose(disposing);
         }
     }

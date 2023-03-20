@@ -85,7 +85,7 @@ namespace PM
             if (!PmFileSystem.FileExists(pmSymbolicLink))
             {
                 pointer = _pointersToPersistentObjects.GetNext().ToString();
-                PmFileSystem.CreateSymbolicLinkInInternalsFolder(pmSymbolicLink, pointer);
+                pointer = PmFileSystem.CreateSymbolicLinkInInternalsFolder(pmSymbolicLink, pointer + ".pm");
             }
             else if (PmFileSystem.FileIsSymbolicLink(pmSymbolicLink))
             {

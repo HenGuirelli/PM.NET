@@ -14,7 +14,7 @@ namespace PM.Tests.Common
 
         protected static string CreateFilePath(string filename)
         {
-            return Path.Combine(PmGlobalConfiguration.PmInternalsFolder, filename.EndsWith(".pm") ? filename : filename + ".pm");
+            return Path.Combine(PmGlobalConfiguration.PmInternalsFolder, filename);
         }
     }
 }

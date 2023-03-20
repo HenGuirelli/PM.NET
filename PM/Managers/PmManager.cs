@@ -57,8 +57,7 @@ namespace PM.Managers
                     {
                         ulong pointer = GetPointerIfExistsOrNew(property);
 
-                        //var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString())));
-                        var pm = new MemoryMappedStream(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()), 4096);
+                        var pm = new MemoryMappedStream(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm"), 4096);
                         var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
                         _pmInnerObjectsByPointer[pointer] = pmCSharpDefinedTypes;
                         pmCSharpDefinedTypes.WriteString(valuestr);
@@ -73,7 +72,7 @@ namespace PM.Managers
                         IPersistentFactory persistentFactory = new PersistentFactory();
                         var proxy = persistentFactory.CreateInternalObjectByObject(
                             value,
-                            pointer.ToString());
+                            pointer.ToString() + ".pm");
                         UserDefinedObjectsByProperty[property] = proxy;
                     }
                 }
@@ -189,8 +188,8 @@ namespace PM.Managers
                                 var stringPmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
                                 _pmInnerObjectsByPointer[pointer] = stringPmCSharpDefinedTypes;
                                 return stringPmCSharpDefinedTypes.ReadString();
-                            } 
-                            catch(FileNotFoundException) 
+                            }
+                            catch (FileNotFoundException)
                             {
                                 return null;
                             }
@@ -201,7 +200,7 @@ namespace PM.Managers
 
             return null;
         }
-        
+
         public void Lock()
         {
             _pm.Lock();
