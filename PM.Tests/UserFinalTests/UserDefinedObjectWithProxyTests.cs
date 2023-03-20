@@ -126,7 +126,8 @@ namespace PM.Tests.UserFinalTests
         public void ExampleReadReferenceObjBeforeWrite_ShouldGetNull()
         {
             IPersistentFactory persistentFactory = new PersistentFactory();
-            var obj1 = persistentFactory.CreateRootObject<ComplexClassRoot>(CreateFilePath(nameof(ExampleReadReferenceObjBeforeWrite_ShouldGetNull)));
+            var obj1 = persistentFactory.CreateRootObject<ComplexClassRoot>(
+                CreateFilePath(nameof(ExampleReadReferenceObjBeforeWrite_ShouldGetNull)));
             Assert.Null(obj1.PropStr);
             Assert.Null(obj1.PropComplexClassInner1);
         }

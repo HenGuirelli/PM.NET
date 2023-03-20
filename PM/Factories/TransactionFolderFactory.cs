@@ -8,7 +8,7 @@ namespace PM.Factories
     {
         public static IFileSystemHelper Create()
         {
-            if (PmGlobalConfiguration.PmTarget.HasFlag(PmTargets.FileBasedTarget))
+            if (PmTargets.FileBasedTarget.HasFlag(PmGlobalConfiguration.PmTarget))
             {
                 return new FileSystemHelper();
             }

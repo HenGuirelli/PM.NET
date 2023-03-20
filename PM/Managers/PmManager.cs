@@ -169,21 +169,21 @@ namespace PM.Managers
                     if (propType == typeof(string))
                     {
                         var pointer = _pm.GetULongPropertValue(property);
+                        if (pointer == 0)
+                        {
+                            return null;
+                        }
+
                         if (_pmInnerObjectsByPointer.TryGetValue(pointer, out var innerPm))
                         {
                             return innerPm.ReadString();
                         }
                         else
                         {
-                            var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString());
-                            var filesize = TransactionFolderFactory.Create();
+                            var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm" );
                             try
                             {
-                                //var pm = PmFactory.CreatePm(
-                                //    new PmMemoryMappedFileConfig(
-                                //        name: path,
-                                //        size: (int)filesize.GetFileSize(path)));
-                                var pm = new MemoryMappedStream(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()), 4096);
+                                var pm = new MemoryMappedStream(path, 4096);
 
                                 var stringPmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
                                 _pmInnerObjectsByPointer[pointer] = stringPmCSharpDefinedTypes;

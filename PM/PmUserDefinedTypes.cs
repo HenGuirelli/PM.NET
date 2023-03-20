@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace PM
 {
-    public class PmUserDefinedTypes
+    public class PmUserDefinedTypes : IDisposable
     {
         public FileBasedStream PmMemoryMappedFile { get; }
         private readonly PmCSharpDefinedTypes _pmCSharpDefined;
@@ -180,6 +180,18 @@ namespace PM
         public void Release()
         {
             //_pmCSharpDefined.Release();
+        }
+
+        public void Flush()
+        {
+            PmMemoryMappedFile.Flush();
+            _pmCSharpDefined.Flush();
+        }
+
+        public void Dispose()
+        {
+            PmMemoryMappedFile.Dispose();
+            _pmCSharpDefined.Dispose();
         }
     }
 }

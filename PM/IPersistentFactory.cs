@@ -43,7 +43,7 @@ namespace PM
                         var pointer = _pointersToPersistentObjects.GetNext();
                         var proxyInnerObj = CreateInternalObjectByObject(
                             innerObj,
-                            pointer.ToString());
+                            pointer.ToString() + ".pm");
                         var interceptor =
                             (PersistentInterceptor)((IProxyTargetAccessor)proxyObj)
                                 .GetInterceptors()
