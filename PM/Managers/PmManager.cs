@@ -3,6 +3,7 @@ using PM.Factories;
 using System.Reflection;
 using PM.Proxies;
 using PM.Configs;
+using PM.CastleHelpers;
 
 namespace PM.Managers
 {
@@ -14,7 +15,6 @@ namespace PM.Managers
         private readonly PmUserDefinedTypes _pm;
 
         internal readonly Dictionary<PropertyInfo, object> UserDefinedObjectsByProperty = new();
-        private readonly Dictionary<ulong, PmCSharpDefinedTypes> _pmInnerObjectsByPointer = new();
 
         private readonly PointersToPersistentObjects _pointersToPersistentObjects = new();
 
@@ -59,21 +59,28 @@ namespace PM.Managers
 
                         var pm = new MemoryMappedStream(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm"), 4096);
                         var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
-                        _pmInnerObjectsByPointer[pointer] = pmCSharpDefinedTypes;
                         pmCSharpDefinedTypes.WriteString(valuestr);
 
                         _pm.UpdateProperty(property, pointer);
                     }
                     else
                     {
+                        if (CastleManager.TryGetInterceptor(value, out var interceptor))
+                        {
+                            _pm.UpdateProperty(property, interceptor.PmPointer.Value);
+                            UserDefinedObjectsByProperty[property] = value;
+                            return;
+                        }
+
                         ulong pointer = GetPointerIfExistsOrNew(property);
 
                         // User defined objects
                         IPersistentFactory persistentFactory = new PersistentFactory();
                         var proxy = persistentFactory.CreateInternalObjectByObject(
                             value,
-                            pointer.ToString() + ".pm");
+                            pointer);
                         UserDefinedObjectsByProperty[property] = proxy;
+                        _pm.UpdateProperty(property, pointer);
                     }
                 }
             }
@@ -102,6 +109,16 @@ namespace PM.Managers
                     if (UserDefinedObjectsByProperty.TryGetValue(property, out var @object))
                     {
                         return @object;
+                    }
+                    var pointer = _pm.GetULongPropertValue(property);
+                    if (pointer != 0)
+                    {
+                        // User defined objects
+                        IPersistentFactory persistentFactory = new PersistentFactory();
+                        var proxy = persistentFactory.CreateRootObject(
+                            property.PropertyType,
+                            pointer.ToString() + ".pm");
+                        UserDefinedObjectsByProperty[property] = proxy;
                     }
                     return null;
                 }
@@ -174,25 +191,17 @@ namespace PM.Managers
                             return null;
                         }
 
-                        if (_pmInnerObjectsByPointer.TryGetValue(pointer, out var innerPm))
+                        var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm");
+                        try
                         {
-                            return innerPm.ReadString();
-                        }
-                        else
-                        {
-                            var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm" );
-                            try
-                            {
-                                var pm = new MemoryMappedStream(path, 4096);
+                            var pm = new MemoryMappedStream(path, 4096);
 
-                                var stringPmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
-                                _pmInnerObjectsByPointer[pointer] = stringPmCSharpDefinedTypes;
-                                return stringPmCSharpDefinedTypes.ReadString();
-                            }
-                            catch (FileNotFoundException)
-                            {
-                                return null;
-                            }
+                            var stringPmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
+                            return stringPmCSharpDefinedTypes.ReadString();
+                        }
+                        catch (FileNotFoundException)
+                        {
+                            return null;
                         }
                     }
                 }

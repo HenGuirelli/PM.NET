@@ -112,7 +112,7 @@ namespace PM.Collections
             // Increment because first element is the Size
             index++;
             var pointer = _pointersToPersistentObjects.GetNext();
-            var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer.ToString());
+            var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer);
 
             _items[index] = pointer;
             _cache[pointer] = obj;
@@ -153,7 +153,7 @@ namespace PM.Collections
             }
 
             var pointer = _pointersToPersistentObjects.GetNext();
-            var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer.ToString());
+            var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer);
 
             _items[ListCount++] = pointer;
             _cache[pointer] = obj;
@@ -241,7 +241,7 @@ namespace PM.Collections
             }
 
             var pointer = _pointersToPersistentObjects.GetNext();
-            var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer.ToString());
+            var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer);
 
             _items[ListCount++] = pointer;
             return (T)obj;

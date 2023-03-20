@@ -13,8 +13,9 @@ namespace PM
     {
         private static readonly PointersToPersistentObjects _pointersToPersistentObjects = new();
 
-        object CreateInternalObjectByObject(object obj, string pmFilename, int fileSizeBytes = 4096)
+        object CreateInternalObjectByObject(object obj, ulong pmPointer, int fileSizeBytes = 4096)
         {
+            var pmFilename = $"{pmPointer}.pm";
             pmFilename = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pmFilename);
             var objType = obj.GetType();
 
@@ -23,7 +24,7 @@ namespace PM
                 throw new ApplicationException($"object of type {objType} already has a proxy");
             }
 
-            var proxyObj = CreatePersistentProxy(objType, pmFilename, fileSizeBytes);
+            var proxyObj = CreatePersistentProxy(objType, pmFilename, fileSizeBytes, pmPointer);
 
             foreach (var prop in objType.GetProperties())
             {
@@ -43,7 +44,7 @@ namespace PM
                         var pointer = _pointersToPersistentObjects.GetNext();
                         var proxyInnerObj = CreateInternalObjectByObject(
                             innerObj,
-                            pointer.ToString() + ".pm");
+                            pointer);
                         var interceptor =
                             (PersistentInterceptor)((IProxyTargetAccessor)proxyObj)
                                 .GetInterceptors()
@@ -58,7 +59,7 @@ namespace PM
             return proxyObj;
         }
 
-        object CreatePersistentProxy(Type type, string filename, int fileSizeBytes = 4096)
+        object CreatePersistentProxy(Type type, string filename, int fileSizeBytes = 4096, ulong? pmPointer =  null)
         {
             var pm = PmFactory.CreatePm(filename, fileSizeBytes);
 
@@ -73,7 +74,8 @@ namespace PM
                     new PmUserDefinedTypes(pm, objectPropertiesInfoMapper),
                         objectPropertiesInfoMapper),
                         type,
-                        filename);
+                        filename,
+                        pmPointer);
 
             var generator = new ProxyGenerator();
             return generator.CreateClassProxy(type, interceptor);

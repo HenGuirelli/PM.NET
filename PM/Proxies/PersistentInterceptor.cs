@@ -16,13 +16,15 @@ namespace PM.Proxies
         private readonly Dictionary<MethodInfo, PropertyInfo> _methodToPropCache = new();
 
         public string FilePointer { get; }
+        public ulong? PmPointer { get; }
 
-        public PersistentInterceptor(PmManager pmManager, Type targetType, string filePointer)
+        public PersistentInterceptor(PmManager pmManager, Type targetType, string filePointer, ulong? pmPointer)
         {
             OriginalFileInterceptorRedirect = pmManager ?? throw new ArgumentNullException(nameof(pmManager));
             PmMemoryMappedFile = pmManager.PmMemoryMappedFile;
             _targetType = targetType ?? throw new ArgumentNullException(nameof(targetType));
             FilePointer = filePointer ?? throw new ArgumentNullException(nameof(filePointer));
+            PmPointer = pmPointer;
         }
 
         public void Intercept(IInvocation invocation)
@@ -39,6 +41,7 @@ namespace PM.Proxies
 
                     var interceptor = GetInterceptorRedirect();
                     interceptor.InsertValuePm(property, value);
+                    PmMemoryMappedFile.Flush();
                 }
             }
             else if (methodName.StartsWith("get_"))
