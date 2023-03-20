@@ -83,21 +83,24 @@ namespace PM
 
         object CreateRootObject(Type type, string pmSymbolicLink, int fileSizeBytes = 4096)
         {
-            string? pointer;
+            string? pointerStr;
+            ulong? pointerULong;
             if (!PmFileSystem.FileExists(pmSymbolicLink))
             {
-                pointer = _pointersToPersistentObjects.GetNext().ToString();
-                pointer = PmFileSystem.CreateSymbolicLinkInInternalsFolder(pmSymbolicLink, pointer + ".pm");
+                pointerULong = _pointersToPersistentObjects.GetNext();
+                pointerStr = pointerULong.ToString();
+                pointerStr = PmFileSystem.CreateSymbolicLinkInInternalsFolder(pmSymbolicLink, pointerStr + ".pm");
             }
             else if (PmFileSystem.FileIsSymbolicLink(pmSymbolicLink))
             {
-                pointer = PmFileSystem.GetTargetOfSymbolicLink(pmSymbolicLink);
+                pointerStr = PmFileSystem.GetTargetOfSymbolicLink(pmSymbolicLink);
+                pointerULong = ulong.Parse(pointerStr.Split(Path.DirectorySeparatorChar).Last().Replace(".pm", ""));
             }
             else
             {
                 throw new ApplicationException($"File {pmSymbolicLink} is not a symlink");
             }
-            return CreatePersistentProxy(type, pointer, fileSizeBytes);
+            return CreatePersistentProxy(type, pointerStr, fileSizeBytes, pointerULong);
         }
 
         T CreateRootObject<T>(string pmFilename, int fileSizeBytes = 4096)

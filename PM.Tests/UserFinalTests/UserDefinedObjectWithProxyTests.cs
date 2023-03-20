@@ -140,7 +140,9 @@ namespace PM.Tests.UserFinalTests
             var obj1 = persistentFactory.CreateRootObject<ComplexClassRoot>(CreateFilePath(nameof(ExampleMergeTwoPersistentObjects)));
             var obj2 = persistentFactory.CreateRootObject<ComplexClassInner1>(CreateFilePath(nameof(ExampleMergeTwoPersistentObjects) + "2"));
 
-            Assert.Throws<ApplicationException>(() => obj1.PropComplexClassInner1 = obj2);
+            obj1.PropComplexClassInner1 = obj2;
+
+            Assert.Equal(obj1.PropComplexClassInner1, obj2);
         }
 
         [Fact]
