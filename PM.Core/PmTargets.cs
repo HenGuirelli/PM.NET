@@ -4,8 +4,7 @@
     public enum PmTargets
     {
         PM                          = 1 << 0,
-        InVolatileMemory            = 1 << 1,
-        TraditionalMemoryMappedFile = 1 << 2,
+        TraditionalMemoryMappedFile = 1 << 1,
 
         FileBasedTarget = PM | TraditionalMemoryMappedFile
     }
