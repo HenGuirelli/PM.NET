@@ -46,16 +46,15 @@
 
     public abstract class PmPrimitiveArray
     {
-        public static PmPrimitiveArray<T> CreateNewArray<T>(Stream pm, int length)
+        public static PmPrimitiveArray<T> CreateNewArray<T>(Stream pm)
             where T : struct
         {
             var type = typeof(T);
             CheckType(type);
-            CheckFileSize<T>(pm, length);
 
             if (type == typeof(ulong))
             {
-                var obj = new PmULongArray(pm, length);
+                var obj = new PmULongArray(pm, (int)pm.Length / sizeof(ulong));
                 return obj as PmPrimitiveArray<T> ?? throw new ArgumentException($"Type {typeof(T)} not recongnized");
             }
 
@@ -65,11 +64,10 @@
         private static void CheckFileSize<T>(Stream pm, int length)
             where T : struct
         {
-            //var typeSize = SupportedTypesTable.Instance.GetPmType(typeof(T)).SizeBytes;
-            //if (pm.PmMemoryMappedFileConfig.SizeBytes < length * typeSize)
-            //{
-            //    throw new PmInsufficientFileSizeException(pm.PmMemoryMappedFileConfig.SizeBytes, length * typeSize);
-            //}
+            if (pm.Length < length)
+            {
+                throw new PmInsufficientFileSizeException(pm.Length, length);
+            }
         }
 
         private static void CheckType(Type type)

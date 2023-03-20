@@ -17,12 +17,9 @@ namespace PM.Core.Tests
         {
             var length = 2;
             var array = PmPrimitiveArray.CreateNewArray<ulong>(
-                new MemoryMappedStream(CreateFilePath(nameof(OnSetAndGet_ShouldRunWithoutException)),
-                length * sizeof(ulong)),
-                //PmFactory.CreatePm(new PmMemoryMappedFileConfig(
-                //    CreateFilePath(nameof(OnSetAndGet_ShouldRunWithoutException)),
-                //    size: length * sizeof(ulong))),
-                    length: length);
+                new MemoryMappedStream(
+                    CreateFilePath(nameof(OnSetAndGet_ShouldRunWithoutException)),
+                    length * sizeof(ulong)));
 
             array[0] = ulong.MaxValue;
             array[1] = ulong.MinValue;
@@ -37,8 +34,7 @@ namespace PM.Core.Tests
             var length = 1;
             var array = PmPrimitiveArray.CreateNewArray<ulong>(
                     new MemoryMappedStream(CreateFilePath(nameof(OnSetAndGetOutOfBounds_ShouldThrowException)),
-                    length * sizeof(ulong)),
-                     length: length);
+                    length * sizeof(ulong)));
 
             Assert.Throws<IndexOutOfRangeException>(() => array[1] = ulong.MaxValue);
             Assert.Throws<IndexOutOfRangeException>(() => array[1]);
@@ -51,8 +47,7 @@ namespace PM.Core.Tests
             var length = 500;
             var array = PmPrimitiveArray.CreateNewArray<ulong>(
                 new MemoryMappedStream(CreateFilePath(nameof(OnHighVolume_ShouldNotThrowException)),
-                    length * sizeof(ulong)),
-                     length: length);
+                    length * sizeof(ulong)));
 
             for (int i = 0; i < length; i++)
             {
