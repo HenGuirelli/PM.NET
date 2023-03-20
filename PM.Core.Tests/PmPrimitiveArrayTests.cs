@@ -1,20 +1,27 @@
-﻿using PM.Factories;
-using PM.Tests.Common;
+﻿using PM.Core.V2;
 using System;
+using System.IO;
 using Xunit;
 
 namespace PM.Core.Tests
 {
-    public class PmPrimitiveArrayTests : UnitTest
+    public class PmPrimitiveArrayTests
     {
+        private string CreateFilePath(string filename)
+        {
+            return Path.Combine("D:\\temp\\pm_tests", filename.EndsWith(".pm") ? filename : filename + ".pm");
+        }
+
         [Fact]
         public void OnSetAndGet_ShouldRunWithoutException()
         {
             var length = 2;
             var array = PmPrimitiveArray.CreateNewArray<ulong>(
-                PmFactory.CreatePm(new PmMemoryMappedFileConfig(
-                    CreateFilePath(nameof(OnSetAndGet_ShouldRunWithoutException)),
-                    size: length * sizeof(ulong))),
+                new MemoryMappedStream(CreateFilePath(nameof(OnSetAndGet_ShouldRunWithoutException)),
+                length * sizeof(ulong)),
+                //PmFactory.CreatePm(new PmMemoryMappedFileConfig(
+                //    CreateFilePath(nameof(OnSetAndGet_ShouldRunWithoutException)),
+                //    size: length * sizeof(ulong))),
                     length: length);
 
             array[0] = ulong.MaxValue;
@@ -29,9 +36,8 @@ namespace PM.Core.Tests
         {
             var length = 1;
             var array = PmPrimitiveArray.CreateNewArray<ulong>(
-                PmFactory.CreatePm(new PmMemoryMappedFileConfig(
-                     CreateFilePath(nameof(OnSetAndGetOutOfBounds_ShouldThrowException)),
-                     size: length * sizeof(ulong))),
+                    new MemoryMappedStream(CreateFilePath(nameof(OnSetAndGetOutOfBounds_ShouldThrowException)),
+                    length * sizeof(ulong)),
                      length: length);
 
             Assert.Throws<IndexOutOfRangeException>(() => array[1] = ulong.MaxValue);
@@ -44,9 +50,8 @@ namespace PM.Core.Tests
         {
             var length = 500;
             var array = PmPrimitiveArray.CreateNewArray<ulong>(
-                PmFactory.CreatePm(new PmMemoryMappedFileConfig(
-                     CreateFilePath(nameof(OnHighVolume_ShouldNotThrowException)),
-                     size: length * sizeof(ulong))),
+                new MemoryMappedStream(CreateFilePath(nameof(OnHighVolume_ShouldNotThrowException)),
+                    length * sizeof(ulong)),
                      length: length);
 
             for (int i = 0; i < length; i++)

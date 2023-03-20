@@ -44,7 +44,6 @@ namespace PM.Core.V2
         public override int Read(byte[] buffer, int offset, int count)
         {
             var result = _memoryMappedViewStream.Read(buffer, offset, count);
-            Position = 0;
             return result;
         }
 
@@ -61,7 +60,6 @@ namespace PM.Core.V2
         public override void Write(byte[] buffer, int offset, int count)
         {
             _memoryMappedViewStream.Write(buffer, offset, count);
-            Position = 0;
         }
 
         protected override void Dispose(bool disposing)

@@ -1,5 +1,6 @@
 ﻿using PM.Configs;
 using PM.Core;
+using PM.Core.V2;
 using PM.Factories;
 using PM.Managers;
 
@@ -30,11 +31,7 @@ namespace PM.Collections
             string filename,
             int length)
         {
-
-            var pm = PmFactory.CreatePm(
-                        new PmMemoryMappedFileConfig(
-                            filename,
-                            sizeof(ulong) * (length/* + 1*/)));
+            var pm = new MemoryMappedStream(filename, length);
             return PmPrimitiveArray.CreateNewArray<ulong>(pm, length);
         }
     }

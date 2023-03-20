@@ -1,12 +1,10 @@
-using PM.Configs;
 using PM.Core.Fakes;
-using PM.Tests.Common;
 using System;
 using Xunit;
 
 namespace PM.Core.Tests
 {
-    public class PmTests : UnitTest
+    public class PmTests
     {
         private static readonly Random _random = new();
 
@@ -55,6 +53,10 @@ namespace PM.Core.Tests
             {
                 Assert.Equal(randomArray[i], byteArrayReadFromPm[i]);
             }
+        }
+        protected static IPm CreatePm(string filepath)
+        {
+            return new MemoryMappedFilePm(new PmMemoryMappedFileConfig(filepath));
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace PM.Configs
+﻿namespace PM.Core
 {
     [Flags]
     public enum PmTargets

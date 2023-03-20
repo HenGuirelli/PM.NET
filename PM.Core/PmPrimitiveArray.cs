@@ -13,7 +13,7 @@
             set => Set(index, value);
         }
 
-        protected PmPrimitiveArray(IPm pm, int length)
+        protected PmPrimitiveArray(Stream pm, int length)
         {
             Length = length;
             _cSharpDefinedPm = new PmCSharpDefinedTypes(pm);
@@ -34,8 +34,8 @@
 
         public virtual void Clear()
         {
-            _cSharpDefinedPm.DeleteFile();
-            _cSharpDefinedPm.CreateFile();
+            //_cSharpDefinedPm.DeleteFile();
+            //_cSharpDefinedPm.CreateFile();
             Length = 0;
         }
 
@@ -46,7 +46,7 @@
 
     public abstract class PmPrimitiveArray
     {
-        public static PmPrimitiveArray<T> CreateNewArray<T>(IPm pm, int length)
+        public static PmPrimitiveArray<T> CreateNewArray<T>(Stream pm, int length)
             where T : struct
         {
             var type = typeof(T);
@@ -62,14 +62,14 @@
             throw new ArgumentException($"Type {typeof(T)} not recongnized");
         }
 
-        private static void CheckFileSize<T>(IPm pm, int length)
+        private static void CheckFileSize<T>(Stream pm, int length)
             where T : struct
         {
-            var typeSize = SupportedTypesTable.Instance.GetPmType(typeof(T)).SizeBytes;
-            if (pm.PmMemoryMappedFileConfig.SizeBytes < length * typeSize)
-            {
-                throw new PmInsufficientFileSizeException(pm.PmMemoryMappedFileConfig.SizeBytes, length * typeSize);
-            }
+            //var typeSize = SupportedTypesTable.Instance.GetPmType(typeof(T)).SizeBytes;
+            //if (pm.PmMemoryMappedFileConfig.SizeBytes < length * typeSize)
+            //{
+            //    throw new PmInsufficientFileSizeException(pm.PmMemoryMappedFileConfig.SizeBytes, length * typeSize);
+            //}
         }
 
         private static void CheckType(Type type)

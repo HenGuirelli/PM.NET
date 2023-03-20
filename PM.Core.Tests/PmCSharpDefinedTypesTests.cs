@@ -1,24 +1,30 @@
-﻿using PM.Configs;
-using PM.Core.Fakes;
-using PM.Tests.Common;
+﻿using PM.Core.V2;
 using System;
+using System.IO;
 using Xunit;
 
 namespace PM.Core.Tests
 {
-    public class PmCSharpDefinedTypesTests : UnitTest
+    public class PmCSharpDefinedTypesTests
     {
         private static readonly Random _random = new();
 
         [Fact]
         public void OnWriteAndReadChar_ShouldExecWithoutException()
         {
-            var pmPrimitives = CreatePrimitive(nameof(OnWriteAndReadChar_ShouldExecWithoutException));
+            var pmPrimitives = CreatePrimitive(
+                nameof(OnWriteAndReadChar_ShouldExecWithoutException),
+                sizeof(char)*2);
             pmPrimitives.WriteChar(char.MaxValue);
             Assert.Equal(char.MaxValue, pmPrimitives.ReadChar());
-            
             pmPrimitives.WriteChar(char.MinValue);
             Assert.Equal(char.MinValue, pmPrimitives.ReadChar());
+
+            pmPrimitives.WriteChar(char.MaxValue, offset: sizeof(char));
+            Assert.Equal(char.MaxValue, pmPrimitives.ReadChar(sizeof(char)));
+
+            pmPrimitives.WriteChar(char.MinValue, offset: sizeof(char));
+            Assert.Equal(char.MinValue, pmPrimitives.ReadChar(sizeof(char)));
         }
 
         [Fact]
@@ -134,7 +140,7 @@ namespace PM.Core.Tests
         [Fact]
         public void OnWriteAndReadInt_ShouldExecWithoutException()
         {
-            var pmPrimitives = CreatePrimitive(nameof(OnWriteAndReadUInt_ShouldExecWithoutException));
+            var pmPrimitives = CreatePrimitive(nameof(OnWriteAndReadInt_ShouldExecWithoutException));
             pmPrimitives.WriteInt(int.MaxValue);
             Assert.Equal(int.MaxValue, pmPrimitives.ReadInt());
 
@@ -153,22 +159,14 @@ namespace PM.Core.Tests
             Assert.Equal("Hello World!", pmPrimitives.ReadString(20));
         }
 
-        private PmCSharpDefinedTypes CreatePrimitive(string methodName)
+        private PmCSharpDefinedTypes CreatePrimitive(string methodName, long size = 4096)
         {
-            return new PmCSharpDefinedTypes(CreatePm(methodName));
+            return new PmCSharpDefinedTypes(CreatePmStream(methodName, size));
         }
 
-        private static IPm CreatePm(string mappedMemoryFilePath)
+        private static System.IO.Stream CreatePmStream(string mappedMemoryFilePath, long size)
         {
-            if (Constraints.PmTarget == PmTargets.InVolatileMemory)
-            {
-                return new FakeInMemoryPm(new PmMemoryMappedFileConfig(mappedMemoryFilePath));
-            }
-            if (Constraints.PmTarget == PmTargets.PM)
-            {
-                return new Pm(mappedMemoryFilePath);
-            }
-            return new MemoryMappedFilePm(new PmMemoryMappedFileConfig(mappedMemoryFilePath));
+            return new MemoryMappedStream(Path.Combine("D:\\temp\\pm_tests", mappedMemoryFilePath + ".pm"), size);
         }
     }
 }

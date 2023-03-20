@@ -1,4 +1,4 @@
-﻿using PM.Configs;
+﻿using PM.Core;
 
 namespace PM.Tests.Common
 {

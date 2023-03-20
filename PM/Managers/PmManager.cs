@@ -3,6 +3,7 @@ using PM.Factories;
 using System.Reflection;
 using PM.Proxies;
 using PM.Configs;
+using PM.Core.V2;
 
 namespace PM.Managers
 {
@@ -57,7 +58,8 @@ namespace PM.Managers
                     {
                         ulong pointer = GetPointerIfExistsOrNew(property);
 
-                        var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString())));
+                        //var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString())));
+                        var pm = new MemoryMappedStream(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()), 4096);
                         var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
                         _pmInnerObjectsByPointer[pointer] = pmCSharpDefinedTypes;
                         pmCSharpDefinedTypes.WriteString(valuestr);
@@ -179,10 +181,12 @@ namespace PM.Managers
                             var filesize = TransactionFolderFactory.Create();
                             try
                             {
-                                var pm = PmFactory.CreatePm(
-                                    new PmMemoryMappedFileConfig(
-                                        name: path,
-                                        size: (int)filesize.GetFileSize(path)));
+                                //var pm = PmFactory.CreatePm(
+                                //    new PmMemoryMappedFileConfig(
+                                //        name: path,
+                                //        size: (int)filesize.GetFileSize(path)));
+                                var pm = new MemoryMappedStream(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()), 4096);
+
                                 var stringPmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
                                 _pmInnerObjectsByPointer[pointer] = stringPmCSharpDefinedTypes;
                                 return stringPmCSharpDefinedTypes.ReadString();
