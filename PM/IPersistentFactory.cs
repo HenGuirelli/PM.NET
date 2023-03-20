@@ -60,7 +60,7 @@ namespace PM
 
         object CreatePersistentProxy(Type type, string filename, int fileSizeBytes = 4096)
         {
-            var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(filename, fileSizeBytes));
+            var pm = PmFactory.CreatePm(filename, fileSizeBytes);
 
             var pmContentGenerator = new PmContentGenerator(
                 new PmCSharpDefinedTypes(pm),

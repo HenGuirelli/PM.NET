@@ -10,7 +10,7 @@ namespace PM.Proxies
     {
         // If a transaction is running, this redirector is called instead of _defaultInterceptorRedirect
         internal AsyncLocal<IInterceptorRedirect> TransactionInterceptorRedirect { get; } = new();
-        internal PmMemoryMappedFileConfig PmMemoryMappedFile { get; }
+        internal FileBasedStream PmMemoryMappedFile { get; }
         public IInterceptorRedirect OriginalFileInterceptorRedirect { get; }
         private readonly Type _targetType;
         private readonly Dictionary<MethodInfo, PropertyInfo> _methodToPropCache = new();

@@ -181,7 +181,7 @@ namespace PM.Tests
 
         private static PmUserDefinedTypes CreateObject(string pmMappedFile, Type typeclasstest)
         {
-            var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(pmMappedFile));
+            var pm = PmFactory.CreatePm(pmMappedFile);
             var objectPropertiesInfoMapper = new ObjectPropertiesInfoMapper(typeclasstest, new PmHeader(typeclasstest));
             return new PmUserDefinedTypes(pm, objectPropertiesInfoMapper);
         }

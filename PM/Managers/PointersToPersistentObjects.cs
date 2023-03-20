@@ -40,10 +40,10 @@ namespace PM.Managers
 
         static PointersToPersistentObjects()
         {
-            var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(FilePath, (sizeof(ulong) + sizeof(byte)) * 2));
+            var pm = PmFactory.CreatePm(FilePath, (sizeof(ulong) + sizeof(byte)) * 2);
             _pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
 
-            if (!pm.FileExists() || GetFileCreatedSuccesfullyByte() != FileCreatedSuccesfully)
+            if (!File.Exists(FilePath) || GetFileCreatedSuccesfullyByte() != FileCreatedSuccesfully)
             {
                 CreateInitialFileContent();
             }

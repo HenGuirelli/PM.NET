@@ -1,22 +1,22 @@
 ﻿using PM.Core;
 using PM.Configs;
-using PM.Core.Fakes;
 
 namespace PM.Factories
 {
     public class PmFactory
     {
-        public static IPm CreatePm(PmMemoryMappedFileConfig pmMemoryMappedFile)
+        public static FileBasedStream CreatePm(string pmMemoryMappedFile, long size = 4096)
         {
             if (PmGlobalConfiguration.PmTarget == PmTargets.PM)
             {
-                return new Pm(pmMemoryMappedFile);
+                return new PmStream();
             }
             if (PmGlobalConfiguration.PmTarget == PmTargets.TraditionalMemoryMappedFile)
             {
-                return new MemoryMappedFilePm(pmMemoryMappedFile);
+                return new MemoryMappedStream(pmMemoryMappedFile, size: size);
             }
-            return new FakeInMemoryPm(pmMemoryMappedFile);
+            throw new ArgumentException(
+                nameof(PmGlobalConfiguration.PmTarget));
         }
     }
 }

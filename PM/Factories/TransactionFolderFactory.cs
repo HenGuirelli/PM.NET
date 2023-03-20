@@ -1,4 +1,5 @@
 ﻿using PM.Configs;
+using PM.Core;
 using PM.Transactions;
 
 namespace PM.Factories
@@ -7,12 +8,11 @@ namespace PM.Factories
     {
         public static IFileSystemHelper Create()
         {
-            if (PmGlobalConfiguration.PmTarget == PmTargets.PM ||
-                PmGlobalConfiguration.PmTarget == PmTargets.TraditionalMemoryMappedFile)
+            if (PmGlobalConfiguration.PmTarget.HasFlag(PmTargets.FileBasedTarget))
             {
                 return new FileSystemHelper();
             }
-            return new FakeTransactionFolder();
+            throw new ArgumentException(nameof(PmGlobalConfiguration.PmTarget));
         }
     }
 }

@@ -5,14 +5,14 @@ namespace PM
 {
     public class PmUserDefinedTypes
     {
-        public PmMemoryMappedFileConfig PmMemoryMappedFile { get; }
+        public FileBasedStream PmMemoryMappedFile { get; }
         private readonly PmCSharpDefinedTypes _pmCSharpDefined;
         private readonly ObjectPropertiesInfoMapper _objectPropertiesSizeMapper;
 
-        public PmUserDefinedTypes(IPm pm, ObjectPropertiesInfoMapper objectPropertiesInfoMapper)
+        public PmUserDefinedTypes(FileBasedStream pm, ObjectPropertiesInfoMapper objectPropertiesInfoMapper)
         {
             _pmCSharpDefined = new PmCSharpDefinedTypes(pm);
-            PmMemoryMappedFile = pm.PmMemoryMappedFileConfig;
+            PmMemoryMappedFile = pm;
             _objectPropertiesSizeMapper = objectPropertiesInfoMapper;
         }
 
@@ -174,12 +174,12 @@ namespace PM
 
         public void Lock()
         {
-            _pmCSharpDefined.Lock();
+            //_pmCSharpDefined.Lock();
         }
 
         public void Release()
         {
-            _pmCSharpDefined.Release();
+            //_pmCSharpDefined.Release();
         }
     }
 }

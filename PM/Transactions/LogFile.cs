@@ -89,7 +89,7 @@ namespace PM.Transactions
 
         internal void DeleteFile()
         {
-            _pmCSharpDefinedTypes.DeleteFile();
+            //_pmCSharpDefinedTypes.DeleteFile();
         }
 
         public void WriteInt(int offset, int value)
@@ -290,9 +290,8 @@ namespace PM.Transactions
             LogFileContent.Add((offset, pmType.ID, array));
 
             var pm = PmFactory.CreatePm(
-                new PmMemoryMappedFileConfig(
-                    name: Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()),
-                    size: sizeof(char) * (value.Length + 1)));
+                    Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()),
+                    size: sizeof(char) * (value.Length + 1));
             var stringPmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
             stringPmCSharpDefinedTypes.WriteString(value);
         }

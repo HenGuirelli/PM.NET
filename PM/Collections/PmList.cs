@@ -273,10 +273,9 @@ namespace PM.Collections
             }
             _items[ListCount - 1] = default;
             ListCount--;
-            var pm = PmFactory.CreatePm(
-                new PmMemoryMappedFileConfig(
-                    Path.Combine(PmGlobalConfiguration.PmInternalsFolder, _items[index].ToString())));
-            pm.DeleteFile();
+            //var pm = PmFactory.CreatePm(
+            //        Path.Combine(PmGlobalConfiguration.PmInternalsFolder, _items[index].ToString()));
+            //pm.DeleteFile();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

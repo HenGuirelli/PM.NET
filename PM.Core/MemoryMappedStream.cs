@@ -2,13 +2,14 @@
 
 namespace PM.Core
 {
-    public class MemoryMappedStream : Stream
+    public class MemoryMappedStream : FileBasedStream
     {
         private readonly MemoryMappedFile _memoryMappedFile;
         private readonly MemoryMappedViewStream _memoryMappedViewStream;
 
         public MemoryMappedStream(string filePath, long size, long offset = 0, bool createFileIfNotExists = true)
         {
+            FilePath = filePath;
             if (createFileIfNotExists && !File.Exists(filePath))
             {
                 using var fs = new FileStream(

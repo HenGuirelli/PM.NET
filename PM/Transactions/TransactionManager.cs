@@ -1,7 +1,6 @@
 ﻿using PM.Core;
 using PM.Proxies;
 using PM.Factories;
-using Castle.DynamicProxy;
 using System.Reflection;
 using PM.Configs;
 using PM.Managers;
@@ -32,15 +31,16 @@ namespace PM.Transactions
             var files = transactionFolder.GetLogFileNames();
             foreach (var file in files)
             {
-                var logFilePm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(file));
+                var logFilePm = PmFactory.CreatePm(file);
                 var logFile = new LogFile(new PmCSharpDefinedTypes(logFilePm));
                 if (logFile.IsCommitedLogFile)
                 {
                     var originalFilename = logFile.ReadOriginalFileName();
-                    var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(originalFilename));
+                    var pm = PmFactory.CreatePm(originalFilename);
                     foreach (var item in logFile.LogFileContent)
                     {
-                        pm.Store(item.Item3, offset: item.Item1);
+                        pm.Seek(item.Item1, SeekOrigin.Begin);
+                        pm.Write(item.Item3);
                     }
                 }
                 logFile.DeleteFile();
@@ -55,7 +55,7 @@ namespace PM.Transactions
             _transactionID = Guid.NewGuid().ToString();
 
             var filename = Path.Combine(PmGlobalConfiguration.PmTransactionFolder, _transactionID);
-            var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(filename));
+            var pm = PmFactory.CreatePm(filename);
             LogFile = new LogFile(new PmCSharpDefinedTypes(pm));
 
 
@@ -107,10 +107,11 @@ namespace PM.Transactions
 
         private void CopyLogToOriginal()
         {
-            var pm = PmFactory.CreatePm(_interceptor.PmMemoryMappedFile);
+            var pm = PmFactory.CreatePm(_interceptor.PmMemoryMappedFile.FilePath);
             foreach (var item in LogFile.LogFileContent)
             {
-                pm.Store(item.Item3, offset: item.Item1);
+                pm.Seek(item.Item1, SeekOrigin.Begin);
+                pm.Write(item.Item3);
             }
         }
 

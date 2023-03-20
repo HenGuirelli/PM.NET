@@ -3,14 +3,13 @@ using PM.Factories;
 using System.Reflection;
 using PM.Proxies;
 using PM.Configs;
-using PM.Core.V2;
 
 namespace PM.Managers
 {
     internal class PmManager : IInterceptorRedirect
     {
         public ObjectPropertiesInfoMapper ObjectMapper { get; }
-        public PmMemoryMappedFileConfig PmMemoryMappedFile { get; }
+        public FileBasedStream PmMemoryMappedFile { get; }
 
         private readonly PmUserDefinedTypes _pm;
 
