@@ -1,6 +1,6 @@
 ﻿using System.IO.MemoryMappedFiles;
 
-namespace PM.Core.V2
+namespace PM.Core
 {
     public class MemoryMappedStream : Stream
     {

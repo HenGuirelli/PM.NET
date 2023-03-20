@@ -1,9 +1,8 @@
-﻿using PM.Core.V2;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using Xunit;
 
-namespace PM.Core.Tests.V2
+namespace PM.Core.Tests
 {
     public class MemoryMappedStreamTests
     {

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace PM.Core.V2
+namespace PM.Core
 {
     internal static class LibpmemNativeMethods
     {

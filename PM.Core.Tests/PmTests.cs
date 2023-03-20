@@ -1,5 +1,5 @@
-using PM.Core.Fakes;
 using System;
+using System.IO;
 using Xunit;
 
 namespace PM.Core.Tests
@@ -11,28 +11,32 @@ namespace PM.Core.Tests
         [Fact]
         public void OnLoadStoreByte_ShouldExecWithoutException()
         {
-            var pm = CreatePm(nameof(OnLoadStoreByte_ShouldExecWithoutException));
-
-            Assert.True(pm.Store(byte.MaxValue));
-            var value1 = pm.Load();
+            var pm = CreatePmStream(nameof(OnLoadStoreByte_ShouldExecWithoutException));
+            pm.WriteByte(byte.MaxValue);
+            pm.Seek(0, SeekOrigin.Begin);
+            var value1 = pm.ReadByte();
             Assert.Equal(byte.MaxValue, value1);
 
             // Test with offset
-            Assert.True(pm.Store(byte.MinValue, offset: sizeof(byte)));
-            var value2 = pm.Load(offset: sizeof(byte));
-            Assert.Equal(byte.MinValue, value2);
+            pm.Seek(sizeof(byte), SeekOrigin.Begin);
+            pm.WriteByte(byte.MinValue);
+
+            pm.Seek(sizeof(byte), SeekOrigin.Begin);
+            Assert.Equal(byte.MinValue, pm.ReadByte());
         }
 
         [Fact]
         public void OnLoadStoreByteArray_ShouldExecWithoutException()
         {
-            var pm = CreatePm(nameof(OnLoadStoreByteArray_ShouldExecWithoutException));
+            var pm = CreatePmStream(nameof(OnLoadStoreByteArray_ShouldExecWithoutException));
 
-            var randomArray = new byte[_random.Next(pm.PmMemoryMappedFileConfig.SizeBytes)];
+            var randomArray = new byte[_random.Next((int)pm.Length)];
             _random.NextBytes(randomArray);
 
-            Assert.True(pm.Store(randomArray));
-            var byteArrayReadFromPm = pm.Load(byteCount: randomArray.Length);
+            pm.Write(randomArray);
+            var byteArrayReadFromPm = new byte[randomArray.Length];
+            pm.Seek(0, SeekOrigin.Begin);
+            pm.Read(byteArrayReadFromPm);
             for (int i = 0; i < randomArray.Length; i++)
             {
                 Assert.Equal(randomArray[i], byteArrayReadFromPm[i]);
@@ -42,21 +46,25 @@ namespace PM.Core.Tests
         [Fact]
         public void OnLoadStoreByteArray_WithOffset_ShouldExecWithoutException()
         {
-            var pm = CreatePm(nameof(OnLoadStoreByteArray_WithOffset_ShouldExecWithoutException));
+            var pm = CreatePmStream(nameof(OnLoadStoreByteArray_WithOffset_ShouldExecWithoutException));
 
-            var randomArray = new byte[_random.Next(pm.PmMemoryMappedFileConfig.SizeBytes / 2)];
+            var randomArray = new byte[_random.Next((int)pm.Length / 2)];
             _random.NextBytes(randomArray);
 
-            Assert.True(pm.Store(randomArray, offset: pm.PmMemoryMappedFileConfig.SizeBytes / 2));
-            var byteArrayReadFromPm = pm.Load(byteCount: randomArray.Length, offset: pm.PmMemoryMappedFileConfig.SizeBytes / 2);
+            pm.Seek(pm.Length / 2, SeekOrigin.Begin);
+            pm.Write(randomArray);
+            pm.Seek(pm.Length / 2, SeekOrigin.Begin);
+            var byteArrayReadFromPm = new byte[randomArray.Length];
+            pm.Read(byteArrayReadFromPm);
             for (int i = 0; i < randomArray.Length; i++)
             {
                 Assert.Equal(randomArray[i], byteArrayReadFromPm[i]);
             }
         }
-        protected static IPm CreatePm(string filepath)
+
+        private static Stream CreatePmStream(string mappedMemoryFilePath, long size=4096)
         {
-            return new MemoryMappedFilePm(new PmMemoryMappedFileConfig(filepath));
+            return new MemoryMappedStream(Path.Combine("D:\\temp\\pm_tests", mappedMemoryFilePath + ".pm"), size);
         }
     }
 }

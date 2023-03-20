@@ -1,5 +1,4 @@
-﻿using PM.Core.V2;
-using System;
+﻿using System;
 using System.IO;
 using Xunit;
 
@@ -7,11 +6,6 @@ namespace PM.Core.Tests
 {
     public class PmPrimitiveArrayTests
     {
-        private string CreateFilePath(string filename)
-        {
-            return Path.Combine("D:\\temp\\pm_tests", filename.EndsWith(".pm") ? filename : filename + ".pm");
-        }
-
         [Fact]
         public void OnSetAndGet_ShouldRunWithoutException()
         {
@@ -53,6 +47,11 @@ namespace PM.Core.Tests
             {
                 array[i] = (ulong)length;
             }
+        }
+
+        private string CreateFilePath(string filename)
+        {
+            return Path.Combine("D:\\temp\\pm_tests", filename.EndsWith(".pm") ? filename : filename + ".pm");
         }
     }
 }
