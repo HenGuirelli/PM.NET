@@ -33,6 +33,7 @@ namespace PM.Examples
 
             obj.ItemList = new Collections.PmList<ListItem>(
                 CreateFilePath(nameof(ClassWithPersistentList) + "_List"));
+            obj.ItemList.Clear();
             obj.ItemList.AddPersistent(new ListItem
             {
                 Val = val
