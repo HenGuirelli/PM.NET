@@ -163,7 +163,7 @@ namespace PM.Core.Tests
             return new PmCSharpDefinedTypes(CreatePmStream(methodName, size));
         }
 
-        private static System.IO.Stream CreatePmStream(string mappedMemoryFilePath, long size)
+        private static FileBasedStream CreatePmStream(string mappedMemoryFilePath, long size)
         {
             return new MemoryMappedStream(Path.Combine("D:\\temp\\pm_tests", mappedMemoryFilePath + ".pm"), size);
         }

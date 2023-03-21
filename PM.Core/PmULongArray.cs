@@ -2,7 +2,7 @@
 {
     public class PmULongArray : PmPrimitiveArray<ulong>
     {
-        public PmULongArray(Stream pm, int length)
+        public PmULongArray(FileBasedStream pm, int length)
             : base(pm, length)
         {
             //var fileSize = pm.GetFileSize();

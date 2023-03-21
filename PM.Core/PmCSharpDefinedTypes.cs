@@ -6,10 +6,11 @@ namespace PM.Core
 {
     public class PmCSharpDefinedTypes : IDisposable
     {
-        private readonly Stream _pm2;
+        private readonly FileBasedStream _pm2;
         const string ReadErrorExceptionMessage = "Error on read from Stream";
+        public string FilePath => _pm2.FilePath;
 
-        public PmCSharpDefinedTypes(Stream pm)
+        public PmCSharpDefinedTypes(FileBasedStream pm)
         {
             _pm2 = pm ?? throw new ArgumentNullException(nameof(pm));
         }
@@ -336,6 +337,11 @@ namespace PM.Core
         public void Dispose()
         {
             _pm2.Dispose();
+        }
+
+        public void Delete()
+        {
+            _pm2.Delete();
         }
     }
 }

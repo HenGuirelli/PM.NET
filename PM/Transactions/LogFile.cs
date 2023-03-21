@@ -6,6 +6,14 @@ using System.Buffers.Binary;
 
 namespace PM.Transactions
 {
+    /// <summary>
+    /// First item in log file is thje commit byte: -1 when log is finished.
+    /// Second item in log file is the path of original PM file.
+    /// After that point the rest of the values ​​are separated into threes:
+    ///     1. Offset from the original value;
+    ///     2. value type ID;
+    ///     3. Value
+    /// </summary>
     public class LogFile
     {
         /// <summary>
@@ -89,7 +97,7 @@ namespace PM.Transactions
 
         internal void DeleteFile()
         {
-            //_pmCSharpDefinedTypes.DeleteFile();
+            _pmCSharpDefinedTypes.Delete();
         }
 
         public void WriteInt(int offset, int value)
@@ -290,7 +298,7 @@ namespace PM.Transactions
             LogFileContent.Add((offset, pmType.ID, array));
 
             var pm = PmFactory.CreatePm(
-                    Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()),
+                    Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm"),
                     size: sizeof(char) * (value.Length + 1));
             var stringPmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
             stringPmCSharpDefinedTypes.WriteString(value);
