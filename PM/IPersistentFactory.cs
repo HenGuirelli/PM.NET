@@ -5,7 +5,6 @@ using PM.Factories;
 using PM.Managers;
 using PM.PmContent;
 using PM.Proxies;
-using System.Reflection;
 
 namespace PM
 {
@@ -15,6 +14,11 @@ namespace PM
 
         object CreateInternalObjectByObject(object obj, ulong pmPointer, int fileSizeBytes = 4096)
         {
+            if (obj is ICustomPmClass customObj)
+            {
+                throw new ApplicationException($"object {obj} is a {nameof(ICustomPmClass)}");
+            }
+
             var pmFilename = $"{pmPointer}.pm";
             pmFilename = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pmFilename);
             var objType = obj.GetType();
@@ -94,7 +98,7 @@ namespace PM
             else if (PmFileSystem.FileIsSymbolicLink(pmSymbolicLink))
             {
                 pointerStr = PmFileSystem.GetTargetOfSymbolicLink(pmSymbolicLink);
-                pointerULong = ulong.Parse(pointerStr.Split(Path.DirectorySeparatorChar).Last().Replace(".pm", ""));
+                pointerULong = PmFileSystem.GetPointerFromSymbolicLink(pmSymbolicLink);
             }
             else
             {

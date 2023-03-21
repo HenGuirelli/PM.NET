@@ -8,7 +8,7 @@ using System.Collections.Concurrent;
 
 namespace PM.Collections
 {
-    public class PmList<T> : IList<T>
+    public class PmList<T> : IList<T>, ICustomPmClass
         where T : class, new()
     {
         private readonly IPersistentFactory _persistentFactory = new PersistentFactory();
@@ -61,6 +61,9 @@ namespace PM.Collections
                 _listCount = value;
             }
         }
+
+        public ulong PmPointer { get; }
+
         public const int DefaultCapacity = 4;
 
         public PmList(string symbolicLink, int initialCapacity = DefaultCapacity)
@@ -69,6 +72,10 @@ namespace PM.Collections
             Filepath = symbolicLink;
             _items = CreateOrLoadInternalArray(symbolicLink, initialCapacity);
             _listCount = (int)_items[0];
+
+            // Increment 1 because the fist element always exists (array size)
+            if (_listCount == 0) _listCount++;
+            PmPointer = PmFileSystem.GetPointerFromSymbolicLink(symbolicLink);
         }
 
         private PmPrimitiveArray<ulong> CreateOrLoadInternalArray(string symbolicLink, int capacity)

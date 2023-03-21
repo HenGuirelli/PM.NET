@@ -17,6 +17,17 @@ namespace PM.Tests.Collections
     public class PmListTests : UnitTest
     {
         [Fact]
+        public void OnAddPersistent_WhenEmpyList()
+        {
+            var list = new PmList<Foo>(Path.Combine(
+                PmGlobalConfiguration.PmInternalsFolder,
+                nameof(OnAddPersistent_WhenEmpyList)));
+
+            Assert.Equal(0, list.Count);
+            Assert.Empty(list);
+        }
+
+        [Fact]
         public void OnAddPersistent_WhenOnlyOneIten_ShouldAdd()
         {
             var list = new PmList<Foo>(Path.Combine(

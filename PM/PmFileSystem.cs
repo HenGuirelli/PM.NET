@@ -1,13 +1,17 @@
 ﻿using PM.Configs;
 using PM.Core;
-using PM.Managers;
-using System.Reflection;
 
 namespace PM
 {
     internal class PmFileSystem
     {
         private static bool _useFileSystem => PmTargets.FileBasedTarget.HasFlag(PmGlobalConfiguration.PmTarget);
+
+        public static ulong GetPointerFromSymbolicLink(string symlink)
+        {
+            var pointerStr = GetTargetOfSymbolicLink(symlink);
+            return ulong.Parse(pointerStr.Split(Path.DirectorySeparatorChar).Last().Replace(".pm", ""));
+        }
 
         public static string GetTargetOfSymbolicLink(string symlink)
         {
@@ -17,7 +21,8 @@ namespace PM
 
         public static string CreateSymbolicLinkInInternalsFolder(string symlink, string targetSymlink)
         {
-            var pointer = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, targetSymlink) + ".pm";
+            targetSymlink = targetSymlink.EndsWith(".pm") ? targetSymlink : targetSymlink + ".pm";
+            var pointer = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, targetSymlink);
             CreateSymbolicLink(symlink, pointer);
             return pointer;
         }

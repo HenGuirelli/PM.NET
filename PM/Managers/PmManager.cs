@@ -72,15 +72,23 @@ namespace PM.Managers
                             return;
                         }
 
-                        ulong pointer = GetPointerIfExistsOrNew(property);
-
-                        // User defined objects
-                        IPersistentFactory persistentFactory = new PersistentFactory();
-                        var proxy = persistentFactory.CreateInternalObjectByObject(
-                            value,
-                            pointer);
-                        UserDefinedObjectsByProperty[property] = proxy;
-                        _pm.UpdateProperty(property, pointer);
+                        if (value is ICustomPmClass customObj)
+                        {
+                            ulong pointer = customObj.PmPointer;
+                            UserDefinedObjectsByProperty[property] = value;
+                            _pm.UpdateProperty(property, pointer);
+                        }
+                        else
+                        {
+                            ulong pointer = GetPointerIfExistsOrNew(property);
+                            // User defined objects
+                            IPersistentFactory persistentFactory = new PersistentFactory();
+                            var proxy = persistentFactory.CreateInternalObjectByObject(
+                                value,
+                                pointer);
+                            UserDefinedObjectsByProperty[property] = proxy;
+                            _pm.UpdateProperty(property, pointer);
+                        }
                     }
                 }
             }
