@@ -4,10 +4,12 @@
     {
         public string FilePath { get; protected set; } = string.Empty;
 
-        internal void Delete()
+        public void Delete()
         {
             Dispose();
             File.Delete(FilePath);
         }
+
+        public abstract void Resize(int size);
     }
 }

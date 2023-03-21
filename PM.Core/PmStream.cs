@@ -22,6 +22,11 @@
             throw new NotImplementedException();
         }
 
+        public override void Resize(int size)
+        {
+            throw new NotImplementedException();
+        }
+
         public override long Seek(long offset, SeekOrigin origin)
         {
             throw new NotImplementedException();

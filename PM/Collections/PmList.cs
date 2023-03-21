@@ -135,9 +135,14 @@ namespace PM.Collections
 
             var pointer = _items[index];
 
+            if (pointer == 0)
+            {
+                throw new ApplicationException("pointer invalid: 0");
+            }
+
             if (_cache.TryGetValue(pointer, out var result)) return (T)result;
 
-            var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString());
+            var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm");
             var obj = (T)_persistentFactory.CreatePersistentProxy(typeof(T), pmFile);
             _cache[pointer] = obj;
             return obj;
@@ -157,6 +162,7 @@ namespace PM.Collections
 
             _items[ListCount++] = pointer;
             _cache[pointer] = obj;
+            _items.Flush();
             return (T)obj;
         }
 
@@ -205,15 +211,15 @@ namespace PM.Collections
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            for (int i = 0; i < ListCount; i++)
+            for (int i = 0; i < Count; i++)
             {
-                array[i] = Get(i, ignoreFirstItem: true);
+                array[arrayIndex + i] = Get(i, ignoreFirstItem: true);
             }
         }
 
         public int IndexOf(T item)
         {
-            for (int i = 0; i < ListCount; i++)
+            for (int i = 0; i < Count; i++)
             {
                 var internalItem = Get(i, true);
                 if (item == internalItem) return i;
@@ -244,6 +250,7 @@ namespace PM.Collections
             var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer);
 
             _items[ListCount++] = pointer;
+            _items.Flush();
             return (T)obj;
         }
 

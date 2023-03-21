@@ -5,11 +5,11 @@ namespace PM.Core
 {
     public class MemoryMappedStream : FileBasedStream
     {
-        private readonly MemoryMappedFile _memoryMappedFile;
-        private readonly MemoryMappedViewStream _memoryMappedViewStream;
+        private MemoryMappedFile _memoryMappedFile;
+        private MemoryMappedViewStream _memoryMappedViewStream;
         private readonly static ConcurrentDictionary<string, MemoryMappedStream> _cache = new();
 
-        public MemoryMappedStream(string filePath, long size, long offset = 0, bool createFileIfNotExists = true)
+        public MemoryMappedStream(string filePath, long size, bool createFileIfNotExists = true)
         {
             FilePath = filePath;
             if (_cache.TryGetValue(filePath, out var obj))
@@ -29,7 +29,7 @@ namespace PM.Core
                     fs.SetLength(size);
                 }
                 _memoryMappedFile = MemoryMappedFile.CreateFromFile(filePath);
-                _memoryMappedViewStream = _memoryMappedFile.CreateViewStream(offset, size, MemoryMappedFileAccess.ReadWrite);
+                _memoryMappedViewStream = _memoryMappedFile.CreateViewStream(0, size, MemoryMappedFileAccess.ReadWrite);
 
                 _cache[filePath] = this;
             }
@@ -74,6 +74,28 @@ namespace PM.Core
         {
             _memoryMappedViewStream.Write(buffer, offset, count);
         }
+
+
+        public override void Resize(int size)
+        {
+            _memoryMappedViewStream?.Dispose();
+            _memoryMappedFile?.Dispose();
+
+            var fs = new FileStream(
+                FilePath,
+                FileMode.OpenOrCreate,
+                FileAccess.ReadWrite,
+                FileShare.None);
+            fs.SetLength(size);
+            fs.Dispose();
+
+            _memoryMappedFile = MemoryMappedFile.CreateFromFile(FilePath);
+            _memoryMappedViewStream = _memoryMappedFile.CreateViewStream(0, size, MemoryMappedFileAccess.ReadWrite);
+
+            _cache[FilePath] = this;
+
+        }
+
 
         protected override void Dispose(bool disposing)
         {

@@ -17,7 +17,7 @@ namespace PM
 
         public static string CreateSymbolicLinkInInternalsFolder(string symlink, string targetSymlink)
         {
-            var pointer = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, targetSymlink);
+            var pointer = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, targetSymlink) + ".pm";
             CreateSymbolicLink(symlink, pointer);
             return pointer;
         }

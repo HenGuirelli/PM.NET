@@ -137,19 +137,23 @@ namespace PM.Transactions
 
             var offset = ObjectMapper.GetOffSet(property);
             if (value is byte valueByte) LogFile.WriteByte(offset, valueByte);
-            if (value is sbyte valueSByte) LogFile.WriteSByte(offset, valueSByte);
-            if (value is short valueShort) LogFile.WriteShort(offset, valueShort);
-            if (value is ushort valueUShort) LogFile.WriteUShort(offset, valueUShort);
-            if (value is uint valueUInt) LogFile.WriteUInt(offset, valueUInt);
-            if (value is int valueInt) LogFile.WriteInt(offset, valueInt);
-            if (value is long valueLong) LogFile.WriteLong(offset, valueLong);
-            if (value is ulong valueULong) LogFile.WriteULong(offset, valueULong);
-            if (value is float valueFloat) LogFile.WriteFloat(offset, valueFloat);
-            if (value is double valueDouble) LogFile.WriteDouble(offset, valueDouble);
-            if (value is decimal valueDecimal) LogFile.WriteDecimal(offset, valueDecimal);
-            if (value is char valueChar) LogFile.WriteChar(offset, valueChar);
-            if (value is bool valueBool) LogFile.WriteBool(offset, valueBool);
-            if (value is string valueStr) LogFile.WriteString(offset, valueStr);
+            else if (value is sbyte valueSByte) LogFile.WriteSByte(offset, valueSByte);
+            else if (value is short valueShort) LogFile.WriteShort(offset, valueShort);
+            else if (value is ushort valueUShort) LogFile.WriteUShort(offset, valueUShort);
+            else if (value is uint valueUInt) LogFile.WriteUInt(offset, valueUInt);
+            else if (value is int valueInt) LogFile.WriteInt(offset, valueInt);
+            else if (value is long valueLong) LogFile.WriteLong(offset, valueLong);
+            else if (value is ulong valueULong) LogFile.WriteULong(offset, valueULong);
+            else if (value is float valueFloat) LogFile.WriteFloat(offset, valueFloat);
+            else if (value is double valueDouble) LogFile.WriteDouble(offset, valueDouble);
+            else if (value is decimal valueDecimal) LogFile.WriteDecimal(offset, valueDecimal);
+            else if (value is char valueChar) LogFile.WriteChar(offset, valueChar);
+            else if (value is bool valueBool) LogFile.WriteBool(offset, valueBool);
+            else if (value is string valueStr) LogFile.WriteString(offset, valueStr);
+            else
+            {
+                throw new ArgumentException($"value of type {value.GetType()} invalid in transaction");
+            }
 
             _propertiesValues[property] = value;
         }

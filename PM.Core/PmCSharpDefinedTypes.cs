@@ -343,5 +343,10 @@ namespace PM.Core
         {
             _pm2.Delete();
         }
+
+        internal void Resize(int size)
+        {
+            _pm2.Resize(size);
+        }
     }
 }

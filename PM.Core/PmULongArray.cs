@@ -15,7 +15,7 @@
 
         public override void Resize(int newLength)
         {
-            //_cSharpDefinedPm.Resize(newLength * sizeof(ulong));
+            _cSharpDefinedPm.Resize(newLength * sizeof(ulong));
             Length = newLength;
         }
 
