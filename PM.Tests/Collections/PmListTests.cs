@@ -4,6 +4,7 @@ using PM.Tests.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Xunit;
 
 namespace PM.Tests.Collections
@@ -15,6 +16,20 @@ namespace PM.Tests.Collections
 
     public class PmListTests : UnitTest
     {
+        [Fact]
+        public void OnAddPersistent_WhenOnlyOneIten_ShouldAdd()
+        {
+            var list = new PmList<Foo>(Path.Combine(
+                PmGlobalConfiguration.PmInternalsFolder,
+                nameof(OnAddPersistent_WhenOnlyOneIten_ShouldAdd)));
+            list.Clear();
+
+            list.AddPersistent(new Foo { Bar = 1 });
+
+            Assert.Single(list);
+            Assert.Single(list.Where(x => x.Bar == 1));
+        }
+
         [Fact]
         public void OnAddPersistent_ShouldAdd()
         {
@@ -103,14 +118,14 @@ namespace PM.Tests.Collections
             list.AddPersistent(new Foo { Bar = 1 });
             list.AddPersistent(new Foo { Bar = 2 });
 
-            Assert.Equal(1, list[0].Bar);    
+            Assert.Equal(1, list[0].Bar);
             Assert.Equal(2, list[1].Bar);
         }
 
         [Fact]
         public void OnEnumerator_ShouldRunCorretly()
         {
-            var count = 300; 
+            var count = 300;
             var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, nameof(OnEnumerator_ShouldRunCorretly));
             var list = new PmList<Foo>(path);
 
@@ -120,7 +135,7 @@ namespace PM.Tests.Collections
             }
 
             int j = 0;
-            foreach(var item in list)
+            foreach (var item in list)
             {
                 Assert.Equal(list[j].Bar, item.Bar);
                 j++;
