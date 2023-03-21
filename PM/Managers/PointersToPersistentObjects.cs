@@ -31,7 +31,7 @@ namespace PM.Managers
     {
         private static readonly object _lock = new();
         private static PmCSharpDefinedTypes _pmCSharpDefinedTypes;
-        public const string PmFileName = $"__{nameof(PointersToPersistentObjects)}";
+        public const string PmFileName = $"__{nameof(PointersToPersistentObjects)}.pm";
         public static string FilePath => Path.Combine(PmGlobalConfiguration.PmInternalsFolder, PmFileName);
 
         public const byte FirstPointerAvailable = 0;
@@ -40,10 +40,10 @@ namespace PM.Managers
 
         static PointersToPersistentObjects()
         {
-            var pm = PmFactory.CreatePm(new PmMemoryMappedFileConfig(FilePath, (sizeof(ulong) + sizeof(byte)) * 2));
+            var pm = PmFactory.CreatePm(FilePath, (sizeof(ulong) + sizeof(byte)) * 2);
             _pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
 
-            if (!pm.FileExists() || GetFileCreatedSuccesfullyByte() != FileCreatedSuccesfully)
+            if (!File.Exists(FilePath) || GetFileCreatedSuccesfullyByte() != FileCreatedSuccesfully)
             {
                 CreateInitialFileContent();
             }

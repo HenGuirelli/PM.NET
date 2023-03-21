@@ -9,7 +9,7 @@ namespace PM.Collections
     {
         readonly static PointersToPersistentObjects _pointsToPersistentObjects = new();
 
-        public static IPm CreateNewPm(string filepath, int length)
+        public static Stream CreateNewPm(string filepath, int length)
         {
             string pmfilename = filepath;
             
@@ -21,21 +21,16 @@ namespace PM.Collections
             }
 
             return PmFactory.CreatePm(
-                        new PmMemoryMappedFileConfig(
                             pmfilename,
-                            sizeof(ulong) * (length + 1)));
+                            sizeof(ulong) * (length + 1));
         }
 
         internal static PmPrimitiveArray<ulong> CreateULongArray(
             string filename,
             int length)
         {
-
-            var pm = PmFactory.CreatePm(
-                        new PmMemoryMappedFileConfig(
-                            filename,
-                            sizeof(ulong) * (length/* + 1*/)));
-            return PmPrimitiveArray.CreateNewArray<ulong>(pm, length);
+            var pm = new MemoryMappedStream(filename, length * sizeof(ulong));
+            return PmPrimitiveArray.CreateNewArray<ulong>(pm);
         }
     }
 }

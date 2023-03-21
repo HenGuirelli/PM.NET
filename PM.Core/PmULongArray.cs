@@ -2,16 +2,14 @@
 {
     public class PmULongArray : PmPrimitiveArray<ulong>
     {
-        public PmULongArray(IPm pm, int length)
+        public PmULongArray(FileBasedStream pm, int length)
             : base(pm, length)
         {
-            if (pm.FileExists())
-            {
-                var fileSize = pm.GetFileSize();
-                var oldArrayLength = (int)fileSize / sizeof(ulong);
-                if (oldArrayLength != length)
-                    throw new ArgumentException($"argument {nameof(length)}={length} invalid. Array already defined with length={oldArrayLength}");
-            }
+            //var fileSize = pm.GetFileSize();
+            //var oldArrayLength = (int)fileSize / sizeof(ulong);
+            //if (oldArrayLength != length)
+            //    throw new ArgumentException($"argument {nameof(length)}={length} invalid. Array already defined with length={oldArrayLength}");
+
             Length = length;
         }
 

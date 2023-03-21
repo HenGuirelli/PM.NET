@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Collections.Concurrent;
+using PM.Core;
 
 namespace PM.Transactions.Tests
 {
@@ -16,7 +17,8 @@ namespace PM.Transactions.Tests
         public void OnRunTransaction_ShouldCommitValues()
         {
             IPersistentFactory factory = new PersistentFactory();
-            var obj = factory.CreateRootObject<DomainObject>(CreateFilePath(nameof(OnRunTransaction_ShouldCommitValues)));
+            var obj = factory.CreateRootObject<DomainObject>(
+                CreateFilePath(nameof(OnRunTransaction_ShouldCommitValues)));
 
             obj.Transaction(() =>
             {

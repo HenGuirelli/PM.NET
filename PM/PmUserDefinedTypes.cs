@@ -3,16 +3,16 @@ using System.Reflection;
 
 namespace PM
 {
-    public class PmUserDefinedTypes
+    public class PmUserDefinedTypes : IDisposable
     {
-        public PmMemoryMappedFileConfig PmMemoryMappedFile { get; }
+        public FileBasedStream PmMemoryMappedFile { get; }
         private readonly PmCSharpDefinedTypes _pmCSharpDefined;
         private readonly ObjectPropertiesInfoMapper _objectPropertiesSizeMapper;
 
-        public PmUserDefinedTypes(IPm pm, ObjectPropertiesInfoMapper objectPropertiesInfoMapper)
+        public PmUserDefinedTypes(FileBasedStream pm, ObjectPropertiesInfoMapper objectPropertiesInfoMapper)
         {
             _pmCSharpDefined = new PmCSharpDefinedTypes(pm);
-            PmMemoryMappedFile = pm.PmMemoryMappedFileConfig;
+            PmMemoryMappedFile = pm;
             _objectPropertiesSizeMapper = objectPropertiesInfoMapper;
         }
 
@@ -174,12 +174,24 @@ namespace PM
 
         public void Lock()
         {
-            _pmCSharpDefined.Lock();
+            //_pmCSharpDefined.Lock();
         }
 
         public void Release()
         {
-            _pmCSharpDefined.Release();
+            //_pmCSharpDefined.Release();
+        }
+
+        public void Flush()
+        {
+            PmMemoryMappedFile.Flush();
+            _pmCSharpDefined.Flush();
+        }
+
+        public void Dispose()
+        {
+            PmMemoryMappedFile.Dispose();
+            _pmCSharpDefined.Dispose();
         }
     }
 }

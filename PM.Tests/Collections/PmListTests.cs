@@ -2,6 +2,7 @@
 using PM.Configs;
 using PM.Tests.Common;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Xunit;
 
@@ -140,7 +141,7 @@ namespace PM.Tests.Collections
             }
 
             Foo[] vet = new Foo[count];
-            list.CopyTo(vet, count);
+            list.CopyTo(vet, 0);
 
             for (int i = 0; i < count / 2; i++)
                 Assert.Equal(i, vet[i].Bar);

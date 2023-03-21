@@ -28,8 +28,6 @@
   
   <ItemGroup>
     <ProjectReference Include="..\PM.Core\PM.Core.csproj" />
-    <ProjectReference Include="..\PM.Tests.Common\PM.Tests.Common.csproj" />
-    <ProjectReference Include="..\PM\PM.csproj" />
   </ItemGroup>
 
 </Project>

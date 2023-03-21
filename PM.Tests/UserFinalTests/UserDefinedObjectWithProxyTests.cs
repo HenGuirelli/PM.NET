@@ -45,6 +45,27 @@ namespace PM.Tests.UserFinalTests
         }
 
         [Fact]
+        public void InterchangedPointers()
+        {
+            IPersistentFactory persistentFactory = new PersistentFactory();
+            var obj = persistentFactory.CreateRootObject<ComplexClassRoot>(
+                CreateFilePath(nameof(InterchangedPointers)));
+
+            Console.WriteLine(obj.PropComplexClassInner1);
+
+            obj.PropComplexClassInner1 = new ComplexClassInner1();
+            obj.PropComplexClassInner1.PropStr = "Hello World from ComplexClassInner1!";
+
+            var obj2 = persistentFactory.CreateRootObject<ComplexClassRoot>(
+                CreateFilePath(nameof(InterchangedPointers) + "2"));
+
+            obj2.PropComplexClassInner1 = obj.PropComplexClassInner1;
+
+            Assert.Equal(obj.PropComplexClassInner1, obj2.PropComplexClassInner1);
+
+        }
+
+        [Fact]
         public void ExampleFullObject()
         {
             IPersistentFactory persistentFactory = new PersistentFactory();
@@ -111,7 +132,7 @@ namespace PM.Tests.UserFinalTests
             Assert.Equal("InMemoryObject to PM 2", obj.PropComplexClassInner1.PropComplexClassInner2.PropStr);
             Assert.Equal(int.MinValue, obj.PropComplexClassInner1.PropComplexClassInner2.PropInt);
         }
-        
+
         [Fact]
         public void ExampleMergeTwoPersistentObjects()
         {
@@ -119,14 +140,17 @@ namespace PM.Tests.UserFinalTests
             var obj1 = persistentFactory.CreateRootObject<ComplexClassRoot>(CreateFilePath(nameof(ExampleMergeTwoPersistentObjects)));
             var obj2 = persistentFactory.CreateRootObject<ComplexClassInner1>(CreateFilePath(nameof(ExampleMergeTwoPersistentObjects) + "2"));
 
-            Assert.Throws<ApplicationException>(() => obj1.PropComplexClassInner1 = obj2);
+            obj1.PropComplexClassInner1 = obj2;
+
+            Assert.Equal(obj1.PropComplexClassInner1, obj2);
         }
 
         [Fact]
         public void ExampleReadReferenceObjBeforeWrite_ShouldGetNull()
         {
             IPersistentFactory persistentFactory = new PersistentFactory();
-            var obj1 = persistentFactory.CreateRootObject<ComplexClassRoot>(CreateFilePath(nameof(ExampleReadReferenceObjBeforeWrite_ShouldGetNull)));
+            var obj1 = persistentFactory.CreateRootObject<ComplexClassRoot>(
+                CreateFilePath(nameof(ExampleReadReferenceObjBeforeWrite_ShouldGetNull)));
             Assert.Null(obj1.PropStr);
             Assert.Null(obj1.PropComplexClassInner1);
         }

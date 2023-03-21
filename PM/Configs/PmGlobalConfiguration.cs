@@ -1,4 +1,6 @@
-﻿namespace PM.Configs
+﻿using PM.Core;
+
+namespace PM.Configs
 {
     public static class PmGlobalConfiguration
     {
