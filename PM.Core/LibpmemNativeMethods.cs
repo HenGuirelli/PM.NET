@@ -2,7 +2,7 @@
 
 namespace PM.Core
 {
-    internal static class LibpmemNativeMethods
+    public static class LibpmemNativeMethods
     {
         [DllImport("libpmem.so", EntryPoint = "pmem_map_file")]
         public static extern IntPtr MapFile(string path, long length, int flags, int mode, out long mappedLength, out int isPersistent);
