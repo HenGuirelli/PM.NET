@@ -56,6 +56,7 @@ namespace PM.Proxies
                     invocation.ReturnValue = value;
                 }
             }
+            invocation.Proceed();
         }
 
         private IInterceptorRedirect GetInterceptorRedirect()
