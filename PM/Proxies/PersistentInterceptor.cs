@@ -42,6 +42,7 @@ namespace PM.Proxies
                     var interceptor = GetInterceptorRedirect();
                     interceptor.InsertValuePm(property, value);
                     PmMemoryMappedFile.Flush();
+                    invocation.Proceed();
                 }
             }
             else if (methodName.StartsWith("get_"))
@@ -53,10 +54,10 @@ namespace PM.Proxies
                     var value = interceptor.GetValuePm(property);
                     if (value is null) return;
 
+                    invocation.Proceed();
                     invocation.ReturnValue = value;
                 }
             }
-            invocation.Proceed();
         }
 
         private IInterceptorRedirect GetInterceptorRedirect()

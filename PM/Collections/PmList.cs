@@ -150,7 +150,7 @@ namespace PM.Collections
             if (_cache.TryGetValue(pointer, out var result)) return (T)result;
 
             var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm");
-            var obj = (T)_persistentFactory.CreatePersistentProxy(typeof(T), pmFile);
+            var obj = _persistentFactory.CreateRootObject<T>(pmFile);
             _cache[pointer] = obj;
             return obj;
         }

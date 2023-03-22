@@ -7,10 +7,15 @@ namespace PM
     {
         private static bool _useFileSystem => PmTargets.FileBasedTarget.HasFlag(PmGlobalConfiguration.PmTarget);
 
+        public static ulong ParseStrPathToULongPointer(string path)
+        {
+            return ulong.Parse(path.Split(Path.DirectorySeparatorChar).Last().Replace(".pm", ""));
+        }
+
         public static ulong GetPointerFromSymbolicLink(string symlink)
         {
             var pointerStr = GetTargetOfSymbolicLink(symlink);
-            return ulong.Parse(pointerStr.Split(Path.DirectorySeparatorChar).Last().Replace(".pm", ""));
+            return ParseStrPathToULongPointer(pointerStr);
         }
 
         public static string GetTargetOfSymbolicLink(string symlink)

@@ -102,7 +102,8 @@ namespace PM
             }
             else
             {
-                throw new ApplicationException($"File {pmSymbolicLink} is not a symlink");
+                pointerStr = pmSymbolicLink;
+                pointerULong = PmFileSystem.ParseStrPathToULongPointer(pmSymbolicLink);
             }
             return CreatePersistentProxy(type, pointerStr, fileSizeBytes, pointerULong);
         }
