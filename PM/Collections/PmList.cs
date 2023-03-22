@@ -1,14 +1,13 @@
 ﻿using PM.CastleHelpers;
 using PM.Configs;
 using PM.Core;
-using PM.Factories;
 using PM.Managers;
 using System.Collections;
 using System.Collections.Concurrent;
 
 namespace PM.Collections
 {
-    public class PmList<T> : IList<T>, ICustomPmClass
+    public class PmList<T> : IList<T>, IPmList, ICustomPmClass
         where T : class, new()
     {
         private readonly IPersistentFactory _persistentFactory = new PersistentFactory();
@@ -78,6 +77,16 @@ namespace PM.Collections
             PmPointer = PmFileSystem.GetPointerFromSymbolicLink(symbolicLink);
         }
 
+        internal PmList(string pmFile, ulong pointer)
+        {
+            Filepath = pmFile;
+            _items = InternalLoadPmFileList(pmFile);
+            _listCount = (int)_items[0];
+            // Increment 1 because the fist element always exists(array size)
+            if (_listCount == 0) _listCount++;
+            PmPointer = pointer;
+        }
+
         private PmPrimitiveArray<ulong> CreateOrLoadInternalArray(string symbolicLink, int capacity)
         {
             if (!PmFileSystem.FileExists(symbolicLink))
@@ -86,15 +95,22 @@ namespace PM.Collections
             }
             else
             {
-                return LoadPmFileList(symbolicLink, capacity);
+                return LoadPmFileList(symbolicLink);
             }
         }
 
-        private PmPrimitiveArray<ulong> LoadPmFileList(string symbolicLink, int capacity)
+        private PmPrimitiveArray<ulong> InternalLoadPmFileList(string targetFilename)
+        {
+            var size = PmFileSystem.GetFileSize(targetFilename);
+            var capacity = (int)(size / sizeof(ulong));
+            return CollectionsPmFactory.CreateULongArray(targetFilename, capacity);
+        }
+
+        private PmPrimitiveArray<ulong> LoadPmFileList(string symbolicLink)
         {
             var size = PmFileSystem.GetFileSize(symbolicLink);
             var targetFilename = PmFileSystem.GetTargetOfSymbolicLink(symbolicLink);
-            capacity = (int)(size / sizeof(ulong));
+            var capacity = (int)(size / sizeof(ulong));
             return CollectionsPmFactory.CreateULongArray(targetFilename, capacity);
         }
 

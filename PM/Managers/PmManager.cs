@@ -4,6 +4,8 @@ using System.Reflection;
 using PM.Proxies;
 using PM.Configs;
 using PM.CastleHelpers;
+using PM.Collections;
+using System.Globalization;
 
 namespace PM.Managers
 {
@@ -121,12 +123,35 @@ namespace PM.Managers
                     var pointer = _pm.GetULongPropertValue(property);
                     if (pointer != 0)
                     {
+                        if (typeof(ICustomPmClass).IsAssignableFrom(property.PropertyType))
+                        {
+                            if (typeof(IPmList).IsAssignableFrom(property.PropertyType))
+                            {
+                                object[] parameterValues = new object[] 
+                                { 
+                                    Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm"),
+                                    pointer
+                                };
+                                object obj = Activator.CreateInstance(
+                                    property.PropertyType,
+                                    BindingFlags.NonPublic | BindingFlags.Instance,
+                                    null,
+                                    parameterValues,
+                                    null) ?? throw new ApplicationException("Error on Activator.CreateInstance returning null");
+
+                                UserDefinedObjectsByProperty[property] = obj;
+                                return obj;
+                            }
+                            throw new ApplicationException("You cant use a custom pm class inside root object");
+                        }
+
                         // User defined objects
                         IPersistentFactory persistentFactory = new PersistentFactory();
                         var proxy = persistentFactory.CreateRootObject(
                             property.PropertyType,
                             pointer.ToString() + ".pm");
                         UserDefinedObjectsByProperty[property] = proxy;
+                        return proxy;
                     }
                     return null;
                 }

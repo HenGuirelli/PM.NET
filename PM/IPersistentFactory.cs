@@ -103,7 +103,7 @@ namespace PM
             else
             {
                 pointerStr = pmSymbolicLink;
-                pointerULong = PmFileSystem.ParseStrPathToULongPointer(pmSymbolicLink);
+                pointerULong = PmFileSystem.ParseAbsoluteStrPathToULongPointer(pmSymbolicLink);
             }
             return CreatePersistentProxy(type, pointerStr, fileSizeBytes, pointerULong);
         }

@@ -7,7 +7,7 @@ namespace PM
     {
         private static bool _useFileSystem => PmTargets.FileBasedTarget.HasFlag(PmGlobalConfiguration.PmTarget);
 
-        public static ulong ParseStrPathToULongPointer(string path)
+        public static ulong ParseAbsoluteStrPathToULongPointer(string path)
         {
             return ulong.Parse(path.Split(Path.DirectorySeparatorChar).Last().Replace(".pm", ""));
         }
@@ -15,7 +15,7 @@ namespace PM
         public static ulong GetPointerFromSymbolicLink(string symlink)
         {
             var pointerStr = GetTargetOfSymbolicLink(symlink);
-            return ParseStrPathToULongPointer(pointerStr);
+            return ParseAbsoluteStrPathToULongPointer(pointerStr);
         }
 
         public static string GetTargetOfSymbolicLink(string symlink)
