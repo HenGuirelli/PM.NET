@@ -4,22 +4,29 @@ namespace PM.Core
 {
     internal static class LibpmemNativeMethods
     {
-        [DllImport("libpmem", EntryPoint = "pmem_memset", SetLastError = true)]
-        public static extern int PmemMemset(IntPtr dest, int c, UIntPtr len, int flags);
+        [DllImport("libpmem.so", EntryPoint = "pmem_map_file")]
+        public static extern IntPtr MapFile(string path, long length, int flags, int mode, out long mappedLength, out int isPersistent);
 
-        [DllImport("libpmem", EntryPoint = "pmem_memcpy_persist", SetLastError = true)]
-        public static extern void PmemMemcpyPersist(IntPtr dest, IntPtr src, UIntPtr len);
+        [DllImport("libpmem.so", EntryPoint = "pmem_unmap")]
+        public static extern int Unmap(IntPtr addr, long length);
 
-        [DllImport("libpmem", EntryPoint = "pmem_flush", SetLastError = true)]
-        public static extern int PmemFlush(IntPtr addr, UIntPtr len);
+        [DllImport("libpmem.so", EntryPoint = "pmem_memcpy_persist")]
+        public static extern int MemcpyPersist(IntPtr dest, IntPtr src, ulong count);
 
-        [DllImport("libpmem", EntryPoint = "pmem_drain", SetLastError = true)]
-        public static extern int PmemDrain();
+        [DllImport("libpmem.so", EntryPoint = "pmem_persist")]
+        public static extern void Persist(IntPtr addr, ulong len);
 
-        [DllImport("libpmem", EntryPoint = "pmem_map", SetLastError = true)]
-        public static extern IntPtr PmemMap(IntPtr addr, UIntPtr len, int prot, int flags, int fd, ulong offset);
+        [DllImport("libpmem.so", EntryPoint = "pmem_flush")]
+        public static extern void Flush(IntPtr addr, ulong len);
 
-        [DllImport("libpmem", EntryPoint = "pmem_unmap", SetLastError = true)]
-        public static extern int PmemUnmap(IntPtr addr, UIntPtr len);
+        [DllImport("libpmem.so", EntryPoint = "pmem_drain")]
+        public static extern void PmemDrain();
+
+        [DllImport("libpmem.so", EntryPoint = "pmem_memcpy_nodrain")]
+        public static extern void PmemMemcpyNoDrain(IntPtr dest, byte[] src, ulong len);
+
+        [DllImport("libpmem.so", EntryPoint = "pmem_memset_nodrain")]
+        public static extern void PmemMemsetNoDrain(IntPtr dest, byte c, ulong len);
+
     }
 }

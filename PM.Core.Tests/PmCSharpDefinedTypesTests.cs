@@ -1,10 +1,11 @@
-﻿using System;
+﻿using PM.Tests.Common;
+using System;
 using System.IO;
 using Xunit;
 
 namespace PM.Core.Tests
 {
-    public class PmCSharpDefinedTypesTests
+    public class PmCSharpDefinedTypesTests : UnitTest
     {
         private static readonly Random _random = new();
 
@@ -161,11 +162,6 @@ namespace PM.Core.Tests
         private PmCSharpDefinedTypes CreatePrimitive(string methodName, long size = 4096)
         {
             return new PmCSharpDefinedTypes(CreatePmStream(methodName, size));
-        }
-
-        private static FileBasedStream CreatePmStream(string mappedMemoryFilePath, long size)
-        {
-            return new MemoryMappedStream(Path.Combine("D:\\temp\\pm_tests", mappedMemoryFilePath + ".pm"), size);
         }
     }
 }

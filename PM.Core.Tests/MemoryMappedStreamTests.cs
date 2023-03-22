@@ -1,10 +1,11 @@
-﻿using System.IO;
+﻿using PM.Tests.Common;
+using System.IO;
 using System.Text;
 using Xunit;
 
 namespace PM.Core.Tests
 {
-    public class MemoryMappedStreamTests
+    public class MemoryMappedStreamTests : UnitTest
     {
         [Fact]
         public void OnMemoryMappedStreamTests()
@@ -22,11 +23,6 @@ namespace PM.Core.Tests
             int bytesRead = stream.Read(buffer, 0, data.Length);
 
             Assert.Equal("Hello, world!", Encoding.UTF8.GetString(buffer));
-        }
-
-        private string CreateFilePath(string filename)
-        {
-            return Path.Combine("D:\\temp\\pm_tests", filename.EndsWith(".pm") ? filename : filename + ".pm");
         }
     }
 }
