@@ -14,6 +14,7 @@ namespace PM.Core
         public const int PMEM_FILE_SPARSE   = 1 << 2;
         public const int PMEM_FILE_TMPFILE	= 1 << 3;
     }
+
     public static class LibpmemNativeMethods
     {
         [DllImport("libpmem.so", EntryPoint = "pmem_map_file")]

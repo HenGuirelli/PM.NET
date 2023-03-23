@@ -4,9 +4,10 @@ namespace PM.Core
 {
     public class PmStream : FileBasedStream
     {
-        private readonly IntPtr _pmemPtr;
+        private IntPtr _pmemPtr;
         private long _length;
         private long _position;
+        private bool _isPersistent;
 
         public override bool CanRead => true;
 
@@ -31,11 +32,21 @@ namespace PM.Core
 
         public PmStream(string path, long length)
         {
-            //_pmemPtr = LibpmemNativeMethods.MapFile(path, length, 0666, 0, out _length, out int isPersistent);
+            MapFile(path, length);
+
             if (_pmemPtr == IntPtr.Zero)
             {
                 throw new Exception("Failed to map PMEM file.");
             }
+        }
+
+        private void MapFile(string path, long length)
+        {
+            int isPersistent = 0;
+            ulong pmLength = 0;
+            _pmemPtr = LibpmemNativeMethods.MapFile(path, length, 0666, 0, ref pmLength, ref isPersistent);
+            _isPersistent = isPersistent != 0;
+            _length = (long)pmLength;
         }
 
         public override void Flush()
@@ -53,7 +64,7 @@ namespace PM.Core
             {
                 return 0;
             }
-            //Marshal.Copy(_pmemPtr + _position, buffer, offset, count);
+            Marshal.Copy(_pmemPtr + (nint)_position, buffer, offset, buffer.Length);
             _position += count;
             return count;
         }
@@ -90,7 +101,7 @@ namespace PM.Core
             {
                 _length = _position + count;
             }
-            //Marshal.Copy(buffer, offset, _pmemPtr + _position, count);
+            Marshal.Copy(buffer, offset, _pmemPtr + (nint)_position, count);
             _position += count;
         }
 
@@ -105,7 +116,8 @@ namespace PM.Core
 
         public override void Resize(int size)
         {
-            throw new NotImplementedException();
+            LibpmemNativeMethods.Unmap(_pmemPtr, _length);
+            MapFile(FilePath, size);
         }
     }
 }
