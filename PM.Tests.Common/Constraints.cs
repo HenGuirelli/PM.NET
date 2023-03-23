@@ -9,6 +9,6 @@ namespace PM.Tests.Common
         /// The real environment is always preferable.
         /// </summary>
         public const PmTargets PmTarget = PmTargets.TraditionalMemoryMappedFile;
-        public const string PmRootFolder = @"D:\temp\pm_tests";
+        public const string PmRootFolder = @"/pmem";
     }
 }

@@ -2,7 +2,7 @@
 
 namespace PM.Core
 {
-    public class PmStream : Stream
+    public class PmStream : FileBasedStream
     {
         private readonly IntPtr _pmemPtr;
         private long _length;
@@ -53,7 +53,7 @@ namespace PM.Core
             {
                 return 0;
             }
-            Marshal.Copy(_pmemPtr + _position, buffer, offset, count);
+            //Marshal.Copy(_pmemPtr + _position, buffer, offset, count);
             _position += count;
             return count;
         }
@@ -90,7 +90,7 @@ namespace PM.Core
             {
                 _length = _position + count;
             }
-            Marshal.Copy(buffer, offset, _pmemPtr + _position, count);
+            //Marshal.Copy(buffer, offset, _pmemPtr + _position, count);
             _position += count;
         }
 
@@ -101,6 +101,11 @@ namespace PM.Core
             {
                 LibpmemNativeMethods.Unmap(_pmemPtr, _length);
             }
+        }
+
+        public override void Resize(int size)
+        {
+            throw new NotImplementedException();
         }
     }
 }

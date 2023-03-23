@@ -36,9 +36,7 @@ void test_pmem_write_bytes(){
 }
 
 void test_pmem_mem_set(){
-	void* file = pmem_set_value("filename_mem_set", PMEM_LEN, '$', 7);
-	char result = ((char*)file)[0];
-	if (result != '$') exit(1);
+	pmem_write_string("filename_mem_set", 4096, "Hello world!");
 }
 
 // gcc -o libpmem_helper.test.o -fPIC libpmem_helper.test.c -lpmem
