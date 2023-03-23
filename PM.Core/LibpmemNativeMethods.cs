@@ -4,9 +4,9 @@ namespace PM.Core
 {
     public class Flags
     {
-        public const int PMEM_FILE_CREATE = 1 << 0;
-        public const int PMEM_FILE_EXCL = 1 << 1;
-        public const int PMEM_FILE_SPARSE = 1 << 2;
+        public const int PMEM_FILE_CREATE   = 1 << 0;
+        public const int PMEM_FILE_EXCL     = 1 << 1;
+        public const int PMEM_FILE_SPARSE   = 1 << 2;
         public const int PMEM_FILE_TMPFILE	= 1 << 3;
     }
     public static class LibpmemNativeMethods
