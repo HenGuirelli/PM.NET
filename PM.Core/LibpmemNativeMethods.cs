@@ -2,6 +2,11 @@
 
 namespace PM.Core
 {
+    public class Mode
+    {
+        public const int Octal777 = 511;
+    }
+
     public class Flags
     {
         public const int PMEM_FILE_CREATE   = 1 << 0;
@@ -12,7 +17,7 @@ namespace PM.Core
     public static class LibpmemNativeMethods
     {
         [DllImport("libpmem.so", EntryPoint = "pmem_map_file")]
-        public static extern IntPtr MapFile(string path, long length, int flags, int mode, out long mappedLength, out int isPersistent);
+        public static extern IntPtr MapFile(string path, long length, int flags, uint mode, ref ulong mappedLength, ref int isPersistent);
 
         [DllImport("libpmem.so", EntryPoint = "pmem_unmap")]
         public static extern int Unmap(IntPtr addr, long length);

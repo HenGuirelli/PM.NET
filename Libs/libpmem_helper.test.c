@@ -36,7 +36,10 @@ void test_pmem_write_bytes(){
 }
 
 void test_pmem_mem_set(){
-	pmem_write_string("filename_mem_set", 4096, "Hello world!");
+	
+	size_t mapped_len;
+	int is_pmem;
+	int* p = (int *)test_pmem_map_file("/pmem/WriteAndReadFromPmem2", 4096, 1, 0777, &mapped_len, &is_pmem);
 }
 
 // gcc -o libpmem_helper.test.o -fPIC libpmem_helper.test.c -lpmem

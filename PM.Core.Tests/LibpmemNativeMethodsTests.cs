@@ -16,13 +16,15 @@ namespace PM.Core.Tests
             var filePath = CreateFilePath(nameof(OnMapPm));
             var fileSize = 4096;
             
+            ulong mappedLength = 0;
+            int isPersistent = 0;
             var pointer = LibpmemNativeMethods.MapFile(
                 path: filePath,
                 length: fileSize,
-                flags: Flags.PMEM_FILE_CREATE, 
-                mode: 0666,
-                mappedLength: out var mappedLength,
-                isPersistent: out var isPersistent);
+                flags: Flags.PMEM_FILE_CREATE,
+                mode: Mode.Octal777,
+                mappedLength: ref mappedLength,
+                isPersistent: ref isPersistent);
 
             if (pointer == IntPtr.Zero)
                 throw new ApplicationException("Erro ao abrir pmem");
@@ -31,16 +33,18 @@ namespace PM.Core.Tests
         [Fact]
         public void WriteAndReadFromPmem()
         {
-            var filePath = CreateFilePath(nameof(OnMapPm));
+            var filePath = CreateFilePath(nameof(WriteAndReadFromPmem));
             var fileSize = 4096;
             
+            ulong mappedLength = 0;
+            int isPersistent = 0;
             var pointer = LibpmemNativeMethods.MapFile(
                 path: filePath,
                 length: fileSize,
                 flags: Flags.PMEM_FILE_CREATE, 
-                mode: 0666,
-                mappedLength: out var mappedLength,
-                isPersistent: out var isPersistent);
+                mode: Mode.Octal777,
+                mappedLength: ref mappedLength,
+                isPersistent: ref isPersistent);
 
             if (pointer == IntPtr.Zero)
                 throw new ApplicationException("Erro ao abrir pmem");

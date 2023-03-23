@@ -31,7 +31,7 @@ namespace PM.Core
 
         public PmStream(string path, long length)
         {
-            _pmemPtr = LibpmemNativeMethods.MapFile(path, length, 0666, 0, out _length, out int isPersistent);
+            //_pmemPtr = LibpmemNativeMethods.MapFile(path, length, 0666, 0, out _length, out int isPersistent);
             if (_pmemPtr == IntPtr.Zero)
             {
                 throw new Exception("Failed to map PMEM file.");

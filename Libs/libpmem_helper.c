@@ -14,6 +14,13 @@
 #include <libpmem.h>
 #include <stdio.h>
 
+void* test_pmem_map_file(
+	const char *path, size_t len, int flags, mode_t mode,
+	size_t *mapped_lenp, int *is_pmemp)
+{
+	return pmem_map_file(path, len, flags, mode, mapped_lenp, is_pmemp);
+}
+
 void pmem_write_string(char *path, int pmem_len, char *text)
 {
 	char *pmemaddr;
@@ -35,7 +42,7 @@ void pmem_write_string(char *path, int pmem_len, char *text)
 		pmem_msync(pmemaddr, mapped_len); // flush above strcpy to persistence 
 }
 
-void pmem_write_bytes(char *path, int pmem_len, void *bytes, size_t array_len)
+void* pmem_write_bytes(char *path, int pmem_len, void *bytes, size_t array_len)
 {
 	void *pmemaddr;
 	size_t mapped_len;
@@ -53,6 +60,8 @@ void pmem_write_bytes(char *path, int pmem_len, void *bytes, size_t array_len)
 		memcpy(pmemaddr, bytes, array_len);
 		pmem_msync(pmemaddr, mapped_len);
 	}
+
+	return pmemaddr;
 }
 
 void* pmem_read_bytes(char *pmem_file, int pmem_len)
