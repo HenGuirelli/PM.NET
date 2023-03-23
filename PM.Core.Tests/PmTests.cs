@@ -1,17 +1,18 @@
 using System;
 using System.IO;
+using PM.Tests.Common;
 using Xunit;
 
 namespace PM.Core.Tests
 {
-    public class PmTests
+    public class PmTests : UnitTest
     {
         private static readonly Random _random = new();
 
         [Fact]
         public void OnLoadStoreByte_ShouldExecWithoutException()
         {
-            var pm = CreatePmStream(nameof(OnLoadStoreByte_ShouldExecWithoutException));
+            var pm = CreatePmStream(nameof(OnLoadStoreByte_ShouldExecWithoutException), 4096);
             pm.WriteByte(byte.MaxValue);
             pm.Seek(0, SeekOrigin.Begin);
             var value1 = pm.ReadByte();
@@ -28,7 +29,7 @@ namespace PM.Core.Tests
         [Fact]
         public void OnLoadStoreByteArray_ShouldExecWithoutException()
         {
-            var pm = CreatePmStream(nameof(OnLoadStoreByteArray_ShouldExecWithoutException));
+            var pm = CreatePmStream(nameof(OnLoadStoreByteArray_ShouldExecWithoutException), 4096);
 
             var randomArray = new byte[_random.Next((int)pm.Length)];
             _random.NextBytes(randomArray);
@@ -46,7 +47,7 @@ namespace PM.Core.Tests
         [Fact]
         public void OnLoadStoreByteArray_WithOffset_ShouldExecWithoutException()
         {
-            var pm = CreatePmStream(nameof(OnLoadStoreByteArray_WithOffset_ShouldExecWithoutException));
+            var pm = CreatePmStream(nameof(OnLoadStoreByteArray_WithOffset_ShouldExecWithoutException), 4096);
 
             var randomArray = new byte[_random.Next((int)pm.Length / 2)];
             _random.NextBytes(randomArray);
@@ -60,11 +61,6 @@ namespace PM.Core.Tests
             {
                 Assert.Equal(randomArray[i], byteArrayReadFromPm[i]);
             }
-        }
-
-        private static Stream CreatePmStream(string mappedMemoryFilePath, long size=4096)
-        {
-            return new MemoryMappedStream(Path.Combine("D:\\temp\\pm_tests", mappedMemoryFilePath + ".pm"), size);
         }
     }
 }
