@@ -32,6 +32,7 @@ namespace PM.Core
 
         public PmStream(string path, long length)
         {
+            FilePath = path;
             MapFile(path, length);
 
             if (_pmemPtr == IntPtr.Zero)
@@ -43,10 +44,18 @@ namespace PM.Core
         private void MapFile(string path, long length)
         {
             int isPersistent = 0;
-            ulong pmLength = 0;
-            _pmemPtr = LibpmemNativeMethods.MapFile(path, length, 0666, 0, ref pmLength, ref isPersistent);
+            ulong mappedLength = 0;
+
+            _pmemPtr = LibpmemNativeMethods.MapFile(
+                path: path,
+                length: length,
+                flags: Flags.PMEM_FILE_CREATE,
+                mode: Mode.Octal777,
+                mappedLength: ref mappedLength,
+                isPersistent: ref isPersistent);
+
             _isPersistent = isPersistent != 0;
-            _length = (long)pmLength;
+            _length = (long)mappedLength;
         }
 
         public override void Flush()

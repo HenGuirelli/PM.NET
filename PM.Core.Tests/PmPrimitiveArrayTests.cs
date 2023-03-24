@@ -1,17 +1,17 @@
 ﻿using System;
-using System.IO;
+using PM.Tests.Common;
 using Xunit;
 
 namespace PM.Core.Tests
 {
-    public class PmPrimitiveArrayTests
+    public class PmPrimitiveArrayTests : UnitTest
     {
         [Fact]
         public void OnSetAndGet_ShouldRunWithoutException()
         {
             var length = 2;
             var array = PmPrimitiveArray.CreateNewArray<ulong>(
-                new MemoryMappedStream(
+                CreatePmStream(
                     CreateFilePath(nameof(OnSetAndGet_ShouldRunWithoutException)),
                     length * sizeof(ulong)));
 
@@ -47,11 +47,6 @@ namespace PM.Core.Tests
             {
                 array[i] = (ulong)length;
             }
-        }
-
-        private string CreateFilePath(string filename)
-        {
-            return Path.Combine("D:\\temp\\pm_tests", filename.EndsWith(".pm") ? filename : filename + ".pm");
         }
     }
 }
