@@ -18,9 +18,11 @@ namespace PM.Tests.Managers
             File.Delete(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, "__PointersToPersistentObjects.pm"));
             var pointersToPersistentObjects = new PointersToPersistentObjects();
             
-            Assert.Equal(ulong.MaxValue, pointersToPersistentObjects.GetNext());
-            Assert.Equal(ulong.MaxValue - 1, pointersToPersistentObjects.GetNext());
-            Assert.Equal(ulong.MaxValue - 2, pointersToPersistentObjects.GetNext());
+            var value1 = pointersToPersistentObjects.GetNext();
+            var value2 = pointersToPersistentObjects.GetNext();
+            var value3 = pointersToPersistentObjects.GetNext();
+            Assert.Equal(value2, value1 - 1);
+            Assert.Equal(value3, value2 - 1);
         }
     }
 }

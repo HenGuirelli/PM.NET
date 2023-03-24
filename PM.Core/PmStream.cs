@@ -32,6 +32,7 @@ namespace PM.Core
 
         public PmStream(string path, long length)
         {
+            FilePath = path;
             MapFile(path, length);
 
             if (_pmemPtr == IntPtr.Zero)

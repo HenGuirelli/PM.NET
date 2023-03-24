@@ -185,7 +185,7 @@ namespace PM.Transactions.Tests
             }
             Task.WhenAll(tasks).Wait();
             stopWatch.Stop();
-            File.AppendAllText(@"D:\temp\metrica mestrado\transactions.txt", $"{parallelDegree};{stopWatch.ElapsedMilliseconds}\n");
+            //File.AppendAllText(@"D:\temp\metrica mestrado\transactions.txt", $"{parallelDegree};{stopWatch.ElapsedMilliseconds}\n");
 
             Assert.False(hasError);
             Assert.Equal(0, ignored);
