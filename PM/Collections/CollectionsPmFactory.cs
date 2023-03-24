@@ -29,7 +29,7 @@ namespace PM.Collections
             string filename,
             int length)
         {
-            var pm = new MemoryMappedStream(filename, length * sizeof(ulong));
+            var pm = PmFactory.CreatePm(filename, length * sizeof(ulong));
             return PmPrimitiveArray.CreateNewArray<ulong>(pm);
         }
     }

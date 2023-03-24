@@ -59,7 +59,8 @@ namespace PM.Managers
                     {
                         ulong pointer = GetPointerIfExistsOrNew(property);
 
-                        var pm = new MemoryMappedStream(Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm"), 4096);
+                        var pm = PmFactory.CreatePm(
+                            Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm"), 4096);
                         var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
                         pmCSharpDefinedTypes.WriteString(valuestr);
 
@@ -227,7 +228,7 @@ namespace PM.Managers
                         var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm");
                         try
                         {
-                            var pm = new MemoryMappedStream(path, 4096);
+                            var pm = PmFactory.CreatePm(path, 4096);
 
                             var stringPmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
                             return stringPmCSharpDefinedTypes.ReadString();
