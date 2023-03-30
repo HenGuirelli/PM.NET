@@ -60,7 +60,7 @@ namespace PM.Core
 
         public override void Flush()
         {
-            LibpmemNativeMethods.Flush(_pmemPtr, new UIntPtr((ulong)_length));
+            LibpmemNativeMethods.Flush(_pmemPtr, (ulong)_length);
         }
 
         public override int Read(byte[] buffer, int offset, int count)
