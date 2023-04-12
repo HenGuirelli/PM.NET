@@ -11,6 +11,7 @@ namespace PM
     public interface IPersistentFactory
     {
         private static readonly PointersToPersistentObjects _pointersToPersistentObjects = new();
+        private static readonly PmProxyGenerator _generator = new();
 
         object CreateInternalObjectByObject(object obj, ulong pmPointer, int fileSizeBytes = 4096)
         {
@@ -81,8 +82,7 @@ namespace PM
                         filename,
                         pmPointer);
 
-            var generator = new ProxyGenerator();
-            return generator.CreateClassProxy(type, interceptor);
+            return _generator.CreateClassProxy(type, interceptor);
         }
 
         object CreateRootObject(Type type, string pmSymbolicLink, int fileSizeBytes = 4096)
