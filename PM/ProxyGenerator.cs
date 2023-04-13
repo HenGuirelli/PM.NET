@@ -26,6 +26,9 @@ namespace PM
             if (_proxyCaching.TryGetValue(type, out var foundCachingItens) &&
                 foundCachingItens.TryDequeue(out var cache))
             {
+                if (foundCachingItens.IsEmpty)
+                    StartPopulateCache(type, interceptor);
+
                 return cache;
             }
 
@@ -59,7 +62,10 @@ namespace PM
 
         private Task StartNewTask(Type type, IInterceptor interceptor)
         {
-            var notFoundCachingItens = _proxyCaching[type] = new ConcurrentQueue<object>();
+            if (!_proxyCaching.TryGetValue(type, out var notFoundCachingItens))
+            {
+                notFoundCachingItens = _proxyCaching[type] = new ConcurrentQueue<object>();
+            }
             var firstItemQueued = false;
             var t = Task.Run(() =>
             {
