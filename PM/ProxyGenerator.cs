@@ -5,7 +5,7 @@ namespace PM
 {
     public class PmProxyGenerator
     {
-        public int ProxyCacheCount { get; }
+        public int MinProxyCacheCount { get; }
 
         private volatile int _hitCount;
         public int HitCount => _hitCount;
@@ -16,6 +16,9 @@ namespace PM
         private volatile int _reuseCacheCount;
         public int ReuseCacheCount => _reuseCacheCount;
 
+        private volatile int _totalProxyCreatedCount;
+        public int TotalProxyCreatedCount => _totalProxyCreatedCount;
+
         private static readonly ProxyGenerator _generator = new();
         private readonly ConcurrentDictionary<Type, ConcurrentQueue<CacheItem>> _proxyCaching = new();
         private readonly ConcurrentDictionary<Type, Task> _creationProxyTasks = new();
@@ -24,7 +27,7 @@ namespace PM
 
         public PmProxyGenerator(int proxyCacheCount = 100)
         {
-            ProxyCacheCount = proxyCacheCount;
+            MinProxyCacheCount = proxyCacheCount;
         }
 
         public int GetCacheCount(Type type)
@@ -48,7 +51,10 @@ namespace PM
                 foundCachingItens.TryDequeue(out var cache))
             {
                 if (foundCachingItens.IsEmpty)
+                {
                     StartPopulateCache(type);
+                    _hitCount--;
+                }
 
                 cache.SetInterceptor(interceptor);
                 _hitCount++;
@@ -56,6 +62,7 @@ namespace PM
             }
 
             StartPopulateCache(type);
+            _hitCount--;
 
             return CreateClassProxy(type, interceptor);
         }
@@ -94,13 +101,14 @@ namespace PM
             {
                 // ProxyCacheCount + 1 because the first object is
                 // immediatly dequeued to return to caller.
-                for (int i = 0; i < ProxyCacheCount + 1; i++)
+                for (int i = 0; i < MinProxyCacheCount + 1; i++)
                 {
                     var obj = Activator.CreateInstance(type);
                     var proxy = _generator.CreateClassProxyWithTarget(type, obj, _standardInterceptor);
                     notFoundCachingItens.Enqueue(
                         new CacheItem(this, proxy, type)
-                        );
+                    );
+                    _totalProxyCreatedCount++;
                     firstItemQueued = true;
                 }
             });

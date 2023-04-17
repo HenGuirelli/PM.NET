@@ -34,7 +34,7 @@ namespace PM.Tests
             Thread.Sleep(200);
 
             Assert.Equal(
-                proxyGenerator.ProxyCacheCount,
+                proxyGenerator.MinProxyCacheCount,
                 proxyGenerator.GetCacheCount(typeof(DomainObj)));
         }
 
@@ -43,7 +43,7 @@ namespace PM.Tests
         {
             PmProxyGenerator proxyGenerator = new(100);
 
-            for (int i = 0; i < proxyGenerator.ProxyCacheCount + 2; i++)
+            for (int i = 0; i < proxyGenerator.MinProxyCacheCount + 2; i++)
             {
                 var obj = proxyGenerator.CreateClassProxy(
                     typeof(DomainObj),
@@ -51,30 +51,39 @@ namespace PM.Tests
             }
 
             Assert.Equal(
-                proxyGenerator.ProxyCacheCount,
+                proxyGenerator.MinProxyCacheCount,
                 proxyGenerator.GetCacheCount(typeof(DomainObj)));
         }
 
         [Fact]
         public void OnCreateClassProxy_WhenGcCollectProxies_ShouldReuseProxy()
         {
+            ///
+            /// This test calls the GC when the cache queue is fully consumed 
+            /// (there is only one item in the queue).
+            /// 
+            /// In this case, when the GC passes, it must replace the proxies already
+            /// used in the cache again.
+            ///
+
             PmProxyGenerator proxyGenerator = new(100);
 
-            for (int i = 0; i < proxyGenerator.ProxyCacheCount * 2; i++)
+            for (int i = 0; i < (proxyGenerator.MinProxyCacheCount + 10); i++)
             {
                 var obj = proxyGenerator.CreateClassProxy(
                     typeof(DomainObj),
                     Mock.Of<IInterceptor>());
 
-                if (i == proxyGenerator.ProxyCacheCount)
+                if (proxyGenerator.GetCacheCount(typeof(DomainObj)) == 1)
                 {
                     GC.Collect();
+                    Thread.Sleep(500);
                 }
             }
 
             Assert.Equal(
-                proxyGenerator.ProxyCacheCount,
-                proxyGenerator.GetCacheCount(typeof(DomainObj)));
+                proxyGenerator.MinProxyCacheCount,
+                proxyGenerator.ReuseCacheCount);
         }
     }
 }
