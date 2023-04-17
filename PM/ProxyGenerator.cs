@@ -5,11 +5,12 @@ namespace PM
 {
     public class PmProxyGenerator
     {
+        public int ProxyCacheCount { get; }
+
         private static readonly ProxyGenerator _generator = new();
-        private readonly ConcurrentDictionary<Type, ConcurrentQueue<object>> _proxyCaching = new();
+        private readonly ConcurrentDictionary<Type, ConcurrentQueue<CacheItem>> _proxyCaching = new();
         private readonly ConcurrentDictionary<Type, Task> _creationProxyTasks = new();
         private readonly ConcurrentDictionary<Type, object> _creationProxyTaskLocks = new();
-        public int ProxyCacheCount { get; }
 
         public PmProxyGenerator(int proxyCacheCount = 100)
         {
@@ -21,6 +22,15 @@ namespace PM
             return _proxyCaching[type]?.Count ?? 0;
         }
 
+        internal void EnqueueCache(Type type, CacheItem cacheItem)
+        {
+            var queue = _proxyCaching.AddOrUpdate(type,
+                new ConcurrentQueue<CacheItem>(), 
+                (key, value) => value);
+
+            queue.Enqueue(cacheItem);
+        }
+
         public object CreateClassProxy(Type type, IInterceptor interceptor)
         {
             if (_proxyCaching.TryGetValue(type, out var foundCachingItens) &&
@@ -29,7 +39,7 @@ namespace PM
                 if (foundCachingItens.IsEmpty)
                     StartPopulateCache(type, interceptor);
 
-                return cache;
+                return cache.Proxy;
             }
 
             StartPopulateCache(type, interceptor);
@@ -64,7 +74,7 @@ namespace PM
         {
             if (!_proxyCaching.TryGetValue(type, out var notFoundCachingItens))
             {
-                notFoundCachingItens = _proxyCaching[type] = new ConcurrentQueue<object>();
+                notFoundCachingItens = _proxyCaching[type] = new ConcurrentQueue<CacheItem>();
             }
             var firstItemQueued = false;
             var t = Task.Run(() =>
@@ -73,13 +83,36 @@ namespace PM
                 // immediatly dequeued to return to caller.
                 for (int i = 0; i < ProxyCacheCount + 1; i++)
                 {
+                    var proxy = _generator.CreateClassProxyWithTarget(type, new object(), interceptor);
                     notFoundCachingItens.Enqueue(
-                        _generator.CreateClassProxy(type, interceptor));
+                        new CacheItem(this, proxy, type)
+                        );
                     firstItemQueued = true;
                 }
             });
             SpinWait.SpinUntil(() => firstItemQueued);
             return t;
+        }
+    }
+
+    public class CacheItem
+    {
+        public object Proxy { get; }
+
+        private readonly PmProxyGenerator _pmProxyGenerator;
+        private readonly Type _type;
+
+        public CacheItem(PmProxyGenerator pmProxyGenerator, object proxy, Type type)
+        {
+            _pmProxyGenerator = pmProxyGenerator;
+            _type = type;
+            Proxy = proxy;
+        }
+
+        ~CacheItem()
+        {
+            GC.ReRegisterForFinalize(this);
+            _pmProxyGenerator.EnqueueCache(_type, this);
         }
     }
 }
