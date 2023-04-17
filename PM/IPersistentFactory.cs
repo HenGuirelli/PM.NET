@@ -77,10 +77,11 @@ namespace PM
             var interceptor = new PersistentInterceptor(
                 new PmManager(
                     new PmUserDefinedTypes(pm, objectPropertiesInfoMapper),
-                        objectPropertiesInfoMapper),
-                        type,
-                        filename,
-                        pmPointer);
+                    objectPropertiesInfoMapper
+                ),
+                type,
+                filename,
+                pmPointer);
 
             return _generator.CreateClassProxy(type, interceptor);
         }

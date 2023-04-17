@@ -1,18 +1,12 @@
 ﻿using Castle.DynamicProxy;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace PM.Tests
 {
     public class DomainObj
     {
-
     }
 
     public class ProxyGeneratorTests

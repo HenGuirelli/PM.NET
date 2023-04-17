@@ -18,7 +18,11 @@ namespace PM.Proxies
         public string FilePointer { get; }
         public ulong? PmPointer { get; }
 
-        public PersistentInterceptor(PmManager pmManager, Type targetType, string filePointer, ulong? pmPointer)
+        public PersistentInterceptor(
+            PmManager pmManager,
+            Type targetType,
+            string filePointer,
+            ulong? pmPointer)
         {
             OriginalFileInterceptorRedirect = pmManager ?? throw new ArgumentNullException(nameof(pmManager));
             PmMemoryMappedFile = pmManager.PmMemoryMappedFile;

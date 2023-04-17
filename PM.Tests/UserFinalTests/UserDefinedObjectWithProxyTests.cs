@@ -10,10 +10,22 @@ namespace PM.Tests.UserFinalTests
         private static readonly Random _random = new();
 
         [Fact]
+        public void Test()
+        {
+            IPersistentFactory persistentFactory = new PersistentFactory();
+            var obj1 = persistentFactory.CreateRootObject<ComplexClassWithPrimitiveProperties>(CreateFilePath(nameof(ExampleWithPrimitives)));
+            var obj2 = persistentFactory.CreateRootObject<ComplexClassWithPrimitiveProperties>(CreateFilePath(nameof(ExampleWithPrimitives)));
+
+            obj1.Prop1 = int.MaxValue;
+            obj2.Prop1 = int.MinValue;
+        }
+
+        [Fact]
         public void ExampleWithPrimitives()
         {
             IPersistentFactory persistentFactory = new PersistentFactory();
-            var obj = persistentFactory.CreateRootObject<ComplexClassWithPrimitiveProperties>(CreateFilePath(nameof(ExampleWithPrimitives)));
+            var obj = persistentFactory.CreateRootObject<ComplexClassWithPrimitiveProperties>(
+                CreateFilePath(nameof(ExampleWithPrimitives)));
 
             obj.Prop1 = int.MaxValue;
             obj.Prop2 = float.MaxValue;
