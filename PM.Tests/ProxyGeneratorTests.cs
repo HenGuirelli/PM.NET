@@ -1,5 +1,6 @@
 ﻿using Castle.DynamicProxy;
 using Moq;
+using System;
 using System.Threading;
 using Xunit;
 
@@ -47,6 +48,28 @@ namespace PM.Tests
                 var obj = proxyGenerator.CreateClassProxy(
                     typeof(DomainObj),
                     Mock.Of<IInterceptor>());
+            }
+
+            Assert.Equal(
+                proxyGenerator.ProxyCacheCount,
+                proxyGenerator.GetCacheCount(typeof(DomainObj)));
+        }
+
+        [Fact]
+        public void OnCreateClassProxy_WhenGcCollectProxies_ShouldReuseProxy()
+        {
+            PmProxyGenerator proxyGenerator = new(100);
+
+            for (int i = 0; i < proxyGenerator.ProxyCacheCount * 2; i++)
+            {
+                var obj = proxyGenerator.CreateClassProxy(
+                    typeof(DomainObj),
+                    Mock.Of<IInterceptor>());
+
+                if (i == proxyGenerator.ProxyCacheCount)
+                {
+                    GC.Collect();
+                }
             }
 
             Assert.Equal(
