@@ -145,8 +145,11 @@ namespace PM
 
         ~CacheItem()
         {
-            GC.ReRegisterForFinalize(this);
-            _pmProxyGenerator.EnqueueCache(_type, this);
+            if (_pmProxyGenerator.GetCacheCount(_type) < _pmProxyGenerator.MinProxyCacheCount)
+            {
+                GC.ReRegisterForFinalize(this);
+                _pmProxyGenerator.EnqueueCache(_type, this);
+            }
         }
     }
 }
