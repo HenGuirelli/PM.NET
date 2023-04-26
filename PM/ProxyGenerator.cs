@@ -1,4 +1,5 @@
 ﻿using Castle.DynamicProxy;
+using PM.CastleHelpers;
 using System.Collections.Concurrent;
 
 namespace PM
@@ -149,6 +150,11 @@ namespace PM
             {
                 GC.ReRegisterForFinalize(this);
                 _pmProxyGenerator.EnqueueCache(_type, this);
+            }
+            else
+            {
+                var interceptor = CastleManager.GetInterceptor(Proxy);
+                interceptor?.PmMemoryMappedFile.Delete();
             }
         }
     }
