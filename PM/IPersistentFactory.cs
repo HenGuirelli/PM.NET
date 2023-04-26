@@ -51,9 +51,9 @@ namespace PM
                             innerObj,
                             pointer);
                         var interceptor =
-                            (PersistentInterceptor)((IProxyTargetAccessor)proxyObj)
+                            (IPmInterceptor)((IProxyTargetAccessor)proxyObj)
                                 .GetInterceptors()
-                                .Single(x => x is PersistentInterceptor);
+                                .Single(x => x is IPmInterceptor);
                         if (interceptor.OriginalFileInterceptorRedirect is PmManager pmManager)
                         {
                             pmManager.UserDefinedObjectsByProperty[prop] = proxyInnerObj;

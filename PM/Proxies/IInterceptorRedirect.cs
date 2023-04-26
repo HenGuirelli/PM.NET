@@ -2,7 +2,7 @@
 
 namespace PM.Proxies
 {
-    internal interface IInterceptorRedirect
+    public interface IInterceptorRedirect
     {
         ObjectPropertiesInfoMapper ObjectMapper { get; }
 

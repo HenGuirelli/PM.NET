@@ -16,7 +16,7 @@ namespace PM.Transactions
 
         private readonly T _obj;
         public LogFile LogFile { get; set; }
-        private readonly PersistentInterceptor _interceptor;
+        private readonly IPmInterceptor _interceptor;
         private readonly string _transactionID;
         private readonly Dictionary<PropertyInfo, object> _propertiesValues = new();
 

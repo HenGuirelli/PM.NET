@@ -5,20 +5,20 @@ namespace PM.CastleHelpers
 {
     internal class CastleManager
     {
-        public static bool TryGetInterceptor(object obj, out PersistentInterceptor? interceptor)
+        public static bool TryGetInterceptor(object obj, out IPmInterceptor? interceptor)
         {
             interceptor = GetInterceptor(obj);
             return interceptor != null;
         }
 
-        public static PersistentInterceptor? GetInterceptor(object obj)
+        public static IPmInterceptor? GetInterceptor(object obj)
         {
             if (obj is IProxyTargetAccessor proxyObj)
             {
                 var interceptor =
-                    (PersistentInterceptor)proxyObj
+                    (IPmInterceptor)proxyObj
                         .GetInterceptors()
-                        .Single(x => x is PersistentInterceptor);
+                        .Single(x => x is IPmInterceptor);
                 return interceptor;
             }
             return null;

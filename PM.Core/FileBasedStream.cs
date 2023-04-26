@@ -4,7 +4,7 @@
     {
         public string FilePath { get; protected set; } = string.Empty;
 
-        public void Delete()
+        public virtual void Delete()
         {
             Dispose();
             File.Delete(FilePath);

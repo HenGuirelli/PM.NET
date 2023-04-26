@@ -6,11 +6,10 @@ using System.Reflection;
 
 namespace PM.Proxies
 {
-    internal class PersistentInterceptor : IInterceptor
+    internal class PersistentInterceptor : IPmInterceptor
     {
-        // If a transaction is running, this redirector is called instead of _defaultInterceptorRedirect
-        internal AsyncLocal<IInterceptorRedirect> TransactionInterceptorRedirect { get; } = new();
-        internal FileBasedStream PmMemoryMappedFile { get; }
+        public AsyncLocal<IInterceptorRedirect> TransactionInterceptorRedirect { get; } = new();
+        public FileBasedStream PmMemoryMappedFile { get; }
         public IInterceptorRedirect OriginalFileInterceptorRedirect { get; }
         private readonly Type _targetType;
         private readonly Dictionary<MethodInfo, PropertyInfo> _methodToPropCache = new();

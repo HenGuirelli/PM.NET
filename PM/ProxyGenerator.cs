@@ -1,5 +1,6 @@
 ﻿using Castle.DynamicProxy;
 using PM.CastleHelpers;
+using PM.Proxies;
 using System.Collections.Concurrent;
 
 namespace PM
@@ -46,7 +47,7 @@ namespace PM
             _reuseCacheCount++;
         }
 
-        public object CreateClassProxy(Type type, IInterceptor interceptor)
+        public object CreateClassProxy(Type type, IPmInterceptor interceptor)
         {
             if (_proxyCaching.TryGetValue(type, out var foundCachingItens) &&
                 foundCachingItens.TryDequeue(out var cache))
