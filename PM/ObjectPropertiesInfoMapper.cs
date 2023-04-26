@@ -6,18 +6,30 @@ namespace PM
 {
     public class ObjectPropertiesInfoMapper
     {
+        private static readonly Dictionary<Type, ObjectPropertiesInfoMapper> _propertyInfoByType = new();
+
         private readonly Dictionary<PropertyInfo, int> _propetyOffsetByPropertyInfo = new();
         private readonly int _totalSize;
         public PmHeader Header { get; }
 
         public ObjectPropertiesInfoMapper(Type type, PmHeader header)
         {
-            Header = header;
-            foreach (var property in type.GetProperties())
+            if (_propertyInfoByType.TryGetValue(type, out var propInfo))
             {
-                var pmemType = SupportedTypesTable.Instance.GetPmType(property.PropertyType);
-                _propetyOffsetByPropertyInfo[property] = _totalSize;
-                _totalSize += pmemType.SizeBytes;
+                Header = propInfo.Header;
+                _propetyOffsetByPropertyInfo = propInfo._propetyOffsetByPropertyInfo;
+                _totalSize = propInfo._totalSize;
+            }
+            else
+            {
+                Header = header;
+                foreach (var property in type.GetProperties())
+                {
+                    var pmemType = SupportedTypesTable.Instance.GetPmType(property.PropertyType);
+                    _propetyOffsetByPropertyInfo[property] = _totalSize;
+                    _totalSize += pmemType.SizeBytes;
+                }
+                _propertyInfoByType[type] = this;
             }
         }
 
