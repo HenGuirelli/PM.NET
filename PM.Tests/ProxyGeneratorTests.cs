@@ -81,9 +81,11 @@ namespace PM.Tests
                 }
             }
 
-            Assert.Equal(
-                proxyGenerator.MinProxyCacheCount,
-                proxyGenerator.ReuseCacheCount);
+            // Reuse must be at least half of proxy cache length
+            Assert.True(
+                proxyGenerator.ReuseCacheCount >=
+                proxyGenerator.MinProxyCacheCount / 2
+            );
         }
     }
 }

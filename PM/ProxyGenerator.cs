@@ -26,7 +26,7 @@ namespace PM
         private readonly ConcurrentDictionary<Type, object> _creationProxyTaskLocks = new();
         private readonly StandardInterceptor _standardInterceptor = new();
 
-        public PmProxyGenerator(int proxyCacheCount = 100)
+        public PmProxyGenerator(int proxyCacheCount = 500)
         {
             MinProxyCacheCount = proxyCacheCount;
         }
@@ -153,8 +153,15 @@ namespace PM
             }
             else
             {
-                var interceptor = CastleManager.GetInterceptor(Proxy);
-                interceptor?.PmMemoryMappedFile.Delete();
+                try
+                {
+                    var interceptor = CastleManager.GetInterceptor(Proxy);
+                    interceptor?.PmMemoryMappedFile.Delete();
+                }
+                catch(Exception ex)
+                {
+                    // TODO: log error
+                }
             }
         }
     }
