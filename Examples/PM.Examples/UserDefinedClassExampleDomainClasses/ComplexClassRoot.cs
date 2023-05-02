@@ -1,4 +1,4 @@
-﻿namespace PM.Tests.UserFinalTests
+﻿namespace PM.Examples
 {
     public class ComplexClassInner2
     {

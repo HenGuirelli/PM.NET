@@ -13,10 +13,11 @@ namespace PM.PmContent
             _type = type;
         }
 
-        public PmHeader CreateHeader()
+        public PmHeader CreateHeader(bool isRoot)
         {
-            var header = new PmHeader(_type);
+            var header = new PmHeader(_type, isRoot);
             _pm.WriteInt(header.ClassHash, offset: header.ClassHashOffset);
+            _pm.WriteBool(header.IsRootObject, offset: header.RootObjectOffset);
             return header;
         }
     }

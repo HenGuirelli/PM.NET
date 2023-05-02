@@ -148,7 +148,7 @@ namespace PM.Managers
 
                         // User defined objects
                         IPersistentFactory persistentFactory = new PersistentFactory();
-                        var proxy = persistentFactory.CreateRootObject(
+                        var proxy = persistentFactory.LoadFromFile(
                             property.PropertyType,
                             pointer.ToString() + ".pm");
                         UserDefinedObjectsByProperty[property] = proxy;

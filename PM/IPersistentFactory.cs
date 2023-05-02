@@ -29,7 +29,7 @@ namespace PM
                 throw new ApplicationException($"object of type {objType} already has a proxy");
             }
 
-            var proxyObj = CreatePersistentProxy(objType, pmFilename, fileSizeBytes, pmPointer);
+            var proxyObj = CreatePersistentProxy(objType, pmFilename, isRootObject: false, fileSizeBytes, pmPointer);
 
             foreach (var prop in objType.GetProperties())
             {
@@ -64,14 +64,19 @@ namespace PM
             return proxyObj;
         }
 
-        object CreatePersistentProxy(Type type, string filename, int fileSizeBytes = 4096, ulong? pmPointer =  null)
+        object CreatePersistentProxy(
+            Type type,
+            string filename,
+            bool isRootObject,
+            int fileSizeBytes = 4096,
+            ulong? pmPointer = null)
         {
             var pm = PmFactory.CreatePm(filename, fileSizeBytes);
 
             var pmContentGenerator = new PmContentGenerator(
                 new PmCSharpDefinedTypes(pm),
                 type);
-            var header = pmContentGenerator.CreateHeader();
+            var header = pmContentGenerator.CreateHeader(isRootObject);
 
             var objectPropertiesInfoMapper = new ObjectPropertiesInfoMapper(type, header);
             var interceptor = new PersistentInterceptor(
@@ -106,13 +111,29 @@ namespace PM
                 pointerStr = pmSymbolicLink;
                 pointerULong = PmFileSystem.ParseAbsoluteStrPathToULongPointer(pmSymbolicLink);
             }
-            return CreatePersistentProxy(type, pointerStr, fileSizeBytes, pointerULong);
+            return CreatePersistentProxy(type, pointerStr, isRootObject: true, fileSizeBytes, pointerULong);
         }
 
         T CreateRootObject<T>(string pmFilename, int fileSizeBytes = 4096)
             where T : class, new()
         {
             return (T)CreateRootObject(typeof(T), pmFilename, fileSizeBytes);
+        }
+
+        object LoadFromFile(Type propertyType, string filename)
+        {
+            if (!filename.StartsWith(PmGlobalConfiguration.PmInternalsFolder))
+            {
+                filename = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, filename);
+            }
+            var pm = PmFactory.CreatePm(filename, 4096);
+            var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
+            var isRoot = pmCSharpDefinedTypes.ReadBool(offset: sizeof(int));
+
+            return CreatePersistentProxy(
+                propertyType,
+                filename,
+                isRoot);
         }
     }
 }
