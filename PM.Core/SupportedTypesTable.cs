@@ -44,6 +44,11 @@
             return id >= _minID && id <= _maxID;
         }
 
+        public bool IsPrimitive(int id)
+        {
+            return id <= 12;
+        }
+
         private void AddType(int id, Type type, int size)
         {
             var pmemType = new PmType(type, id, size);

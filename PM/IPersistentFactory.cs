@@ -5,6 +5,7 @@ using PM.Factories;
 using PM.Managers;
 using PM.PmContent;
 using PM.Proxies;
+using PM.Startup;
 
 namespace PM
 {
@@ -12,6 +13,12 @@ namespace PM
     {
         private static readonly PointersToPersistentObjects _pointersToPersistentObjects = new();
         private static readonly PmProxyGenerator _generator = new();
+        private static readonly IPmPointerCounter _pmPointerCounter = new PmPointerCounter();
+
+        static IPersistentFactory()
+        {
+            IDictionary<ulong, ulong> pointers = _pmPointerCounter.MapPointers(PmGlobalConfiguration.PmInternalsFolder);
+        }
 
         object CreateInternalObjectByObject(object obj, ulong pmPointer, int fileSizeBytes = 4096)
         {
