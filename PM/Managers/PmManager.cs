@@ -83,6 +83,13 @@ namespace PM.Managers
                         }
                         else
                         {
+                            if (value is null)
+                            {
+                                ulong nullPtr = 0;
+                                _pm.UpdateProperty(property, nullPtr);
+                                return;
+                            }
+
                             ulong pointer = GetPointerIfExistsOrNew(property);
                             // User defined objects
                             IPersistentFactory persistentFactory = new PersistentFactory();

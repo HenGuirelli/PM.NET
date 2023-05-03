@@ -40,7 +40,6 @@ namespace PM.Proxies
                 if (property != null)
                 {
                     var value = CastleManager.GetValue(invocation);
-                    if (value is null) return;
 
                     var interceptor = GetInterceptorRedirect();
                     interceptor.InsertValuePm(property, value);
