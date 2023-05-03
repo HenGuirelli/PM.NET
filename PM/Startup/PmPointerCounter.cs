@@ -1,73 +1,13 @@
 ﻿using PM.Configs;
 using PM.Core;
 using PM.Factories;
+using PM.Managers;
 using PM.PmContent;
 using System.Diagnostics;
-using System.Drawing;
 using System.Reflection;
-using System.Xml.Linq;
 
 namespace PM.Startup
 {
-    public class Node : IEquatable<Node>
-    {
-        public string File { get; set; }
-
-        private readonly List<Node> _childrens = new List<Node>();
-
-        public Node? GetChild(string file)
-        {
-            foreach (var children in _childrens)
-            {
-                if (children.File == file) return this;
-                return children.GetChild(file);
-            }
-            return null;
-        }
-
-        public void AddChild(Node node)
-        {
-            _childrens.Add(node);
-        }
-
-        public bool HasChildren(string filename)
-        {
-            var child = GetChild(filename);
-            return child != null;
-        }
-
-        public bool HasChildren(Node node)
-        {
-            var child = GetChild(node.File);
-            return child != null;
-        }
-
-        public bool Equals(Node? other)
-        {
-            if (other is null) return false;
-            return File == other.File;
-        }
-    }
-
-    public class ReferenceTree
-    {
-        private readonly List<Node> _roots = new List<Node>();
-
-        public bool Contains(string filename)
-        {
-            foreach(var root in _roots)
-            {
-                if (root.HasChildren(filename)) return true;
-            }
-            return false;
-        }
-
-        public void AddRoot(Node root)
-        {
-            _roots.Add(root);
-        }
-    }
-
     public class PmPointerCounter : IPmPointerCounter
     {
         private readonly ReferenceTree _referenceTree = new();
@@ -80,14 +20,27 @@ namespace PM.Startup
             var classTypes = GetAllLoadedClasses();
             foreach (var classType in classTypes)
             {
-                classesWithHash.Add(ClassHashCodeCalculator.GetHashCode(classType), classType);
+                classesWithHash[ClassHashCodeCalculator.GetHashCode(classType)] = classType;
             }
 
             // 2. Identify all root objects
             var roots = new List<string>();
+            var internalsFilenames = new HashSet<string>
+            {
+                PointersToPersistentObjects.PmFileName
+            };
             var pmFiles = Directory
                 .GetFiles(PmGlobalConfiguration.PmInternalsFolder)
-                .Where(it => !PmFileSystem.FileIsSymbolicLink(it));
+                .Where(it => !PmFileSystem.FileIsSymbolicLink(it))
+                .Where(it =>
+                {
+                    foreach(var filename in internalsFilenames)
+                    {
+                        if (it.Contains(filename)) return false;
+                    }
+                    return true;
+                });
+
             foreach (var pmFile in pmFiles)
             {
                 var pm = PmFactory.CreatePm(pmFile, 4096);
@@ -99,9 +52,13 @@ namespace PM.Startup
             }
 
             // 3. Create reference tree
-            foreach(var rootFile in roots)
+            foreach (var rootFile in roots)
             {
-                var rootNode = new Node { File = rootFile };
+                var rootNode = new Node 
+                { 
+                    Filename = Path.GetFileNameWithoutExtension(rootFile),
+                    Filepath = rootFile
+                };
                 _referenceTree.AddRoot(rootNode);
                 CreateTreeByNode(rootNode);
             }
@@ -109,7 +66,7 @@ namespace PM.Startup
             // 4. Verify the pm files that not in reference tree
             foreach (var pmFile in pmFiles)
             {
-                if (!_referenceTree.Contains(pmFile))
+                if (!_referenceTree.Contains(Path.GetFileNameWithoutExtension(pmFile)))
                 {
                     File.Delete(pmFile);
                 }
@@ -120,7 +77,7 @@ namespace PM.Startup
 
         void CreateTreeByNode(Node node)
         {
-            var pm = PmFactory.CreatePm(node.File, 4096);
+            var pm = PmFactory.CreatePm(node.Filepath, 4096);
             var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
             var classHash = pmCSharpDefinedTypes.ReadInt();
 
@@ -138,38 +95,44 @@ namespace PM.Startup
                     {
                         var offsetReferenceType = objectPropertiesInfoMapper.GetOffSet(prop);
                         var pointer = pmCSharpDefinedTypes.ReadULong(offsetReferenceType);
-                        var child = new Node { File = pointer.ToString() };
+                        var child = new Node 
+                        { 
+                            Filename = pointer.ToString(),
+                            Filepath = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString())
+                        };
                         node.AddChild(child);
-                        _pointerCount[pointer]++;
+                        AddPointerCount(pointer);
                         CreateTreeByNode(child);
                     }
                 }
             }
         }
 
-        static Type[] GetAllLoadedClasses()
+        private void AddPointerCount(ulong pointer)
         {
-            List<Type> classes = new List<Type>();
-            Process currentProcess = Process.GetCurrentProcess();
-            ProcessModuleCollection modules = currentProcess.Modules;
-
-            foreach (ProcessModule module in modules)
+            if (!_pointerCount.ContainsKey(pointer))
             {
-                try
-                {
-                    Assembly assembly = Assembly.LoadFrom(module.FileName);
-                    Type[] types = assembly.GetTypes();
+                _pointerCount[pointer] = 0;
+            }
+            _pointerCount[pointer]++;
+        }
 
-                    classes.AddRange(types);
-                }
-                catch (Exception ex)
+        static List<Type> GetAllLoadedClasses()
+        {
+            List<Type> types = new List<Type>();
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (Assembly assembly in assemblies)
+            {
+                Type[] assemblyTypes = assembly.GetTypes();
+                foreach (Type type in assemblyTypes)
                 {
-                    Console.WriteLine("Erro ao carregar módulo: " + module.FileName);
-                    Console.WriteLine(ex.Message);
+                    if (type.Assembly == assembly && !type.IsAbstract && type.IsClass)
+                    {
+                        types.Add(type);
+                    }
                 }
             }
-
-            return classes.ToArray();
+            return types;
         }
     }
 }

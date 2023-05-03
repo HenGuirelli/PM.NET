@@ -1,16 +1,28 @@
-﻿namespace PM.PmContent
+﻿using System.Reflection;
+
+namespace PM.PmContent
 {
     public class ClassHashCodeCalculator
     {
         public static int GetHashCode(Type type)
         {
-            int result = 0;
-            // TODO: ordenar antes de calcular hash
-            foreach (var item in type.GetProperties())
+            HashCode hash = new HashCode();
+
+            hash.Add(type.FullName);
+
+            PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (PropertyInfo property in properties)
             {
-                result += item.GetHashCode() + item.Name.GetHashCode();
+                hash.Add(property.Name);
             }
-            return result;
+
+            MethodInfo[] methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance);
+            foreach (MethodInfo method in methods)
+            {
+                hash.Add(method.Name);
+            }
+
+            return hash.ToHashCode();
         }
     }
 }
