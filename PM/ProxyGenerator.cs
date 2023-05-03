@@ -156,8 +156,8 @@ namespace PM
             {
                 try
                 {
-                    var interceptor = CastleManager.GetInterceptor(Proxy);
-                    interceptor?.PmMemoryMappedFile.Delete();
+                    //var interceptor = CastleManager.GetInterceptor(Proxy);
+                    //interceptor?.PmMemoryMappedFile.Delete();
                 }
                 catch(Exception ex)
                 {

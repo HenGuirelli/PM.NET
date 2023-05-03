@@ -2,6 +2,6 @@
 {
     public interface IPmPointerCounter
     {
-        IDictionary<ulong, ulong> MapPointers(string folder);
+        IDictionary<ulong, ulong> Collect(string folder);
     }
 }

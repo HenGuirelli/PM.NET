@@ -17,7 +17,7 @@ namespace PM
 
         static IPersistentFactory()
         {
-            IDictionary<ulong, ulong> pointers = _pmPointerCounter.MapPointers(PmGlobalConfiguration.PmInternalsFolder);
+            //IDictionary<ulong, ulong> pointers = _pmPointerCounter.MapPointers(PmGlobalConfiguration.PmInternalsFolder);
         }
 
         object CreateInternalObjectByObject(object obj, ulong pmPointer, int fileSizeBytes = 4096)

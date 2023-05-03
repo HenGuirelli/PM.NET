@@ -3,7 +3,6 @@ using PM.Core;
 using PM.Factories;
 using PM.Managers;
 using PM.PmContent;
-using System.Diagnostics;
 using System.Reflection;
 
 namespace PM.Startup
@@ -14,7 +13,7 @@ namespace PM.Startup
         private readonly Dictionary<int, Type> classesWithHash = new();
         private readonly Dictionary<ulong, ulong> _pointerCount = new();
 
-        public IDictionary<ulong, ulong> MapPointers(string folder)
+        public IDictionary<ulong, ulong> Collect(string folder)
         {
             // 1. Get All Classes
             var classTypes = GetAllLoadedClasses();
@@ -95,13 +94,16 @@ namespace PM.Startup
                     {
                         var offsetReferenceType = objectPropertiesInfoMapper.GetOffSet(prop);
                         var pointer = pmCSharpDefinedTypes.ReadULong(offsetReferenceType);
+                        if (pointer == 0) return;
+
                         var child = new Node 
                         { 
                             Filename = pointer.ToString(),
-                            Filepath = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString())
+                            Filepath = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()) + ".pm"
                         };
                         node.AddChild(child);
                         AddPointerCount(pointer);
+
                         CreateTreeByNode(child);
                     }
                 }
