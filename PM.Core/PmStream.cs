@@ -114,13 +114,18 @@ namespace PM.Core
             _position += count;
         }
 
-        protected override void Dispose(bool disposing)
+        public override void Close()
         {
-            base.Dispose(disposing);
             if (_pmemPtr != IntPtr.Zero)
             {
                 LibpmemNativeMethods.Unmap(_pmemPtr, _length);
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            Close();
         }
 
         public override void Resize(int size)

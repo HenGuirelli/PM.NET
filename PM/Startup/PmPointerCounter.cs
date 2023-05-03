@@ -33,7 +33,7 @@ namespace PM.Startup
                 .Where(it => !PmFileSystem.FileIsSymbolicLink(it))
                 .Where(it =>
                 {
-                    foreach(var filename in internalsFilenames)
+                    foreach (var filename in internalsFilenames)
                     {
                         if (it.Contains(filename)) return false;
                     }
@@ -42,19 +42,21 @@ namespace PM.Startup
 
             foreach (var pmFile in pmFiles)
             {
-                var pm = PmFactory.CreatePm(pmFile, 4096);
-                var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
-                if (pmCSharpDefinedTypes.ReadBool(offset: sizeof(int)))
+                using (var pm = PmFactory.CreatePm(pmFile, 4096))
                 {
-                    roots.Add(pmFile);
+                    var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
+                    if (pmCSharpDefinedTypes.ReadBool(offset: sizeof(int)))
+                    {
+                        roots.Add(pmFile);
+                    }
                 }
             }
 
             // 3. Create reference tree
             foreach (var rootFile in roots)
             {
-                var rootNode = new Node 
-                { 
+                var rootNode = new Node
+                {
                     Filename = Path.GetFileNameWithoutExtension(rootFile),
                     Filepath = rootFile
                 };
@@ -76,7 +78,7 @@ namespace PM.Startup
 
         void CreateTreeByNode(Node node)
         {
-            var pm = PmFactory.CreatePm(node.Filepath, 4096);
+            using var pm = PmFactory.CreatePm(node.Filepath, 4096);
             var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
             var classHash = pmCSharpDefinedTypes.ReadInt();
 
@@ -96,8 +98,8 @@ namespace PM.Startup
                         var pointer = pmCSharpDefinedTypes.ReadULong(offsetReferenceType);
                         if (pointer == 0) return;
 
-                        var child = new Node 
-                        { 
+                        var child = new Node
+                        {
                             Filename = pointer.ToString(),
                             Filepath = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()) + ".pm"
                         };

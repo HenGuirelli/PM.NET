@@ -96,13 +96,17 @@ namespace PM.Core
 
         }
 
-
-        protected override void Dispose(bool disposing)
+        public override void Close()
         {
             _memoryMappedViewStream?.Dispose();
             _memoryMappedFile?.Dispose();
             _cache.TryRemove(FilePath, out _);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
             base.Dispose(disposing);
+            Close();
         }
     }
 }

@@ -14,7 +14,7 @@ namespace PM.Tests.Startup
     public class ComplexClassWithSelfReference
     {
         public virtual int Prop { get; set; }
-        public virtual ComplexClassWithSelfReference SelfReference { get; set; }
+        public virtual ComplexClassWithSelfReference Reference { get; set; }
     }
 
     public class PmPointerCounterTest : UnitTest
@@ -22,21 +22,22 @@ namespace PM.Tests.Startup
         [Fact]
         public void OnCollect_ShouldDeleteUnusedFile()
         {
-            DeleteAllFiles(PmGlobalConfiguration.PmInternalsFolder);
-
             var filepath = CreateFilePath(nameof(OnCollect_ShouldNotDeleteAnyFile));
             var testingObject = new PmPointerCounter();
 
             IPersistentFactory persistentFactory = new PersistentFactory();
-            var obj = persistentFactory
-                .CreateRootObject<ComplexClassWithSelfReference>(filepath);
+            var obj1 = persistentFactory
+                .CreateRootObject<ComplexClassWithSelfReference>(filepath + "1");
+            var obj2 = persistentFactory
+                .CreateRootObject<ComplexClassWithSelfReference>(filepath + "2");
 
-            obj.SelfReference = new ComplexClassWithSelfReference
-            {
-                Prop = 1,
-            };
+            obj1.Reference = new ComplexClassWithSelfReference();
+            obj1.Reference.Reference = new ComplexClassWithSelfReference();
 
-            obj.SelfReference = null!;
+            obj2.Reference = obj1;
+            obj1.Reference = obj2;
+
+            //obj1.Reference = null!;
 
             var pointers = testingObject.Collect(PmGlobalConfiguration.PmInternalsFolder);
         }
@@ -53,7 +54,7 @@ namespace PM.Tests.Startup
             var obj = persistentFactory
                 .CreateRootObject<ComplexClassWithSelfReference>(filepath);
 
-            obj.SelfReference = new ComplexClassWithSelfReference
+            obj.Reference = new ComplexClassWithSelfReference
             {
                 Prop = 1,
             };
