@@ -22,21 +22,23 @@ namespace PM.Tests.Startup
         [Fact]
         public void OnCollect_ShouldDeleteUnusedFile()
         {
-            DeleteAllFiles(PmGlobalConfiguration.PmInternalsFolder);
-
             var filepath = CreateFilePath(nameof(OnCollect_ShouldNotDeleteAnyFile));
             var testingObject = new PmPointerCounter();
 
             IPersistentFactory persistentFactory = new PersistentFactory();
-            var obj = persistentFactory
-                .CreateRootObject<ComplexClassWithSelfReference>(filepath);
+            var obj1 = persistentFactory
+                .CreateRootObject<ComplexClassWithSelfReference>(filepath + "1");
+            var obj2 = persistentFactory
+                .CreateRootObject<ComplexClassWithSelfReference>(filepath + "2");
 
-            obj.SelfReference = new ComplexClassWithSelfReference
+            obj1.SelfReference = new ComplexClassWithSelfReference
             {
-                Prop = 1,
+                SelfReference = new ComplexClassWithSelfReference { Prop = 2 }
             };
 
-            obj.SelfReference = null!;
+            obj2.SelfReference = obj1;
+
+            //obj1.SelfReference = null!;
 
             var pointers = testingObject.Collect(PmGlobalConfiguration.PmInternalsFolder);
         }
