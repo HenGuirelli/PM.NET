@@ -6,6 +6,7 @@ using PM.Managers;
 using PM.PmContent;
 using PM.Proxies;
 using PM.Startup;
+using System.Drawing;
 
 namespace PM
 {
@@ -36,7 +37,14 @@ namespace PM
                 throw new ApplicationException($"object of type {objType} already has a proxy");
             }
 
-            var proxyObj = CreatePersistentProxy(objType, pmFilename, isRootObject: false, fileSizeBytes, pmPointer);
+            var isRoot = IsRootObj(pmFilename);
+
+            var proxyObj = CreatePersistentProxy(
+                objType,
+                pmFilename,
+                isRootObject: isRoot,
+                fileSizeBytes,
+                pmPointer);
 
             foreach (var prop in objType.GetProperties())
             {
@@ -133,14 +141,20 @@ namespace PM
             {
                 filename = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, filename);
             }
-            var pm = PmFactory.CreatePm(filename, 4096);
-            var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
-            var isRoot = pmCSharpDefinedTypes.ReadBool(offset: sizeof(int));
+
+            var isRoot = IsRootObj(filename);
 
             return CreatePersistentProxy(
                 propertyType,
                 filename,
                 isRoot);
+        }
+
+        private bool IsRootObj(string filepath)
+        {
+            using var pm = PmFactory.CreatePm(filepath, 4096);
+            var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
+            return pmCSharpDefinedTypes.ReadBool(offset: sizeof(int));
         }
     }
 }

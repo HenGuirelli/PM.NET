@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Drawing;
 using System.IO.MemoryMappedFiles;
 
 namespace PM.Core
@@ -7,6 +8,7 @@ namespace PM.Core
     {
         private MemoryMappedFile _memoryMappedFile;
         private MemoryMappedViewStream _memoryMappedViewStream;
+        private long _size;
         private readonly static ConcurrentDictionary<string, MemoryMappedStream> _cache = new();
 
         public MemoryMappedStream(string filePath, long size, bool createFileIfNotExists = true)
@@ -16,6 +18,7 @@ namespace PM.Core
             {
                 _memoryMappedFile = obj._memoryMappedFile;
                 _memoryMappedViewStream = obj._memoryMappedViewStream;
+                _size = obj._size;
             }
             else
             {
@@ -30,6 +33,7 @@ namespace PM.Core
                 }
                 _memoryMappedFile = MemoryMappedFile.CreateFromFile(filePath);
                 _memoryMappedViewStream = _memoryMappedFile.CreateViewStream(0, size, MemoryMappedFileAccess.ReadWrite);
+                _size = size;
 
                 _cache[filePath] = this;
             }
@@ -98,15 +102,10 @@ namespace PM.Core
 
         public override void Close()
         {
-            _memoryMappedViewStream?.Dispose();
-            _memoryMappedFile?.Dispose();
-            _cache.TryRemove(FilePath, out _);
         }
 
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
-            Close();
         }
     }
 }

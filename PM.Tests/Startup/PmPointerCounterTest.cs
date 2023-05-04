@@ -35,9 +35,9 @@ namespace PM.Tests.Startup
             obj1.Reference.Reference = new ComplexClassWithSelfReference();
 
             obj2.Reference = obj1;
-            obj1.Reference = obj2;
+            //obj1.Reference = obj2;
 
-            //obj1.Reference = null!;
+            obj1.Reference = null!;
 
             var pointers = testingObject.Collect(PmGlobalConfiguration.PmInternalsFolder);
         }
