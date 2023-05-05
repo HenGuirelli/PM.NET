@@ -23,33 +23,18 @@ namespace PM.Startup
             }
 
             // 2. Identify all root objects
-            var roots = new List<string>();
             var internalsFilenames = new HashSet<string>
             {
-                PointersToPersistentObjects.PmFileName
+                Path.Combine(
+                    PmGlobalConfiguration.PmInternalsFolder,
+                    PointersToPersistentObjects.PmFileName)
             };
             var pmFiles = Directory
                 .GetFiles(PmGlobalConfiguration.PmInternalsFolder)
-                .Where(it => !PmFileSystem.FileIsSymbolicLink(it))
-                .Where(it =>
-                {
-                    foreach (var filename in internalsFilenames)
-                    {
-                        if (it.Contains(filename)) return false;
-                    }
-                    return true;
-                });
+                .Where(it => it.EndsWith(".root") || it.EndsWith(".pm"))
+                .Except(internalsFilenames);
 
-            foreach (var pmFile in pmFiles)
-            {
-                var pm = FileHandlerManager.CreateHandler(pmFile);
-                var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
-                if (pmCSharpDefinedTypes.ReadBool(offset: sizeof(int)))
-                {
-                    roots.Add(pmFile);
-                }
-                FileHandlerManager.CloseAndDiscard(pm);
-            }
+            var roots = pmFiles.Where(it => it.EndsWith(".root"));
 
             // 3. Create reference tree
             foreach (var rootFile in roots)
