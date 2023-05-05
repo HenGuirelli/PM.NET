@@ -9,7 +9,12 @@ namespace PM
 
         public static ulong ParseAbsoluteStrPathToULongPointer(string path)
         {
-            return ulong.Parse(path.Split(Path.DirectorySeparatorChar).Last().Replace(".pm", ""));
+            return ulong.Parse(
+                        path.Split(Path.DirectorySeparatorChar)
+                        .Last()
+                        .Replace(".pm", "")
+                        .Replace(".root", "")
+                    );
         }
 
         public static ulong GetPointerFromSymbolicLink(string symlink)
@@ -26,7 +31,6 @@ namespace PM
 
         public static string CreateSymbolicLinkInInternalsFolder(string symlink, string targetSymlink)
         {
-            targetSymlink = targetSymlink.EndsWith(".pm") ? targetSymlink : targetSymlink + ".pm";
             var pointer = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, targetSymlink);
             CreateSymbolicLink(symlink, pointer);
             return pointer;

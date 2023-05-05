@@ -59,8 +59,8 @@ namespace PM.Managers
                     {
                         ulong pointer = GetPointerIfExistsOrNew(property);
 
-                        var pm = PmFactory.CreatePm(
-                            Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm"), 4096);
+                        var pm = FileHandlerManager.CreateInternalObjectHandler(
+                            Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()));
                         var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
                         pmCSharpDefinedTypes.WriteString(valuestr);
 
@@ -232,10 +232,10 @@ namespace PM.Managers
                             return null;
                         }
 
-                        var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm");
                         try
                         {
-                            var pm = PmFactory.CreatePm(path, 4096);
+                            var pm = FileHandlerManager.CreateInternalObjectHandler(
+                                Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()));
 
                             var stringPmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
                             return stringPmCSharpDefinedTypes.ReadString();

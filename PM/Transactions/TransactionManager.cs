@@ -31,12 +31,12 @@ namespace PM.Transactions
             var files = transactionFolder.GetLogFileNames();
             foreach (var file in files)
             {
-                var logFilePm = PmFactory.CreatePm(file);
+                var logFilePm = FileHandlerManager.CreateHandler(file);
                 var logFile = new LogFile(new PmCSharpDefinedTypes(logFilePm));
                 if (logFile.IsCommitedLogFile)
                 {
                     var originalFilename = logFile.ReadOriginalFileName();
-                    var pm = PmFactory.CreatePm(originalFilename);
+                    var pm = FileHandlerManager.CreateHandler(originalFilename);
                     foreach (var item in logFile.LogFileContent)
                     {
                         pm.Seek(item.Item1, SeekOrigin.Begin);
@@ -55,7 +55,7 @@ namespace PM.Transactions
             _transactionID = Guid.NewGuid().ToString();
 
             var filename = Path.Combine(PmGlobalConfiguration.PmTransactionFolder, _transactionID);
-            var pm = PmFactory.CreatePm(filename);
+            var pm = FileHandlerManager.CreateHandler(filename);
             LogFile = new LogFile(new PmCSharpDefinedTypes(pm));
 
 
@@ -107,7 +107,7 @@ namespace PM.Transactions
 
         private void CopyLogToOriginal()
         {
-            var pm = PmFactory.CreatePm(_interceptor.PmMemoryMappedFile.FilePath);
+            var pm = FileHandlerManager.CreateHandler(_interceptor.PmMemoryMappedFile.FilePath);
             foreach (var item in LogFile.LogFileContent)
             {
                 pm.Seek(item.Item1, SeekOrigin.Begin);

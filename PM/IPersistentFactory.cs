@@ -86,7 +86,9 @@ namespace PM
             int fileSizeBytes = 4096,
             ulong? pmPointer = null)
         {
-            var pm = PmFactory.CreatePm(filename, fileSizeBytes);
+            var pm = isRootObject ?
+                FileHandlerManager.CreateRootHandler(filename) :
+                FileHandlerManager.CreateInternalObjectHandler(filename);
 
             var pmContentGenerator = new PmContentGenerator(
                 new PmCSharpDefinedTypes(pm),
@@ -114,7 +116,7 @@ namespace PM
             {
                 pointerULong = _pointersToPersistentObjects.GetNext();
                 pointerStr = pointerULong.ToString();
-                pointerStr = PmFileSystem.CreateSymbolicLinkInInternalsFolder(pmSymbolicLink, pointerStr + ".pm");
+                pointerStr = PmFileSystem.CreateSymbolicLinkInInternalsFolder(pmSymbolicLink, pointerStr + ".root");
             }
             else if (PmFileSystem.FileIsSymbolicLink(pmSymbolicLink))
             {
@@ -152,7 +154,7 @@ namespace PM
 
         private bool IsRootObj(string filepath)
         {
-            using var pm = PmFactory.CreatePm(filepath, 4096);
+            var pm = FileHandlerManager.CreateHandler(filepath);
             var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
             return pmCSharpDefinedTypes.ReadBool(offset: sizeof(int));
         }

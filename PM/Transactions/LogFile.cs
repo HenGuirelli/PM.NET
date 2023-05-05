@@ -297,8 +297,8 @@ namespace PM.Transactions
             BinaryPrimitives.WriteUInt64BigEndian(array, pointer);
             LogFileContent.Add((offset, pmType.ID, array));
 
-            var pm = PmFactory.CreatePm(
-                    Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm"),
+            var pm = FileHandlerManager.CreateInternalObjectHandler(
+                    Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()),
                     size: sizeof(char) * (value.Length + 1));
             var stringPmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
             stringPmCSharpDefinedTypes.WriteString(value);

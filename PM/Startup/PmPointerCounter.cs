@@ -42,14 +42,13 @@ namespace PM.Startup
 
             foreach (var pmFile in pmFiles)
             {
-                using (var pm = PmFactory.CreatePm(pmFile, 4096))
+                var pm = FileHandlerManager.CreateHandler(pmFile);
+                var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
+                if (pmCSharpDefinedTypes.ReadBool(offset: sizeof(int)))
                 {
-                    var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
-                    if (pmCSharpDefinedTypes.ReadBool(offset: sizeof(int)))
-                    {
-                        roots.Add(pmFile);
-                    }
+                    roots.Add(pmFile);
                 }
+                FileHandlerManager.CloseAndDiscard(pm);
             }
 
             // 3. Create reference tree
@@ -69,6 +68,7 @@ namespace PM.Startup
             {
                 if (!_referenceTree.Contains(Path.GetFileNameWithoutExtension(pmFile)))
                 {
+                    FileHandlerManager.CloseAndDiscard(pmFile);
                     File.Delete(pmFile);
                 }
             }
@@ -78,7 +78,7 @@ namespace PM.Startup
 
         void CreateTreeByNode(Node node)
         {
-            using var pm = PmFactory.CreatePm(node.Filepath, 4096);
+            var pm = FileHandlerManager.CreateHandler(node.Filepath);
             var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
             var classHash = pmCSharpDefinedTypes.ReadInt();
 

@@ -9,34 +9,23 @@ namespace PM.Core
         private MemoryMappedFile _memoryMappedFile;
         private MemoryMappedViewStream _memoryMappedViewStream;
         private long _size;
-        private readonly static ConcurrentDictionary<string, MemoryMappedStream> _cache = new();
 
         public MemoryMappedStream(string filePath, long size, bool createFileIfNotExists = true)
         {
             FilePath = filePath;
-            if (_cache.TryGetValue(filePath, out var obj))
-            {
-                _memoryMappedFile = obj._memoryMappedFile;
-                _memoryMappedViewStream = obj._memoryMappedViewStream;
-                _size = obj._size;
-            }
-            else
-            {
-                if (createFileIfNotExists && !File.Exists(filePath))
-                {
-                    using var fs = new FileStream(
-                        filePath,
-                        FileMode.Create,
-                        FileAccess.Write,
-                        FileShare.None);
-                    fs.SetLength(size);
-                }
-                _memoryMappedFile = MemoryMappedFile.CreateFromFile(filePath);
-                _memoryMappedViewStream = _memoryMappedFile.CreateViewStream(0, size, MemoryMappedFileAccess.ReadWrite);
-                _size = size;
 
-                _cache[filePath] = this;
+            if (createFileIfNotExists && !File.Exists(filePath))
+            {
+                using var fs = new FileStream(
+                    filePath,
+                    FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.None);
+                fs.SetLength(size);
             }
+            _memoryMappedFile = MemoryMappedFile.CreateFromFile(filePath);
+            _memoryMappedViewStream = _memoryMappedFile.CreateViewStream(0, size, MemoryMappedFileAccess.ReadWrite);
+            _size = size;
         }
 
         public override bool CanRead => true;
@@ -95,17 +84,18 @@ namespace PM.Core
 
             _memoryMappedFile = MemoryMappedFile.CreateFromFile(FilePath);
             _memoryMappedViewStream = _memoryMappedFile.CreateViewStream(0, size, MemoryMappedFileAccess.ReadWrite);
-
-            _cache[FilePath] = this;
-
         }
 
         public override void Close()
         {
+            _memoryMappedViewStream?.Dispose();
+            _memoryMappedFile?.Dispose();
         }
 
         protected override void Dispose(bool disposing)
         {
+            base.Dispose(disposing);
+            Close();
         }
     }
 }

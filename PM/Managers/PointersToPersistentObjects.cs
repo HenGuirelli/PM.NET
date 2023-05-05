@@ -1,6 +1,7 @@
 ﻿using PM.Configs;
 using PM.Core;
 using PM.Factories;
+using System.Reflection;
 
 namespace PM.Managers
 {
@@ -40,7 +41,7 @@ namespace PM.Managers
 
         static PointersToPersistentObjects()
         {
-            var pm = PmFactory.CreatePm(FilePath, (sizeof(ulong) + sizeof(byte)) * 2);
+            var pm = FileHandlerManager.CreateHandler(FilePath, (sizeof(ulong) + sizeof(byte)) * 2);
             _pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
 
             if (!File.Exists(FilePath) || GetFileCreatedSuccesfullyByte() != FileCreatedSuccesfully)

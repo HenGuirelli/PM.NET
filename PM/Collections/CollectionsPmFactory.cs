@@ -20,7 +20,7 @@ namespace PM.Collections
                 pmfilename = pointer;
             }
 
-            return PmFactory.CreatePm(
+            return FileHandlerManager.CreateHandler(
                             pmfilename,
                             sizeof(ulong) * (length + 1));
         }
@@ -29,7 +29,7 @@ namespace PM.Collections
             string filename,
             int length)
         {
-            var pm = PmFactory.CreatePm(filename, length * sizeof(ulong));
+            var pm = FileHandlerManager.CreateHandler(filename, length * sizeof(ulong));
             return PmPrimitiveArray.CreateNewArray<ulong>(pm);
         }
     }
