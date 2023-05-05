@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace PM.Startup
 {
-    public class PmPointerCounter : IPmPointerCounter
+    public class PmFolderCleaner : IPmFolderCleaner
     {
         private readonly ReferenceTree _referenceTree = new();
         private readonly Dictionary<int, Type> classesWithHash = new();
@@ -58,6 +58,7 @@ namespace PM.Startup
                 }
             }
 
+            _firstCollectOccured = true;
             return _pointerCount;
         }
 

@@ -1,6 +1,6 @@
 ﻿namespace PM.Startup
 {
-    public interface IPmPointerCounter
+    public interface IPmFolderCleaner
     {
         IDictionary<ulong, ulong> Collect(string folder);
     }

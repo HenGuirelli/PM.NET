@@ -14,11 +14,12 @@ namespace PM
     {
         private static readonly PointersToPersistentObjects _pointersToPersistentObjects = new();
         private static readonly PmProxyGenerator _generator = new();
-        private static readonly IPmPointerCounter _pmPointerCounter = new PmPointerCounter();
+        private static readonly IPmFolderCleaner _pmPointerCounter = new PmFolderCleaner();
 
         static IPersistentFactory()
         {
-            //IDictionary<ulong, ulong> pointers = _pmPointerCounter.MapPointers(PmGlobalConfiguration.PmInternalsFolder);
+            IDictionary<ulong, ulong> pointers = 
+                _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
         }
 
         object CreateInternalObjectByObject(object obj, ulong pmPointer, int fileSizeBytes = 4096)

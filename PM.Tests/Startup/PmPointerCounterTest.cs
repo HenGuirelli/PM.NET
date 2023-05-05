@@ -23,7 +23,7 @@ namespace PM.Tests.Startup
         public void OnCollect_ShouldDeleteUnusedFile()
         {
             var filepath = CreateFilePath(nameof(OnCollect_ShouldNotDeleteAnyFile));
-            var testingObject = new PmPointerCounter();
+            var testingObject = new PmFolderCleaner();
 
             IPersistentFactory persistentFactory = new PersistentFactory();
             var obj1 = persistentFactory
@@ -48,7 +48,7 @@ namespace PM.Tests.Startup
             DeleteAllFiles(PmGlobalConfiguration.PmInternalsFolder);
 
             var filepath = CreateFilePath(nameof(OnCollect_ShouldNotDeleteAnyFile));
-            var testingObject = new PmPointerCounter();
+            var testingObject = new PmFolderCleaner();
 
             IPersistentFactory persistentFactory = new PersistentFactory();
             var obj = persistentFactory
