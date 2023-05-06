@@ -157,7 +157,8 @@ namespace PM.Managers
                         IPersistentFactory persistentFactory = new PersistentFactory();
                         var proxy = persistentFactory.LoadFromFile(
                             property.PropertyType,
-                            pointer.ToString() + ".pm");
+                            pointer.ToString() + ".pm",
+                            pointer);
                         UserDefinedObjectsByProperty[property] = proxy;
                         return proxy;
                     }

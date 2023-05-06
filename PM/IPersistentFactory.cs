@@ -1,12 +1,10 @@
 ﻿using Castle.DynamicProxy;
 using PM.Configs;
 using PM.Core;
-using PM.Factories;
 using PM.Managers;
 using PM.PmContent;
 using PM.Proxies;
 using PM.Startup;
-using System.Drawing;
 
 namespace PM
 {
@@ -15,6 +13,7 @@ namespace PM
         private static readonly PointersToPersistentObjects _pointersToPersistentObjects = new();
         private static readonly PmProxyGenerator _generator = new();
         private static readonly IPmFolderCleaner _pmPointerCounter = new PmFolderCleaner();
+        private static readonly ClassHashManager _classHashManager = new ClassHashManager();
 
         static IPersistentFactory()
         {
@@ -44,8 +43,8 @@ namespace PM
                 objType,
                 pmFilename,
                 isRootObject: isRoot,
-                fileSizeBytes,
-                pmPointer);
+                pmPointer,
+                fileSizeBytes);
 
             foreach (var prop in objType.GetProperties())
             {
@@ -84,8 +83,8 @@ namespace PM
             Type type,
             string filename,
             bool isRootObject,
-            int fileSizeBytes = 4096,
-            ulong? pmPointer = null)
+            ulong pmPointer,
+            int fileSizeBytes = 4096)
         {
             var pm = isRootObject ?
                 FileHandlerManager.CreateRootHandler(filename) :
@@ -106,13 +105,18 @@ namespace PM
                 filename,
                 pmPointer);
 
+            if (_classHashManager.GetHashFile(type) != null)
+            {
+                _classHashManager.AddHashFile(type, pmPointer);
+            }
+
             return _generator.CreateClassProxy(type, interceptor);
         }
 
         object CreateRootObject(Type type, string pmSymbolicLink, int fileSizeBytes = 4096)
         {
             string? pointerStr;
-            ulong? pointerULong;
+            ulong pointerULong;
             if (!PmFileSystem.FileExists(pmSymbolicLink))
             {
                 pointerULong = _pointersToPersistentObjects.GetNext();
@@ -129,7 +133,11 @@ namespace PM
                 pointerStr = pmSymbolicLink;
                 pointerULong = PmFileSystem.ParseAbsoluteStrPathToULongPointer(pmSymbolicLink);
             }
-            return CreatePersistentProxy(type, pointerStr, isRootObject: true, fileSizeBytes, pointerULong);
+            return CreatePersistentProxy(type,
+                pointerStr, 
+                isRootObject: true,
+                pointerULong,
+                fileSizeBytes);
         }
 
         T CreateRootObject<T>(string pmFilename, int fileSizeBytes = 4096)
@@ -138,7 +146,7 @@ namespace PM
             return (T)CreateRootObject(typeof(T), pmFilename, fileSizeBytes);
         }
 
-        object LoadFromFile(Type type, string filename)
+        object LoadFromFile(Type type, string filename, ulong pointer)
         {
             if (!filename.StartsWith(PmGlobalConfiguration.PmInternalsFolder))
             {
@@ -150,7 +158,8 @@ namespace PM
             return CreatePersistentProxy(
                 type,
                 filename,
-                isRoot);
+                isRoot,
+                pointer);
         }
 
         private bool IsRootObj(string filepath)
