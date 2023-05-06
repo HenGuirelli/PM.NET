@@ -2,10 +2,6 @@
 using PM.Startup;
 using PM.Tests.Common;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace PM.Tests.Startup
@@ -13,6 +9,7 @@ namespace PM.Tests.Startup
     public class ClassHashManagerTest : UnitTest
     {
         private static readonly Random _random = new();
+
         [Fact]
         public void OnAddHashFile_ShouldCreateAndWriteFile()
         {
