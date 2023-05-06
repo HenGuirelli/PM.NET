@@ -61,7 +61,10 @@ namespace PM.Tests.Collections
         public void OnOpenListWithFileAlreadyExists()
         {
             var count = 10;
-            var path = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, nameof(OnOpenListWithFileAlreadyExists));
+            var path = Path.Combine(
+                PmGlobalConfiguration.PmInternalsFolder,
+                nameof(OnOpenListWithFileAlreadyExists));
+
             var list1 = new PmList<Foo>(path);
             list1.Clear();
 

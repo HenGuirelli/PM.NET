@@ -58,7 +58,6 @@ namespace PM.Startup
                 }
             }
 
-            _firstCollectOccured = true;
             return _pointerCount;
         }
 
