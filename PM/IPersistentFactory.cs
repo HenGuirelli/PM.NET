@@ -138,7 +138,7 @@ namespace PM
             return (T)CreateRootObject(typeof(T), pmFilename, fileSizeBytes);
         }
 
-        object LoadFromFile(Type propertyType, string filename)
+        object LoadFromFile(Type type, string filename)
         {
             if (!filename.StartsWith(PmGlobalConfiguration.PmInternalsFolder))
             {
@@ -148,7 +148,7 @@ namespace PM
             var isRoot = IsRootObj(filename);
 
             return CreatePersistentProxy(
-                propertyType,
+                type,
                 filename,
                 isRoot);
         }
