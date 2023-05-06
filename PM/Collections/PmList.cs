@@ -117,7 +117,9 @@ namespace PM.Collections
         private static PmPrimitiveArray<ulong> CreateNewPmFileList(string symbolicLink, int capacity)
         {
             var pointer = _pointersToPersistentObjects.GetNext().ToString();
-            string targetFilename = PmFileSystem.CreateSymbolicLinkInInternalsFolder(symbolicLink, pointer);
+            string targetFilename = PmFileSystem.CreateSymbolicLinkInInternalsFolder(
+                symbolicLink,
+                pointer + ".root");
             return CollectionsPmFactory.CreateULongArray(targetFilename, capacity + 1);
         }
 
