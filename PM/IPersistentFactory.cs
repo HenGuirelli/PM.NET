@@ -13,12 +13,31 @@ namespace PM
         private static readonly PointersToPersistentObjects _pointersToPersistentObjects = new();
         private static readonly PmProxyGenerator _generator = new();
         private static readonly IPmFolderCleaner _pmPointerCounter = new PmFolderCleaner();
-        private static readonly ClassHashManager _classHashManager = new ClassHashManager();
+        private static readonly ClassHashManager _classHashManager = ClassHashManager.Instance;
+
+        private static readonly AsyncLocal<int> _recursionCount = new();
+
+        private static readonly Thread _thread;
+        private static IDictionary<ulong, ulong>? _pointers;
 
         static IPersistentFactory()
         {
-            IDictionary<ulong, ulong> pointers = 
-                _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
+            _thread = new Thread(() =>
+            {
+                while (true)
+                {
+                    try
+                    {
+                        _pointers =
+                            _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
+                    }
+                    catch
+                    {
+                    }
+
+                    Thread.Sleep(PmGlobalConfiguration.CollectFileInterval);
+                }
+            });
         }
 
         object CreateInternalObjectByObject(object obj, ulong pmPointer, int fileSizeBytes = 4096)
@@ -84,7 +103,8 @@ namespace PM
             string filename,
             bool isRootObject,
             ulong pmPointer,
-            int fileSizeBytes = 4096)
+            int fileSizeBytes = 4096,
+            bool isLoad = false)
         {
             var pm = isRootObject ?
                 FileHandlerManager.CreateRootHandler(filename) :
@@ -105,9 +125,14 @@ namespace PM
                 filename,
                 pmPointer);
 
-            if (_classHashManager.GetHashFile(type) != null)
+
+            if (_recursionCount.Value == 0 &&
+                !isLoad &&
+                _classHashManager.GetHashFile(type) == null)
             {
-                _classHashManager.AddHashFile(type, pmPointer);
+                _recursionCount.Value++;
+                _classHashManager.AddHashFile(type);
+                _recursionCount.Value--;
             }
 
             return _generator.CreateClassProxy(type, interceptor);
@@ -134,7 +159,7 @@ namespace PM
                 pointerULong = PmFileSystem.ParseAbsoluteStrPathToULongPointer(pmSymbolicLink);
             }
             return CreatePersistentProxy(type,
-                pointerStr, 
+                pointerStr,
                 isRootObject: true,
                 pointerULong,
                 fileSizeBytes);
@@ -159,7 +184,8 @@ namespace PM
                 type,
                 filename,
                 isRoot,
-                pointer);
+                pointer,
+                isLoad: true);
         }
 
         private bool IsRootObj(string filepath)

@@ -10,17 +10,14 @@ namespace PM.Startup
     public class PmFolderCleaner : IPmFolderCleaner
     {
         private readonly ReferenceTree _referenceTree = new();
-        private readonly Dictionary<int, Type> classesWithHash = new();
+        private readonly Dictionary<int, Type> _classesWithHash = new();
         private readonly Dictionary<ulong, ulong> _pointerCount = new();
 
         public IDictionary<ulong, ulong> Collect(string folder)
         {
             // 1. Get All Classes
-            var classTypes = GetAllLoadedClasses();
-            foreach (var classType in classTypes)
-            {
-                classesWithHash[ClassHashCodeCalculator.GetHashCode(classType)] = classType;
-            }
+            LoadClassesAndHash();
+            //LoadAllClasses();
 
             // 2. Identify all root objects
             var internalsFilenames = new HashSet<string>
@@ -53,12 +50,43 @@ namespace PM.Startup
             {
                 if (!_referenceTree.Contains(Path.GetFileNameWithoutExtension(pmFile)))
                 {
-                    FileHandlerManager.CloseAndDiscard(pmFile);
-                    File.Delete(pmFile);
+                    if (FileHandlerManager.CloseAndDiscard(pmFile))
+                    {
+                        File.Delete(pmFile);
+                    }
                 }
             }
 
             return _pointerCount;
+        }
+
+        private void LoadAllClasses()
+        {
+            var classTypes = GetAllLoadedClasses();
+            foreach (var classType in classTypes)
+            {
+                _classesWithHash[ClassHashCodeCalculator.GetHashCode(classType)] = classType;
+            }
+        }
+
+        private void LoadClassesAndHash()
+        {
+            var allClassHashes = ClassHashManager.Instance.All;
+            foreach (var item in allClassHashes)
+            {
+                if (string.IsNullOrWhiteSpace(item.AssemblyName) ||
+                    string.IsNullOrWhiteSpace(item.SerializedType))
+                {
+                    continue;
+                }
+
+                var assembly = Assembly.Load(item.AssemblyName);
+                var type = assembly.GetType(item.SerializedType);
+                if (type != null)
+                {
+                    _classesWithHash[item.Hash] = type;
+                }
+            }
         }
 
         void CreateTreeByNode(Node node)
@@ -67,7 +95,7 @@ namespace PM.Startup
             var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
             var classHash = pmCSharpDefinedTypes.ReadInt();
 
-            if (classesWithHash.TryGetValue(classHash, out var type))
+            if (_classesWithHash.TryGetValue(classHash, out var type))
             {
                 var header = new PmHeader(
                     type,

@@ -13,16 +13,16 @@ namespace PM.Tests.Startup
         [Fact]
         public void OnAddHashFile_ShouldCreateAndWriteFile()
         {
-            var classHashManager = new ClassHashManager();
+            var classHashManager = ClassHashManager.Instance;
+
             var obj = new ComplexClassWithSelfReference();
             ulong randomPointer = (ulong)_random.Next();
 
-            classHashManager.AddHashFile(obj.GetType(), randomPointer);
+            classHashManager.AddHashFile(obj.GetType());
 
             var hashFile = classHashManager.GetHashFile(obj.GetType());
 
             Assert.Equal(ClassHashCodeCalculator.GetHashCode(obj.GetType()), hashFile!.Hash);
-            Assert.Equal(randomPointer, hashFile!.Pointer);
         }
     }
 }

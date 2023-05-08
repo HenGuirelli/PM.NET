@@ -1,4 +1,5 @@
-﻿using PM.Configs;
+﻿using PM.Collections;
+using PM.Configs;
 using PM.Startup;
 using PM.Tests.Common;
 using System;
@@ -41,7 +42,7 @@ namespace PM.Tests.Startup
 
             var pointers = testingObject.Collect(PmGlobalConfiguration.PmInternalsFolder);
         }
-        
+
         [Fact]
         public void OnCollect_ShouldNotDeleteAnyFile()
         {
