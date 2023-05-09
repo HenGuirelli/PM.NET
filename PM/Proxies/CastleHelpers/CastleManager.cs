@@ -3,7 +3,7 @@ using PM.Proxies;
 
 namespace PM.CastleHelpers
 {
-    internal class CastleManager
+    public class CastleManager
     {
         public static bool TryGetInterceptor(object obj, out IPmInterceptor? interceptor)
         {
