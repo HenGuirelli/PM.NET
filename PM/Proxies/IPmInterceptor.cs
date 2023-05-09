@@ -12,7 +12,8 @@ namespace PM.Proxies
         FileBasedStream PmMemoryMappedFile { get; }
         IInterceptorRedirect OriginalFileInterceptorRedirect { get; }
 
-        public string FilePointer { get; }
-        public ulong? PmPointer { get; }
+        ulong PointerCount { get; set; }
+        string FilePointer { get; }
+        ulong? PmPointer { get; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using PM.Configs;
 using PM.Core;
+using System.IO;
 using Xunit;
 
 namespace PM.Tests.Common
@@ -25,6 +26,14 @@ namespace PM.Tests.Common
                 return new PmStream(CreateFilePath(mappedMemoryFilePath), size);
             }
             return new MemoryMappedStream(CreateFilePath(mappedMemoryFilePath), size);
+        }
+
+        protected static void DeleteAllFilesFromFolder(string folder)
+        {
+            foreach (string file in Directory.EnumerateFiles(folder))
+            {
+                File.Delete(file);
+            }
         }
     }
 }

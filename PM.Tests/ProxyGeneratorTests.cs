@@ -43,7 +43,7 @@ namespace PM.Tests
         [Fact]
         public void OnCreateClassProxy_WhenUseAllCache_ShouldCreateMoreCache()
         {
-            PmProxyGenerator proxyGenerator = new(100);
+            PmProxyGenerator proxyGenerator = new(proxyCacheCount: 100);
 
             for (int i = 0; i < proxyGenerator.MinProxyCacheCount + 2; i++)
             {
@@ -68,7 +68,7 @@ namespace PM.Tests
             /// used in the cache again.
             ///
 
-            PmProxyGenerator proxyGenerator = new(100);
+            PmProxyGenerator proxyGenerator = new(proxyCacheCount: 100);
 
             for (int i = 0; i < (proxyGenerator.MinProxyCacheCount + 10); i++)
             {
@@ -93,7 +93,7 @@ namespace PM.Tests
         [Fact]
         public void OnCreateClassProxy_WhenGcCollectProxies_ShouldDeletePmFile()
         {
-            PmProxyGenerator proxyGenerator = new(50);
+            PmProxyGenerator proxyGenerator = new(proxyCacheCount: 50);
             var isDeleted = false;
             var fileBasedStreamMock = new Mock<FileBasedStream>();
             fileBasedStreamMock.Setup(x => x.Delete())

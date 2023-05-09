@@ -6,7 +6,6 @@
 
         public virtual void Delete()
         {
-            Dispose();
             File.Delete(FilePath);
         }
 

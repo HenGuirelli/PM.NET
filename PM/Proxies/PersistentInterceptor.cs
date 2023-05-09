@@ -14,6 +14,8 @@ namespace PM.Proxies
         private readonly Type _targetType;
         private readonly Dictionary<MethodInfo, PropertyInfo> _methodToPropCache = new();
 
+        public ulong PointerCount { get; set; }
+
         public string FilePointer { get; }
         public ulong? PmPointer { get; }
 

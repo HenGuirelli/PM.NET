@@ -1,5 +1,6 @@
 ﻿using Castle.DynamicProxy;
 using PM.CastleHelpers;
+using PM.Managers;
 using PM.Proxies;
 using System.Collections.Concurrent;
 
@@ -19,6 +20,8 @@ namespace PM
         public int ReuseCacheCount => _reuseCacheCount;
 
         private volatile int _totalProxyCreatedCount;
+        private readonly IDictionary<ulong, ulong> _pointers;
+
         public int TotalProxyCreatedCount => _totalProxyCreatedCount;
 
         private static readonly ProxyGenerator _generator = new();
@@ -27,9 +30,12 @@ namespace PM
         private readonly ConcurrentDictionary<Type, object> _creationProxyTaskLocks = new();
         private readonly StandardInterceptor _standardInterceptor = new();
 
-        public PmProxyGenerator(int proxyCacheCount = 500)
+        public PmProxyGenerator(
+            IDictionary<ulong, ulong> initialPointers = null, 
+            int proxyCacheCount = 500)
         {
             MinProxyCacheCount = proxyCacheCount;
+            _pointers = initialPointers;
         }
 
         public int GetCacheCount(Type type)
@@ -147,22 +153,25 @@ namespace PM
 
         ~CacheItem()
         {
+            try
+            {
+                var interceptor = CastleManager.GetInterceptor(Proxy);
+                
+                if (FileHandlerManager.CloseAndDiscard(interceptor!.PmMemoryMappedFile) &&
+                    interceptor!.PointerCount == 0)
+                {
+                    interceptor!.PmMemoryMappedFile.Delete();
+                }
+            }
+            catch (Exception ex)
+            {
+                // TODO: log error
+            }
+
             if (_pmProxyGenerator.GetCacheCount(_type) < _pmProxyGenerator.MinProxyCacheCount)
             {
                 GC.ReRegisterForFinalize(this);
                 _pmProxyGenerator.EnqueueCache(_type, this);
-            }
-            else
-            {
-                try
-                {
-                    //var interceptor = CastleManager.GetInterceptor(Proxy);
-                    //interceptor?.PmMemoryMappedFile.Delete();
-                }
-                catch(Exception ex)
-                {
-                    // TODO: log error
-                }
             }
         }
     }

@@ -63,9 +63,9 @@ namespace PM.Managers
             _fileHandlers.Add(fileBasedStream);
         }
 
-        public static void CloseAndDiscard(FileBasedStream fileBasedStream)
+        public static bool CloseAndDiscard(FileBasedStream fileBasedStream)
         {
-            CloseAndDiscard(fileBasedStream.FilePath);
+            return CloseAndDiscard(fileBasedStream.FilePath);
         }
 
         public static bool CloseAndDiscard(string filepath)

@@ -11,7 +11,7 @@ namespace PM
     public interface IPersistentFactory
     {
         private static readonly PointersToPersistentObjects _pointersToPersistentObjects = new();
-        private static readonly PmProxyGenerator _generator = new();
+        private static readonly PmProxyGenerator _generator;
         private static readonly IPmFolderCleaner _pmPointerCounter = new PmFolderCleaner();
         private static readonly ClassHashManager _classHashManager = ClassHashManager.Instance;
 
@@ -26,18 +26,22 @@ namespace PM
             {
                 while (true)
                 {
+                    Thread.Sleep(PmGlobalConfiguration.CollectFileInterval);
+
                     try
                     {
-                        _pointers =
-                            _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
+                        //_pointers =
+                        //    _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
                     }
                     catch
                     {
                     }
-
-                    Thread.Sleep(PmGlobalConfiguration.CollectFileInterval);
                 }
             });
+            //_pointers = _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
+            _generator = new(_pointers);
+
+            _thread.Start();
         }
 
         object CreateInternalObjectByObject(object obj, ulong pmPointer, int fileSizeBytes = 4096)
@@ -124,6 +128,11 @@ namespace PM
                 type,
                 filename,
                 pmPointer);
+
+            if (_pointers?.TryGetValue(pmPointer, out var pointerCount) ?? false)
+            {
+                interceptor.PointerCount = pointerCount;
+            }
 
 
             if (_recursionCount.Value == 0 &&

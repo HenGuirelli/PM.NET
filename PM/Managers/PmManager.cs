@@ -71,6 +71,20 @@ namespace PM.Managers
                         if (CastleManager.TryGetInterceptor(value, out var interceptor))
                         {
                             _pm.UpdateProperty(property, interceptor.PmPointer.Value);
+
+
+                            if (CastleManager.TryGetInterceptor(value, out var objInterceptor))
+                            {
+                                objInterceptor!.PointerCount++;
+                            }
+
+                            var oldObj = UserDefinedObjectsByProperty[property];
+                            if (CastleManager.TryGetInterceptor(oldObj, out var oldObjInterceptor))
+                            {
+                                oldObjInterceptor!.PointerCount--;
+                            }
+
+
                             UserDefinedObjectsByProperty[property] = value;
                             return;
                         }
@@ -135,8 +149,8 @@ namespace PM.Managers
                         {
                             if (typeof(IPmList).IsAssignableFrom(property.PropertyType))
                             {
-                                object[] parameterValues = new object[] 
-                                { 
+                                object[] parameterValues = new object[]
+                                {
                                     Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm"),
                                     pointer
                                 };

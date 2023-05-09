@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -23,6 +24,8 @@ namespace PM.Tests.Startup
         [Fact]
         public void OnCollect_ShouldDeleteUnusedFile()
         {
+            DeleteAllFiles(PmGlobalConfiguration.PmInternalsFolder);
+
             var filepath = CreateFilePath(nameof(OnCollect_ShouldNotDeleteAnyFile));
             var testingObject = new PmFolderCleaner();
 
@@ -35,12 +38,22 @@ namespace PM.Tests.Startup
             obj1.Reference = new ComplexClassWithSelfReference();
             obj1.Reference.Reference = new ComplexClassWithSelfReference();
 
-            obj1.Reference = obj2;
-            //obj1.Reference = obj2;
 
             obj1.Reference = null!;
 
+            Assert.Equal(
+                12,
+                Directory.GetFiles(PmGlobalConfiguration.PmInternalsFolder).Length);
+
+
+            Thread.Sleep(10000);
+            GC.Collect();
+
             var pointers = testingObject.Collect(PmGlobalConfiguration.PmInternalsFolder);
+
+            Assert.Equal(
+                8,
+                Directory.GetFiles(PmGlobalConfiguration.PmInternalsFolder).Length);
         }
 
         [Fact]
