@@ -34,6 +34,7 @@ namespace PM.Tests.Startup
                 .CreateRootObject<ComplexClassWithSelfReference>(filepath + "1");
             var obj2 = persistentFactory
                 .CreateRootObject<ComplexClassWithSelfReference>(filepath + "2");
+            obj2.Prop = int.MaxValue;
 
             obj1.Reference = new ComplexClassWithSelfReference();
             obj1.Reference.Reference = new ComplexClassWithSelfReference();
@@ -46,13 +47,12 @@ namespace PM.Tests.Startup
                 Directory.GetFiles(PmGlobalConfiguration.PmInternalsFolder).Length);
 
 
-            Thread.Sleep(10000);
             GC.Collect();
 
             var pointers = testingObject.Collect(PmGlobalConfiguration.PmInternalsFolder);
 
             Assert.Equal(
-                8,
+                9,
                 Directory.GetFiles(PmGlobalConfiguration.PmInternalsFolder).Length);
         }
 

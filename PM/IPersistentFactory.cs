@@ -11,7 +11,7 @@ namespace PM
     public interface IPersistentFactory
     {
         private static readonly PointersToPersistentObjects _pointersToPersistentObjects = new();
-        private static readonly PmProxyGenerator _generator;
+        private static readonly PmProxyGenerator _generator = new();
         private static readonly IPmFolderCleaner _pmPointerCounter = new PmFolderCleaner();
         private static readonly ClassHashManager _classHashManager = ClassHashManager.Instance;
 
@@ -30,15 +30,15 @@ namespace PM
 
                     try
                     {
-                        //_pointers =
-                        //    _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
+                        _pointers =
+                            _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
                     }
                     catch
                     {
                     }
                 }
             });
-            //_pointers = _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
+            _pointers = _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
             _generator = new(_pointers);
 
             _thread.Start();
