@@ -42,7 +42,7 @@ namespace PM.Managers
         static PointersToPersistentObjects()
         {
             var pm = FileHandlerManager.CreateHandler(FilePath, (sizeof(ulong) + sizeof(byte)) * 2);
-            _pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
+            _pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm.FileBasedStream);
 
             if (!File.Exists(FilePath) || GetFileCreatedSuccesfullyByte() != FileCreatedSuccesfully)
             {

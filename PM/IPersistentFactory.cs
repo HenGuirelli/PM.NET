@@ -115,23 +115,24 @@ namespace PM
                 FileHandlerManager.CreateInternalObjectHandler(filename);
 
             var pmContentGenerator = new PmContentGenerator(
-                new PmCSharpDefinedTypes(pm),
+                new PmCSharpDefinedTypes(pm.FileBasedStream),
                 type);
             var header = pmContentGenerator.CreateHeader(isRootObject);
 
             var objectPropertiesInfoMapper = new ObjectPropertiesInfoMapper(type, header);
             var interceptor = new PersistentInterceptor(
                 new PmManager(
-                    new PmUserDefinedTypes(pm, objectPropertiesInfoMapper),
+                    new PmUserDefinedTypes(pm.FileBasedStream, objectPropertiesInfoMapper),
                     objectPropertiesInfoMapper
                 ),
+                pm,
                 type,
                 filename,
                 pmPointer);
 
             if (_pointers?.TryGetValue(pmPointer, out var pointerCount) ?? false)
             {
-                interceptor.PointerCount = pointerCount;
+                interceptor.FilePointerCount = pointerCount;
             }
 
 
@@ -197,12 +198,11 @@ namespace PM
                 isLoad: true);
         }
 
-        private bool IsRootObj(string filepath)
+        private static bool IsRootObj(string filepath)
         {
             var pm = FileHandlerManager.CreateHandler(filepath);
-            var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
+            var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm.FileBasedStream);
             var isRoot = pmCSharpDefinedTypes.ReadBool(offset: sizeof(int));
-            FileHandlerManager.CloseAndDiscard(pm);
             return isRoot;
         }
     }

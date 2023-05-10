@@ -32,15 +32,15 @@ namespace PM.Transactions
             foreach (var file in files)
             {
                 var logFilePm = FileHandlerManager.CreateHandler(file);
-                var logFile = new LogFile(new PmCSharpDefinedTypes(logFilePm));
+                var logFile = new LogFile(new PmCSharpDefinedTypes(logFilePm.FileBasedStream));
                 if (logFile.IsCommitedLogFile)
                 {
                     var originalFilename = logFile.ReadOriginalFileName();
                     var pm = FileHandlerManager.CreateHandler(originalFilename);
                     foreach (var item in logFile.LogFileContent)
                     {
-                        pm.Seek(item.Item1, SeekOrigin.Begin);
-                        pm.Write(item.Item3);
+                        pm.FileBasedStream.Seek(item.Item1, SeekOrigin.Begin);
+                        pm.FileBasedStream.Write(item.Item3);
                     }
                 }
                 logFile.DeleteFile();
@@ -56,7 +56,7 @@ namespace PM.Transactions
 
             var filename = Path.Combine(PmGlobalConfiguration.PmTransactionFolder, _transactionID);
             var pm = FileHandlerManager.CreateHandler(filename);
-            LogFile = new LogFile(new PmCSharpDefinedTypes(pm));
+            LogFile = new LogFile(new PmCSharpDefinedTypes(pm.FileBasedStream));
 
 
             if (CastleManager.TryGetInterceptor(_obj, out var interceptor))
@@ -110,8 +110,8 @@ namespace PM.Transactions
             var pm = FileHandlerManager.CreateHandler(_interceptor.PmMemoryMappedFile.FilePath);
             foreach (var item in LogFile.LogFileContent)
             {
-                pm.Seek(item.Item1, SeekOrigin.Begin);
-                pm.Write(item.Item3);
+                pm.FileBasedStream.Seek(item.Item1, SeekOrigin.Begin);
+                pm.FileBasedStream.Write(item.Item3);
             }
         }
 

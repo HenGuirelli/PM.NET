@@ -300,7 +300,7 @@ namespace PM.Transactions
             var pm = FileHandlerManager.CreateInternalObjectHandler(
                     Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()),
                     size: sizeof(char) * (value.Length + 1));
-            var stringPmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
+            var stringPmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm.FileBasedStream);
             stringPmCSharpDefinedTypes.WriteString(value);
         }
 

@@ -1,13 +1,13 @@
 ﻿using PM.Core;
-using PM.Factories;
 using System.Collections.Concurrent;
 
 namespace PM.Managers
 {
-    internal class FileHandlerItem
+    public class FileHandlerItem
     {
         public FileBasedStream FileBasedStream { get; }
-        public int PointerCounter { get; set; } = 1;
+        public bool HasMemoryReference { get; set; } = true;
+        public ulong FilePointerReference { get; set; }
 
         public FileHandlerItem(FileBasedStream fileBasedStream)
         {
@@ -15,73 +15,83 @@ namespace PM.Managers
         }
     }
 
-    internal static class FileHandlerManager
+    public static class FileHandlerManager
     {
         public static readonly ConcurrentDictionary<string, FileHandlerItem> 
             _fileHandlersByFilename = new();
         public static readonly HashSet<FileBasedStream> _fileHandlers = new();
 
-        public static FileBasedStream CreateRootHandler(string filepath, int size = 4096)
+        public static FileHandlerItem CreateRootHandler(string filepath, int size = 4096)
         {
             return CreateHandler(filepath, "root", size);
         }
 
-        public static FileBasedStream CreateHashHandler(string filepath, int size = 4096)
+        public static FileHandlerItem CreateHashHandler(string filepath, int size = 4096)
         {
             return CreateHandler(filepath, "hash", size);
         }
 
-        public static FileBasedStream CreateInternalObjectHandler(string filepath, int size = 4096)
+        public static FileHandlerItem CreateInternalObjectHandler(string filepath, int size = 4096)
         {
             return CreateHandler(filepath, "pm", size);
         }
 
-        public static FileBasedStream CreateHandler(string filepath, string extension, int size = 4096)
+        public static FileHandlerItem CreateHandler(string filepath, string extension, int size = 4096)
         {
             var filename = filepath.EndsWith(extension) ? filepath : $"{filepath}.{extension}";
             return CreateHandler(filename, size);
         }
 
-        public static FileBasedStream CreateHandler(string filepath, int size = 4096)
+        public static FileHandlerItem CreateHandler(string filepath, int size = 4096)
         {
             if (_fileHandlersByFilename.TryGetValue(filepath, out var pmCached))
             {
-                pmCached.PointerCounter++;
-                return pmCached.FileBasedStream;
+                return pmCached;
             }
-            var pm = PmFactory.CreatePm(filepath, size);
-            RegisterNewHandler(pm);
-            return pm;
+            var pm = new PmStream(filepath, size);
+            return RegisterNewHandler(pm);
         }
 
-        private static void RegisterNewHandler(FileBasedStream fileBasedStream)
+        private static FileHandlerItem RegisterNewHandler(FileBasedStream fileBasedStream)
         {
+            var fileHandlerItem = new FileHandlerItem(fileBasedStream);
             _fileHandlersByFilename.TryAdd(
                 fileBasedStream.FilePath,
-                new FileHandlerItem(fileBasedStream));
+                fileHandlerItem);
 
             _fileHandlers.Add(fileBasedStream);
+
+            return fileHandlerItem;
         }
 
-        public static bool CloseAndDiscard(FileBasedStream fileBasedStream)
+        public static void ReleaseObjectFromMemory(FileBasedStream fileBasedStream)
         {
-            return CloseAndDiscard(fileBasedStream.FilePath);
+            if (_fileHandlersByFilename.TryGetValue(fileBasedStream.FilePath, out var fileHandlerItem))
+            {
+                fileHandlerItem.HasMemoryReference = false;
+            }
         }
 
-        public static bool CloseAndDiscard(string filepath)
+        public static bool CloseAndRemoveFile(FileBasedStream fileBasedStream)
+        {
+            return CloseAndRemoveFile(fileBasedStream.FilePath);
+        }
+
+        public static bool CloseAndRemoveFile(string filepath)
         {
             if (_fileHandlersByFilename.TryGetValue(filepath, out var fileHandlerItem))
             {
-                if (fileHandlerItem.PointerCounter == 1)
+                // Only reference from this class
+                if (!fileHandlerItem.HasMemoryReference && fileHandlerItem.FilePointerReference == 0)
                 {
                     if (_fileHandlersByFilename.TryRemove(filepath, out var removedHandler) &&
                         _fileHandlers.Remove(removedHandler.FileBasedStream))
                     {
-                        removedHandler.FileBasedStream.Dispose();
+                        removedHandler.FileBasedStream.Close();
+                        File.Delete(filepath);
                         return true;
                     }
                 }
-                fileHandlerItem.PointerCounter--;
                 return false;
             }
             return true;

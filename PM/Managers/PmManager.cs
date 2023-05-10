@@ -61,34 +61,13 @@ namespace PM.Managers
 
                         var pm = FileHandlerManager.CreateInternalObjectHandler(
                             Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()));
-                        var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
+                        var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm.FileBasedStream);
                         pmCSharpDefinedTypes.WriteString(valuestr);
 
                         _pm.UpdateProperty(property, pointer);
                     }
                     else
                     {
-                        if (CastleManager.TryGetInterceptor(value, out var interceptor))
-                        {
-                            _pm.UpdateProperty(property, interceptor.PmPointer.Value);
-
-
-                            if (CastleManager.TryGetInterceptor(value, out var objInterceptor))
-                            {
-                                objInterceptor!.PointerCount++;
-                            }
-
-                            var oldObj = UserDefinedObjectsByProperty[property];
-                            if (CastleManager.TryGetInterceptor(oldObj, out var oldObjInterceptor))
-                            {
-                                oldObjInterceptor!.PointerCount--;
-                            }
-
-
-                            UserDefinedObjectsByProperty[property] = value;
-                            return;
-                        }
-
                         if (value is ICustomPmClass customObj)
                         {
                             ulong pointer = customObj.PmPointer;
@@ -101,6 +80,8 @@ namespace PM.Managers
                             {
                                 ulong nullPtr = 0;
                                 _pm.UpdateProperty(property, nullPtr);
+
+                                SubtractReferencePointerFromOldObject(property);
                                 return;
                             }
 
@@ -110,11 +91,30 @@ namespace PM.Managers
                             var proxy = persistentFactory.CreateInternalObjectByObject(
                                 value,
                                 pointer);
-                            UserDefinedObjectsByProperty[property] = proxy;
                             _pm.UpdateProperty(property, pointer);
+
+                            if (CastleManager.TryGetInterceptor(proxy, out var objInterceptor))
+                            {
+                                objInterceptor!.FilePointerCount++;
+                            }
+
+
+                            SubtractReferencePointerFromOldObject(property);
+
+
+                            UserDefinedObjectsByProperty[property] = proxy;
                         }
                     }
                 }
+            }
+        }
+
+        private void SubtractReferencePointerFromOldObject(PropertyInfo property)
+        {
+            if (UserDefinedObjectsByProperty.TryGetValue(property, out var oldObj) &&
+                CastleManager.TryGetInterceptor(oldObj, out var oldObjInterceptor))
+            {
+                oldObjInterceptor!.FilePointerCount--;
             }
         }
 
@@ -252,7 +252,7 @@ namespace PM.Managers
                             var pm = FileHandlerManager.CreateInternalObjectHandler(
                                 Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()));
 
-                            var stringPmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
+                            var stringPmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm.FileBasedStream);
                             return stringPmCSharpDefinedTypes.ReadString();
                         }
                         catch (FileNotFoundException)

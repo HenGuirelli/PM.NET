@@ -9,28 +9,12 @@ namespace PM.Collections
     {
         readonly static PointersToPersistentObjects _pointsToPersistentObjects = new();
 
-        public static Stream CreateNewPm(string filepath, int length)
-        {
-            string pmfilename = filepath;
-            
-            if (PmTargets.FileBasedTarget.HasFlag(PmGlobalConfiguration.PmTarget))
-            {
-                var pointer = _pointsToPersistentObjects.GetNext().ToString();
-                PmFileSystem.CreateSymbolicLink(filepath, pointer);
-                pmfilename = pointer;
-            }
-
-            return FileHandlerManager.CreateHandler(
-                            pmfilename,
-                            sizeof(ulong) * (length + 1));
-        }
-
         internal static PmPrimitiveArray<ulong> CreateULongArray(
             string filename,
             int length)
         {
             var pm = FileHandlerManager.CreateHandler(filename, length * sizeof(ulong));
-            return PmPrimitiveArray.CreateNewArray<ulong>(pm);
+            return PmPrimitiveArray.CreateNewArray<ulong>(pm.FileBasedStream);
         }
     }
 }

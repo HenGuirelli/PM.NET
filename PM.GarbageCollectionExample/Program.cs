@@ -8,29 +8,30 @@ var filenames = new ConcurrentDictionary<int, string>();
 PmGlobalConfiguration.PmInternalsFolder = @"D:\temp\pm_tests";
 PmGlobalConfiguration.PmTarget = PM.Core.PmTargets.TraditionalMemoryMappedFile;
 
-//var creationThread = new Thread(() =>
-//{
+var creationThread = new Thread(() =>
+{
     IPersistentFactory factory = new PersistentFactory();
     var filename = $"file_root";
     var obj = factory.CreateRootObject<TestClass>(filename);
     Console.WriteLine($"Objeto root criado no arquivo {filename}, nunca será coletado");
     var count = 0;
-    //while (true)
-    //{
+    while (true)
+    {
         var innerObj = new TestClass();
         obj.MyProperty = innerObj;
         CastleManager.TryGetInterceptor(obj.MyProperty, out var interceptor);
-        Console.WriteLine($"Objeto interno criado no arquivo {interceptor!.FilePointer}");
+        Console.WriteLine($"Objeto interno para ser coletado: {interceptor!.FilePointer}");
         filenames[count] = interceptor!.FilePointer;
         count++;
 
-        Thread.Sleep(3000);
-
+        Thread.Sleep(1000);
         obj.MyProperty = null;
         Console.WriteLine("Objeto interno setado para null, esperando GC coletar");
+
+        Thread.Sleep(1000);
         GC.Collect();
-//    }
-//});
+    }
+});
 
 
 var gcThread = new Thread(() =>
@@ -50,8 +51,8 @@ var gcThread = new Thread(() =>
     }
 });
 
-//creationThread.Name = "creationThread";
-//creationThread.Start();
+creationThread.Name = "creationThread";
+creationThread.Start();
 
 gcThread.Name = "gcThread";
 gcThread.Start();

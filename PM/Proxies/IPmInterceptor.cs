@@ -1,5 +1,6 @@
 ﻿using Castle.DynamicProxy;
 using PM.Core;
+using PM.Managers;
 
 namespace PM.Proxies
 {
@@ -10,9 +11,10 @@ namespace PM.Proxies
         /// </summary>
         AsyncLocal<IInterceptorRedirect> TransactionInterceptorRedirect { get; }
         FileBasedStream PmMemoryMappedFile { get; }
+        FileHandlerItem FileHandlerItem { get; }
         IInterceptorRedirect OriginalFileInterceptorRedirect { get; }
 
-        ulong PointerCount { get; set; }
+        ulong FilePointerCount { get; set; }
         string FilePointer { get; }
         ulong? PmPointer { get; }
     }

@@ -31,7 +31,7 @@ namespace PM
         private readonly StandardInterceptor _standardInterceptor = new();
 
         public PmProxyGenerator(
-            IDictionary<ulong, ulong> initialPointers = null, 
+            IDictionary<ulong, ulong> initialPointers = null,
             int proxyCacheCount = 500)
         {
             MinProxyCacheCount = proxyCacheCount;
@@ -46,7 +46,7 @@ namespace PM
         internal void EnqueueCache(Type type, CacheItem cacheItem)
         {
             var queue = _proxyCaching.AddOrUpdate(type,
-                new ConcurrentQueue<CacheItem>(), 
+                new ConcurrentQueue<CacheItem>(),
                 (key, value) => value);
 
             queue.Enqueue(cacheItem);
@@ -156,12 +156,12 @@ namespace PM
             try
             {
                 var interceptor = CastleManager.GetInterceptor(Proxy);
-                
-                if (FileHandlerManager.CloseAndDiscard(interceptor!.PmMemoryMappedFile) &&
-                    interceptor!.PointerCount == 0 && 
-                    interceptor!.FilePointer.EndsWith(".pm"))
+
+                if (interceptor!.FilePointer.EndsWith(".pm") &&
+                    interceptor!.FilePointerCount == 0)
                 {
-                    interceptor!.PmMemoryMappedFile.Delete();
+                    FileHandlerManager.ReleaseObjectFromMemory(interceptor!.PmMemoryMappedFile);
+                    FileHandlerManager.CloseAndRemoveFile(interceptor!.PmMemoryMappedFile);
                 }
             }
             catch (Exception ex)

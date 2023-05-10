@@ -14,13 +14,19 @@ namespace PM.Proxies
         private readonly Type _targetType;
         private readonly Dictionary<MethodInfo, PropertyInfo> _methodToPropCache = new();
 
-        public ulong PointerCount { get; set; }
-
         public string FilePointer { get; }
         public ulong? PmPointer { get; }
 
+        public FileHandlerItem FileHandlerItem { get; }
+        public ulong FilePointerCount
+        { 
+            get => FileHandlerItem.FilePointerReference; 
+            set => FileHandlerItem.FilePointerReference = value; 
+        }
+
         public PersistentInterceptor(
             PmManager pmManager,
+            FileHandlerItem fileHandlerItem,
             Type targetType,
             string filePointer,
             ulong? pmPointer)
@@ -30,6 +36,7 @@ namespace PM.Proxies
             _targetType = targetType ?? throw new ArgumentNullException(nameof(targetType));
             FilePointer = filePointer ?? throw new ArgumentNullException(nameof(filePointer));
             PmPointer = pmPointer;
+            FileHandlerItem = fileHandlerItem;
         }
 
         public void Intercept(IInvocation invocation)

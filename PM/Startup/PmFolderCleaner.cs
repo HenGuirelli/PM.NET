@@ -50,10 +50,7 @@ namespace PM.Startup
             {
                 if (!_referenceTree.Contains(Path.GetFileNameWithoutExtension(pmFile)))
                 {
-                    if (FileHandlerManager.CloseAndDiscard(pmFile))
-                    {
-                        File.Delete(pmFile);
-                    }
+                    FileHandlerManager.CloseAndRemoveFile(pmFile);
                 }
             }
 
@@ -92,7 +89,7 @@ namespace PM.Startup
         void CreateTreeByNode(Node node)
         {
             var pm = FileHandlerManager.CreateHandler(node.Filepath);
-            var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
+            var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm.FileBasedStream);
             var classHash = pmCSharpDefinedTypes.ReadInt();
 
             if (_classesWithHash.TryGetValue(classHash, out var type))
