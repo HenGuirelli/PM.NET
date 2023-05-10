@@ -201,7 +201,9 @@ namespace PM
         {
             var pm = FileHandlerManager.CreateHandler(filepath);
             var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm);
-            return pmCSharpDefinedTypes.ReadBool(offset: sizeof(int));
+            var isRoot = pmCSharpDefinedTypes.ReadBool(offset: sizeof(int));
+            FileHandlerManager.CloseAndDiscard(pm);
+            return isRoot;
         }
     }
 }

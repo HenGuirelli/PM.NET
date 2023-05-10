@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Drawing;
-using System.IO.MemoryMappedFiles;
+﻿using System.IO.MemoryMappedFiles;
 
 namespace PM.Core
 {
