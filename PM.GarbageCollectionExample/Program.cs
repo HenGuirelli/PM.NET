@@ -11,7 +11,7 @@ PmGlobalConfiguration.PmTarget = PM.Core.PmTargets.TraditionalMemoryMappedFile;
 var creationThread = new Thread(() =>
 {
     IPersistentFactory factory = new PersistentFactory();
-    var filename = $"file_root";
+    var filename = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, "file_root");
     var obj = factory.CreateRootObject<TestClass>(filename);
     Console.WriteLine($"Objeto root criado no arquivo {filename}, nunca será coletado");
     var count = 0;

@@ -44,15 +44,24 @@ namespace PM
             _thread.Start();
         }
 
+        object CreateInternalObjectInList(object obj, ulong pmPointer, int fileSizeBytes = 4096)
+        {
+            return CreateInternalObjectByObject(obj, $"{pmPointer}.pmlist", pmPointer, fileSizeBytes);
+        }
+
         object CreateInternalObjectByObject(object obj, ulong pmPointer, int fileSizeBytes = 4096)
+        {
+            return CreateInternalObjectByObject(obj, $"{pmPointer}.pm", pmPointer, fileSizeBytes);
+        }
+
+        object CreateInternalObjectByObject(object obj, string pmFilename, ulong pmPointer, int fileSizeBytes = 4096)
         {
             if (obj is ICustomPmClass customObj)
             {
                 throw new ApplicationException($"object {obj} is a {nameof(ICustomPmClass)}");
             }
 
-            var pmFilename = $"{pmPointer}.pm";
-            pmFilename = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pmFilename);
+            var pmFilePath = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pmFilename);
             var objType = obj.GetType();
 
             if (obj is IProxyTargetAccessor innerInterceptor)
@@ -60,12 +69,13 @@ namespace PM
                 throw new ApplicationException($"object of type {objType} already has a proxy");
             }
 
-            var isRoot = IsRootObj(pmFilename);
+            var isRoot = IsRootObj(pmFilePath);
 
             var proxyObj = CreatePersistentProxy(
                 objType,
-                pmFilename,
+                pmFilePath,
                 isRootObject: isRoot,
+                isListObject: pmFilePath.EndsWith(".pmlist"),
                 pmPointer,
                 fileSizeBytes);
 
@@ -106,13 +116,22 @@ namespace PM
             Type type,
             string filename,
             bool isRootObject,
+            bool isListObject,
             ulong pmPointer,
             int fileSizeBytes = 4096,
             bool isLoad = false)
         {
-            var pm = isRootObject ?
-                FileHandlerManager.CreateRootHandler(filename) :
-                FileHandlerManager.CreateInternalObjectHandler(filename);
+            FileHandlerItem pm;
+            if (isListObject)
+            {
+                pm = FileHandlerManager.CreateListHandler(filename);
+            }
+            else
+            {
+                pm = isRootObject ?
+                    FileHandlerManager.CreateRootHandler(filename) :
+                    FileHandlerManager.CreateInternalObjectHandler(filename);
+            }
 
             var pmContentGenerator = new PmContentGenerator(
                 new PmCSharpDefinedTypes(pm.FileBasedStream),
@@ -171,6 +190,7 @@ namespace PM
             return CreatePersistentProxy(type,
                 pointerStr,
                 isRootObject: true,
+                isListObject: pointerStr.EndsWith(".pmlist"),
                 pointerULong,
                 fileSizeBytes);
         }
@@ -194,6 +214,7 @@ namespace PM
                 type,
                 filename,
                 isRoot,
+                isListObject: filename.EndsWith(".pmlist"),
                 pointer,
                 isLoad: true);
         }

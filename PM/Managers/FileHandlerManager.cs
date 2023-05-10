@@ -1,5 +1,6 @@
 ﻿using PM.Core;
 using System.Collections.Concurrent;
+using System.Drawing;
 
 namespace PM.Managers
 {
@@ -34,6 +35,11 @@ namespace PM.Managers
         public static FileHandlerItem CreateInternalObjectHandler(string filepath, int size = 4096)
         {
             return CreateHandler(filepath, "pm", size);
+        }
+
+        public static FileHandlerItem CreateListHandler(string filepath, int size = 4096)
+        {
+            return CreateHandler(filepath, "pmlist", size);
         }
 
         public static FileHandlerItem CreateHandler(string filepath, string extension, int size = 4096)

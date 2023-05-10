@@ -137,7 +137,7 @@ namespace PM.Collections
             // Increment because first element is the Size
             index++;
             var pointer = _pointersToPersistentObjects.GetNext();
-            var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer);
+            var obj = _persistentFactory.CreateInternalObjectInList(item, pointer);
 
             _items[index] = pointer;
             _cache[pointer] = obj;
@@ -167,7 +167,7 @@ namespace PM.Collections
 
             if (_cache.TryGetValue(pointer, out var result)) return (T)result;
 
-            var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm");
+            var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pmlist");
             var obj = (T)_persistentFactory.LoadFromFile(typeof(T), pmFile, pointer);
             _cache[pointer] = obj;
             return obj;
@@ -183,7 +183,7 @@ namespace PM.Collections
             }
 
             var pointer = _pointersToPersistentObjects.GetNext();
-            var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer);
+            var obj = _persistentFactory.CreateInternalObjectInList(item, pointer);
 
             _items[ListCount++] = pointer;
             _cache[pointer] = obj;
@@ -272,7 +272,7 @@ namespace PM.Collections
             }
 
             var pointer = _pointersToPersistentObjects.GetNext();
-            var obj = _persistentFactory.CreateInternalObjectByObject(item, pointer);
+            var obj = _persistentFactory.CreateInternalObjectInList(item, pointer);
 
             _items[ListCount++] = pointer;
             _items.Flush();
