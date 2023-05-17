@@ -100,6 +100,16 @@ namespace PM.Managers
                 }
                 return false;
             }
+            else
+            {
+                try
+                {
+                    File.Delete(filepath);
+                }
+                catch
+                {
+                }
+            }
             return true;
         }
     }
