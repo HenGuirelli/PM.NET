@@ -5,6 +5,7 @@ using PM.Managers;
 using PM.PmContent;
 using PM.Proxies;
 using PM.Startup;
+using System.Reflection;
 
 namespace PM
 {
@@ -46,7 +47,11 @@ namespace PM
 
         object CreateInternalObjectInList(object obj, ulong pmPointer, int fileSizeBytes = 4096)
         {
-            return CreateInternalObjectByObject(obj, $"{pmPointer}.pmlistitem", pmPointer, fileSizeBytes);
+            return CreateInternalObjectByObject(
+            obj,
+                PmExtensions.AddExtension(pmPointer.ToString(), PmExtensions.PmListItem),
+                pmPointer,
+                fileSizeBytes);
         }
 
         object CreateInternalObjectByObject(object obj, ulong pmPointer, int fileSizeBytes = 4096)
@@ -75,7 +80,7 @@ namespace PM
                 objType,
                 pmFilePath,
                 isRootObject: isRoot,
-                isListObject: pmFilePath.EndsWith(".pmlistitem"),
+                isListObject: pmFilePath.EndsWith(PmExtensions.PmListItem),
                 pmPointer,
                 fileSizeBytes);
 
@@ -190,7 +195,7 @@ namespace PM
             return CreatePersistentProxy(type,
                 pointerStr,
                 isRootObject: true,
-                isListObject: pointerStr.EndsWith(".pmlistitem"),
+                isListObject: pointerStr.EndsWith(PmExtensions.PmListItem),
                 pointerULong,
                 fileSizeBytes);
         }
@@ -214,7 +219,7 @@ namespace PM
                 type,
                 filename,
                 isRoot,
-                isListObject: filename.EndsWith(".pmlistitem"),
+                isListObject: filename.EndsWith(PmExtensions.PmListItem),
                 pointer,
                 isLoad: true);
         }

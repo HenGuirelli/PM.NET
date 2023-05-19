@@ -1,6 +1,7 @@
 ﻿using PM.Core;
 using System.Collections.Concurrent;
 using System.Drawing;
+using System.Reflection;
 
 namespace PM.Managers
 {
@@ -24,28 +25,27 @@ namespace PM.Managers
 
         public static FileHandlerItem CreateRootHandler(string filepath, int size = 4096)
         {
-            return CreateHandler(filepath, "root", size);
+            return CreateHandler(filepath, ".root", size);
         }
 
         public static FileHandlerItem CreateHashHandler(string filepath, int size = 4096)
         {
-            return CreateHandler(filepath, "hash", size);
+            return CreateHandler(filepath, ".hash", size);
         }
 
         public static FileHandlerItem CreateInternalObjectHandler(string filepath, int size = 4096)
         {
-            return CreateHandler(filepath, "pm", size);
+            return CreateHandler(filepath, ".pm", size);
         }
 
         public static FileHandlerItem CreateListHandler(string filepath, int size = 4096)
         {
-            return CreateHandler(filepath, "pmlistitem", size);
+            return CreateHandler(filepath, PmExtensions.PmListItem, size);
         }
 
         public static FileHandlerItem CreateHandler(string filepath, string extension, int size = 4096)
         {
-            var filename = filepath.EndsWith(extension) ? filepath : $"{filepath}.{extension}";
-            return CreateHandler(filename, size);
+            return CreateHandler(PmExtensions.AddExtension(filepath, extension), size);
         }
 
         public static FileHandlerItem CreateHandler(string filepath, int size = 4096)

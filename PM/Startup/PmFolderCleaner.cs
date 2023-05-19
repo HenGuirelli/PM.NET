@@ -30,7 +30,7 @@ namespace PM.Startup
                         it.EndsWith(".root")   || 
                         it.EndsWith(".pm")     ||
                         it.EndsWith(".pmlist") ||
-                        it.EndsWith(".pmlistitem")
+                        it.EndsWith(PmExtensions.PmListItem)
                 )
                 .Except(internalsFilenames);
             var listFiles = new List<string>();
@@ -43,7 +43,7 @@ namespace PM.Startup
                 if (item.EndsWith(".root")) roots.Add(item);
                 else if (item.EndsWith(".pm")) pmFiles.Add(item);
                 else if (item.EndsWith(".pmlist")) listFiles.Add(item);
-                else if (item.EndsWith(".pmlistitem")) listItemFiles.Add(item);
+                else if (item.EndsWith(PmExtensions.PmListItem)) listItemFiles.Add(item);
             }
 
             // 3. Create reference tree

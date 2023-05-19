@@ -140,7 +140,7 @@ namespace PM.Collections
             var pointer = _pointersToPersistentObjects.GetNext().ToString();
             string targetFilename = PmFileSystem.CreateSymbolicLinkInInternalsFolder(
                 symbolicLink,
-                pointer + ".root");
+                pointer + ".pmlist");
             return CollectionsPmFactory.CreateULongArray(targetFilename, capacity + 1);
         }
 
@@ -189,7 +189,8 @@ namespace PM.Collections
             if (_cache.TryGetValue(pointer, out var result)) return (T)result;
 
             var pmFile = Path.Combine(
-                PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pmlistitem");
+                PmGlobalConfiguration.PmInternalsFolder,
+                PmExtensions.AddExtension(pointer.ToString(), PmExtensions.PmListItem));
             var obj = (T)_persistentFactory.LoadFromFile(typeof(T), pmFile, pointer);
             _cache[pointer] = obj;
             return obj;
