@@ -56,7 +56,11 @@ namespace PM
 
         object CreateInternalObjectByObject(object obj, ulong pmPointer, int fileSizeBytes = 4096)
         {
-            return CreateInternalObjectByObject(obj, $"{pmPointer}.pm", pmPointer, fileSizeBytes);
+            return CreateInternalObjectByObject(
+                obj,
+                PmExtensions.AddExtension(pmPointer.ToString(), PmExtensions.PmInternalFile),
+                pmPointer,
+                fileSizeBytes);
         }
 
         object CreateInternalObjectByObject(object obj, string pmFilename, ulong pmPointer, int fileSizeBytes = 4096)
@@ -180,7 +184,9 @@ namespace PM
             {
                 pointerULong = _pointersToPersistentObjects.GetNext();
                 pointerStr = pointerULong.ToString();
-                pointerStr = PmFileSystem.CreateSymbolicLinkInInternalsFolder(pmSymbolicLink, pointerStr + ".root");
+                pointerStr = PmFileSystem.CreateSymbolicLinkInInternalsFolder(
+                    pmSymbolicLink,
+                    PmExtensions.AddExtension(pointerStr, PmExtensions.PmRootFile));
             }
             else if (PmFileSystem.FileIsSymbolicLink(pmSymbolicLink))
             {

@@ -25,7 +25,7 @@ namespace PM.Managers
 
         public static FileHandlerItem CreateRootHandler(string filepath, int size = 4096)
         {
-            return CreateHandler(filepath, ".root", size);
+            return CreateHandler(filepath, PmExtensions.PmRootFile, size);
         }
 
         public static FileHandlerItem CreateHashHandler(string filepath, int size = 4096)
@@ -35,7 +35,7 @@ namespace PM.Managers
 
         public static FileHandlerItem CreateInternalObjectHandler(string filepath, int size = 4096)
         {
-            return CreateHandler(filepath, ".pm", size);
+            return CreateHandler(filepath, PmExtensions.PmInternalFile, size);
         }
 
         public static FileHandlerItem CreateListHandler(string filepath, int size = 4096)

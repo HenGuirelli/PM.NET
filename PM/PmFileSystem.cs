@@ -12,8 +12,8 @@ namespace PM
             return ulong.Parse(
                         path.Split(Path.DirectorySeparatorChar)
                         .Last()
-                        .Replace(".pm", "")
-                        .Replace(".root", "")
+                        .Replace(PmExtensions.PmInternalFile, "")
+                        .Replace(PmExtensions.PmRootFile, "")
                     );
         }
 

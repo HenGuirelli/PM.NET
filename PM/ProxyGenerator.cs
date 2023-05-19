@@ -157,8 +157,8 @@ namespace PM
             {
                 var interceptor = CastleManager.GetInterceptor(Proxy);
 
-                if (interceptor!.FilePointer.EndsWith(".pm") &&
-                    interceptor!.FilePointerCount == 0)
+                if (interceptor!.FilePointerCount == 0 &&
+                    interceptor!.FilePointer.EndsWith(PmExtensions.PmInternalFile))
                 {
                     FileHandlerManager.ReleaseObjectFromMemory(interceptor!.PmMemoryMappedFile);
                     FileHandlerManager.CloseAndRemoveFile(interceptor!.PmMemoryMappedFile);

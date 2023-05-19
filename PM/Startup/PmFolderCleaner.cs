@@ -27,9 +27,9 @@ namespace PM.Startup
             var allPmFiles = Directory
                 .GetFiles(PmGlobalConfiguration.PmInternalsFolder)
                 .Where(it => 
-                        it.EndsWith(".root")   || 
-                        it.EndsWith(".pm")     ||
-                        it.EndsWith(".pmlist") ||
+                        it.EndsWith(PmExtensions.PmRootFile)     || 
+                        it.EndsWith(PmExtensions.PmInternalFile) ||
+                        it.EndsWith(PmExtensions.PmList)         ||
                         it.EndsWith(PmExtensions.PmListItem)
                 )
                 .Except(internalsFilenames);
@@ -40,9 +40,9 @@ namespace PM.Startup
 
             foreach(var item in allPmFiles)
             {
-                if (item.EndsWith(".root")) roots.Add(item);
-                else if (item.EndsWith(".pm")) pmFiles.Add(item);
-                else if (item.EndsWith(".pmlist")) listFiles.Add(item);
+                if (item.EndsWith(PmExtensions.PmRootFile)) roots.Add(item);
+                else if (item.EndsWith(PmExtensions.PmInternalFile)) pmFiles.Add(item);
+                else if (item.EndsWith(PmExtensions.PmList)) listFiles.Add(item);
                 else if (item.EndsWith(PmExtensions.PmListItem)) listItemFiles.Add(item);
             }
 
@@ -153,7 +153,9 @@ namespace PM.Startup
                         var child = new Node
                         {
                             Filename = pointer.ToString(),
-                            Filepath = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString()) + ".pm"
+                            Filepath = Path.Combine(
+                                PmGlobalConfiguration.PmInternalsFolder,
+                                PmExtensions.AddExtension(pointer.ToString(), PmExtensions.PmInternalFile))
                         };
                         node.AddChild(child);
                         AddPointerCount(pointer);

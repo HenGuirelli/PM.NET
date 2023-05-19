@@ -151,7 +151,9 @@ namespace PM.Managers
                             {
                                 object[] parameterValues = new object[]
                                 {
-                                    Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pm"),
+                                    Path.Combine(
+                                        PmGlobalConfiguration.PmInternalsFolder,
+                                        PmExtensions.AddExtension(pointer.ToString(), PmExtensions.PmInternalFile)),
                                     pointer
                                 };
                                 object obj = Activator.CreateInstance(

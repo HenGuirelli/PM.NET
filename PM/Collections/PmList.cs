@@ -5,6 +5,7 @@ using PM.Core;
 using PM.Managers;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Reflection;
 
 namespace PM.Collections
 {
@@ -98,7 +99,7 @@ namespace PM.Collections
             PmPointer = _pointersToPersistentObjects.GetNext();
             Filepath = Path.Combine(
                 PmGlobalConfiguration.PmInternalsFolder,
-                PmPointer.ToString() + ".pmlist");
+                PmExtensions.AddExtension(PmPointer.ToString(), PmExtensions.PmList));
 
             _items = CreateInternalArrayWithDirectPm(Filepath, initialCapacity);
 
@@ -140,7 +141,7 @@ namespace PM.Collections
             var pointer = _pointersToPersistentObjects.GetNext().ToString();
             string targetFilename = PmFileSystem.CreateSymbolicLinkInInternalsFolder(
                 symbolicLink,
-                pointer + ".pmlist");
+                PmExtensions.AddExtension(pointer, PmExtensions.PmList));
             return CollectionsPmFactory.CreateULongArray(targetFilename, capacity + 1);
         }
 

@@ -32,7 +32,7 @@ namespace PM.Managers
     {
         private static readonly object _lock = new();
         private static PmCSharpDefinedTypes _pmCSharpDefinedTypes;
-        public const string PmFileName = $"__{nameof(PointersToPersistentObjects)}.pm";
+        public const string PmFileName = $"__{nameof(PointersToPersistentObjects)}{PmExtensions.PmInternalFile}";
         public static string FilePath => Path.Combine(PmGlobalConfiguration.PmInternalsFolder, PmFileName);
 
         public const byte FirstPointerAvailable = 0;
