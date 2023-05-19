@@ -46,7 +46,7 @@ namespace PM
 
         object CreateInternalObjectInList(object obj, ulong pmPointer, int fileSizeBytes = 4096)
         {
-            return CreateInternalObjectByObject(obj, $"{pmPointer}.pmlist", pmPointer, fileSizeBytes);
+            return CreateInternalObjectByObject(obj, $"{pmPointer}.pmlistitem", pmPointer, fileSizeBytes);
         }
 
         object CreateInternalObjectByObject(object obj, ulong pmPointer, int fileSizeBytes = 4096)
@@ -75,7 +75,7 @@ namespace PM
                 objType,
                 pmFilePath,
                 isRootObject: isRoot,
-                isListObject: pmFilePath.EndsWith(".pmlist"),
+                isListObject: pmFilePath.EndsWith(".pmlistitem"),
                 pmPointer,
                 fileSizeBytes);
 
@@ -190,7 +190,7 @@ namespace PM
             return CreatePersistentProxy(type,
                 pointerStr,
                 isRootObject: true,
-                isListObject: pointerStr.EndsWith(".pmlist"),
+                isListObject: pointerStr.EndsWith(".pmlistitem"),
                 pointerULong,
                 fileSizeBytes);
         }
@@ -214,7 +214,7 @@ namespace PM
                 type,
                 filename,
                 isRoot,
-                isListObject: filename.EndsWith(".pmlist"),
+                isListObject: filename.EndsWith(".pmlistitem"),
                 pointer,
                 isLoad: true);
         }

@@ -1,4 +1,4 @@
 ﻿namespace PM.Collections
 {
-    public interface IPmList { }
+    public interface IPmList : IDisposable { }
 }

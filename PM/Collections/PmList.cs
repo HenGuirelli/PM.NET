@@ -1,4 +1,5 @@
-﻿using PM.CastleHelpers;
+﻿using Castle.DynamicProxy;
+using PM.CastleHelpers;
 using PM.Configs;
 using PM.Core;
 using PM.Managers;
@@ -65,29 +66,56 @@ namespace PM.Collections
 
         public const int DefaultCapacity = 4;
 
+        public bool IsRoot { get; }
+
+        /// <summary>
+        /// Use PmList as Root object.
+        /// The file created by this object will never be removed.
+        /// </summary>
+        /// <param name="symbolicLink">symbolic link used to point to pm file</param>
+        /// <param name="initialCapacity">List initial capactiy</param>
         public PmList(string symbolicLink, int initialCapacity = DefaultCapacity)
         {
             if (initialCapacity <= 0) throw new ArgumentOutOfRangeException(nameof(initialCapacity));
             Filepath = symbolicLink;
-            _items = CreateOrLoadInternalArray(symbolicLink, initialCapacity);
+            _items = CreateOrLoadInternalArrayWithSymbolicLink(symbolicLink, initialCapacity);
             _listCount = (int)_items[0];
 
             // Increment 1 because the fist element always exists (array size)
             if (_listCount == 0) _listCount++;
             PmPointer = PmFileSystem.GetPointerFromSymbolicLink(symbolicLink);
+
+            IsRoot = true;
         }
 
-        internal PmList(string pmFile, ulong pointer)
+        /// <summary>
+        /// Use PmList like a common object.
+        /// When the reference counter reaches zero the PM file will be permanently removed.
+        /// </summary>
+        /// <param name="initialCapacity">List initial capactiy</param>
+        public PmList(int initialCapacity = DefaultCapacity)
         {
-            Filepath = pmFile;
-            _items = InternalLoadPmFileList(pmFile);
-            _listCount = (int)_items[0];
+            PmPointer = _pointersToPersistentObjects.GetNext();
+            Filepath = Path.Combine(
+                PmGlobalConfiguration.PmInternalsFolder,
+                PmPointer.ToString() + ".pmlist");
+
+            _items = CreateInternalArrayWithDirectPm(Filepath, initialCapacity);
+
             // Increment 1 because the fist element always exists(array size)
-            if (_listCount == 0) _listCount++;
-            PmPointer = pointer;
+            _listCount++;
         }
 
-        private PmPrimitiveArray<ulong> CreateOrLoadInternalArray(string symbolicLink, int capacity)
+        private PmPrimitiveArray<ulong> CreateInternalArrayWithDirectPm(
+            string pmFilePath,
+            int capacity)
+        {
+            return CollectionsPmFactory.CreateULongArray(pmFilePath, capacity + 1);
+        }
+
+        private PmPrimitiveArray<ulong> CreateOrLoadInternalArrayWithSymbolicLink(
+            string symbolicLink,
+            int capacity)
         {
             if (!PmFileSystem.FileExists(symbolicLink))
             {
@@ -97,13 +125,6 @@ namespace PM.Collections
             {
                 return LoadPmFileList(symbolicLink);
             }
-        }
-
-        private PmPrimitiveArray<ulong> InternalLoadPmFileList(string targetFilename)
-        {
-            var size = PmFileSystem.GetFileSize(targetFilename);
-            var capacity = (int)(size / sizeof(ulong));
-            return CollectionsPmFactory.CreateULongArray(targetFilename, capacity);
         }
 
         private PmPrimitiveArray<ulong> LoadPmFileList(string symbolicLink)
@@ -167,7 +188,8 @@ namespace PM.Collections
 
             if (_cache.TryGetValue(pointer, out var result)) return (T)result;
 
-            var pmFile = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pmlist");
+            var pmFile = Path.Combine(
+                PmGlobalConfiguration.PmInternalsFolder, pointer.ToString() + ".pmlistitem");
             var obj = (T)_persistentFactory.LoadFromFile(typeof(T), pmFile, pointer);
             _cache[pointer] = obj;
             return obj;
@@ -318,6 +340,27 @@ namespace PM.Collections
         public IEnumerator<T> GetEnumerator()
         {
             return new Enumerator<T>(this);
+        }
+
+        private bool _disposed = false;
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                _disposed = true;
+                _items.Dispose();
+
+                if (!IsRoot)
+                {
+                    FileHandlerManager.ReleaseObjectFromMemory(Filepath);
+                    FileHandlerManager.CloseAndRemoveFile(Filepath);
+                }
+            }
+        }
+
+        ~PmList()
+        {
+            Dispose();
         }
     }
 

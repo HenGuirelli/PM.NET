@@ -1,6 +1,6 @@
 ﻿namespace PM.Core
 {
-    public abstract class PmPrimitiveArray<T>
+    public abstract class PmPrimitiveArray<T> : IDisposable
         where T : struct
     {
         protected readonly PmCSharpDefinedTypes _cSharpDefinedPm;
@@ -46,6 +46,11 @@
         public void Flush()
         {
             _cSharpDefinedPm.Flush();
+        }
+
+        public void Dispose()
+        {
+            _cSharpDefinedPm.Dispose();
         }
     }
 

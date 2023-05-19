@@ -1,9 +1,11 @@
 ﻿using PM.Collections;
 using PM.Configs;
+using PM.Startup;
 using PM.Tests.Common;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Xunit;
 
 namespace PM.Tests.Collections
@@ -189,6 +191,30 @@ namespace PM.Tests.Collections
             Assert.Equal(3, list.Count);
             Assert.True(list.Remove(item));
             Assert.Equal(2, list.Count);
+        }
+
+
+        [Fact]
+        public void OnInternalPmList_ShouldCreateFileAndRemove()
+        {
+            var filepath = "";
+            using (var pmlist = new PmList<Foo>())
+            {
+                pmlist.AddPersistent(new Foo
+                {
+                    Bar = int.MaxValue,
+                });
+
+                filepath = pmlist.Filepath;
+                Assert.True(File.Exists(filepath));
+            }
+
+            GC.Collect();
+            Thread.Sleep(5000);
+            var a = new PmFolderCleaner();
+            a.Collect(PmGlobalConfiguration.PmInternalsFolder);
+
+            Assert.False(File.Exists(filepath));
         }
     }
 }

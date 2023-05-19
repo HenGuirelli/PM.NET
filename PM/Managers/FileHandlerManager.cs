@@ -39,7 +39,7 @@ namespace PM.Managers
 
         public static FileHandlerItem CreateListHandler(string filepath, int size = 4096)
         {
-            return CreateHandler(filepath, "pmlist", size);
+            return CreateHandler(filepath, "pmlistitem", size);
         }
 
         public static FileHandlerItem CreateHandler(string filepath, string extension, int size = 4096)
@@ -72,7 +72,12 @@ namespace PM.Managers
 
         public static void ReleaseObjectFromMemory(FileBasedStream fileBasedStream)
         {
-            if (_fileHandlersByFilename.TryGetValue(fileBasedStream.FilePath, out var fileHandlerItem))
+            ReleaseObjectFromMemory(fileBasedStream.FilePath);
+        }
+
+        public static void ReleaseObjectFromMemory(string filepath)
+        {
+            if (_fileHandlersByFilename.TryGetValue(filepath, out var fileHandlerItem))
             {
                 fileHandlerItem.HasMemoryReference = false;
             }

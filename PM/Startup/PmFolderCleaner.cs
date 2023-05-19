@@ -1,6 +1,5 @@
 ﻿using PM.Configs;
 using PM.Core;
-using PM.Factories;
 using PM.Managers;
 using PM.PmContent;
 using System.Reflection;
@@ -17,7 +16,6 @@ namespace PM.Startup
         {
             // 1. Get All Classes
             LoadClassesAndHash();
-            //LoadAllClasses();
 
             // 2. Identify all root objects
             var internalsFilenames = new HashSet<string>
@@ -26,12 +24,27 @@ namespace PM.Startup
                     PmGlobalConfiguration.PmInternalsFolder,
                     PointersToPersistentObjects.PmFileName)
             };
-            var pmFiles = Directory
+            var allPmFiles = Directory
                 .GetFiles(PmGlobalConfiguration.PmInternalsFolder)
-                .Where(it => it.EndsWith(".root") || it.EndsWith(".pm"))
+                .Where(it => 
+                        it.EndsWith(".root")   || 
+                        it.EndsWith(".pm")     ||
+                        it.EndsWith(".pmlist") ||
+                        it.EndsWith(".pmlistitem")
+                )
                 .Except(internalsFilenames);
+            var listFiles = new List<string>();
+            var listItemFiles = new List<string>();
+            var roots = new List<string>();
+            var pmFiles = new List<string>();
 
-            var roots = pmFiles.Where(it => it.EndsWith(".root"));
+            foreach(var item in allPmFiles)
+            {
+                if (item.EndsWith(".root")) roots.Add(item);
+                else if (item.EndsWith(".pm")) pmFiles.Add(item);
+                else if (item.EndsWith(".pmlist")) listFiles.Add(item);
+                else if (item.EndsWith(".pmlistitem")) listItemFiles.Add(item);
+            }
 
             // 3. Create reference tree
             foreach (var rootFile in roots)
@@ -54,16 +67,45 @@ namespace PM.Startup
                 }
             }
 
+            // 5. Clear .pmlistitem files
+            var allPmListItemReferences = new HashSet<ulong>();
+            foreach (var pmlist in listFiles)
+            {
+                var referenceFiles = GetReferenceFilesFromList(pmlist);
+                foreach(var referenceFile in referenceFiles)
+                {
+                    allPmListItemReferences.Add(referenceFile);
+                }
+            }
+
+            foreach (var listItemFile in listItemFiles)
+            {
+                var parsedListItemFile = ulong.Parse(Path.GetFileNameWithoutExtension(listItemFile));
+                if (!allPmListItemReferences.Contains(parsedListItemFile))
+                {
+                    FileHandlerManager.ReleaseObjectFromMemory(listItemFile);
+                    FileHandlerManager.CloseAndRemoveFile(listItemFile);
+                }
+            }
+
             return _pointerCount;
         }
 
-        private void LoadAllClasses()
+        private List<ulong> GetReferenceFilesFromList(string pmlist)
         {
-            var classTypes = GetAllLoadedClasses();
-            foreach (var classType in classTypes)
+            var pm = FileHandlerManager.CreateHandler(pmlist);
+            var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm.FileBasedStream);
+
+            var references = new List<ulong>();
+            var offset = 0;
+            ulong pointer = pmCSharpDefinedTypes.ReadULong(offset);
+            while (pointer != 0)
             {
-                _classesWithHash[ClassHashCodeCalculator.GetHashCode(classType)] = classType;
+                offset += sizeof(ulong);
+                pointer = pmCSharpDefinedTypes.ReadULong(offset);
+                references.Add(pointer);
             }
+            return references;
         }
 
         private void LoadClassesAndHash()
