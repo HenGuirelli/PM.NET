@@ -30,7 +30,7 @@ namespace PM.Managers
 
         public static FileHandlerItem CreateHashHandler(string filepath, int size = 4096)
         {
-            return CreateHandler(filepath, ".hash", size);
+            return CreateHandler(filepath, PmExtensions.PmHash, size);
         }
 
         public static FileHandlerItem CreateInternalObjectHandler(string filepath, int size = 4096)
@@ -52,6 +52,11 @@ namespace PM.Managers
         {
             if (_fileHandlersByFilename.TryGetValue(filepath, out var pmCached))
             {
+                if (pmCached.FileBasedStream.IsDisposed)
+                {
+                    ReleaseObjectFromMemory(pmCached.FileBasedStream);
+                    return CreateHandler(filepath, size);
+                }
                 return pmCached;
             }
             var pm = new PmStream(filepath, size);

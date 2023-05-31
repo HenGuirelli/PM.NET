@@ -210,7 +210,7 @@ namespace PM.Tests.Collections
             }
 
             GC.Collect();
-            Thread.Sleep(5000);
+            Thread.Sleep(500);
             var a = new PmFolderCleaner();
             a.Collect(PmGlobalConfiguration.PmInternalsFolder);
 

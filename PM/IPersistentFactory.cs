@@ -96,7 +96,10 @@ namespace PM
                     propType == typeof(string))
                 {
                     var val = prop.GetValue(obj);
-                    prop.SetValue(proxyObj, val);
+                    if (prop.CanWrite)
+                    {
+                        prop.SetValue(proxyObj, val);
+                    }
                 }
                 else
                 {

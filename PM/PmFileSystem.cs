@@ -9,12 +9,7 @@ namespace PM
 
         public static ulong ParseAbsoluteStrPathToULongPointer(string path)
         {
-            return ulong.Parse(
-                        path.Split(Path.DirectorySeparatorChar)
-                        .Last()
-                        .Replace(PmExtensions.PmInternalFile, "")
-                        .Replace(PmExtensions.PmRootFile, "")
-                    );
+            return ulong.Parse(Path.GetFileNameWithoutExtension(path));
         }
 
         public static ulong GetPointerFromSymbolicLink(string symlink)

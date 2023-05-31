@@ -68,6 +68,7 @@ namespace PM
         {
             _pm.Close();
             _pm.Dispose();
+            IsDisposed = true;
         }
     }
 }

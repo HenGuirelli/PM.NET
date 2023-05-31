@@ -126,6 +126,7 @@ namespace PM.Core
         {
             base.Dispose(disposing);
             Close();
+            IsDisposed = true;
         }
 
         public override void Resize(int size)
