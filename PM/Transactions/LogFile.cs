@@ -97,7 +97,7 @@ namespace PM.Transactions
 
         internal void DeleteFile()
         {
-            _pmCSharpDefinedTypes.Delete();
+            FileHandlerManager.CloseAndRemoveFile(_pmCSharpDefinedTypes.FilePath);
         }
 
         public void WriteInt(int offset, int value)

@@ -1,5 +1,12 @@
-﻿namespace PM.Transactions.Tests
+﻿using PM.Collections;
+
+namespace PM.Transactions.Tests
 {
+    public class InnerDomainObject
+    {
+        public virtual int PropInt { get; set; }
+    }
+
     public class DomainObject
     {
         public virtual string? PropStr { get; set; }
@@ -16,5 +23,7 @@
         public virtual decimal PropDecimal { get; set; }
         public virtual char PropChar { get; set; }
         public virtual bool PropBool { get; set; }
+
+        public PmList<InnerDomainObject> PmList { get; set; }
     }
 }

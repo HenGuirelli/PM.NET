@@ -36,6 +36,8 @@ namespace PM.Transactions.Tests
                 obj.PropULong = ulong.MinValue;
                 obj.PropUShort = ushort.MinValue;
                 obj.PropStr = "Hello Transaction!";
+                obj.PmList = new Collections.PmList<InnerDomainObject>();
+                obj.PmList.AddPersistent(new InnerDomainObject { PropInt = 10 });
             });
 
             Assert.True(obj.PropBool);
@@ -51,13 +53,15 @@ namespace PM.Transactions.Tests
             Assert.Equal(ulong.MinValue, obj.PropULong);
             Assert.Equal(ushort.MinValue, obj.PropUShort);
             Assert.Equal("Hello Transaction!", obj.PropStr);
+            Assert.Equal(1, obj.PmList.Count);
         }
 
         [Fact]
         public void OnRunTransaction_ShouldValuesInnerTransactionOnlyVisibleInsideTransction()
         {
             IPersistentFactory factory = new PersistentFactory();
-            var obj = factory.CreateRootObject<DomainObject>(CreateFilePath(nameof(OnRunTransaction_ShouldValuesInnerTransactionOnlyVisibleInsideTransction)));
+            var obj = factory.CreateRootObject<DomainObject>(
+                CreateFilePath(nameof(OnRunTransaction_ShouldValuesInnerTransactionOnlyVisibleInsideTransction)));
 
             var t1 = Task.Run(() =>
             {
@@ -86,7 +90,7 @@ namespace PM.Transactions.Tests
         {
             var oldPmTarget = PmGlobalConfiguration.PmTarget;
             var oldPmInternalsFolderConfig = PmGlobalConfiguration.PmInternalsFolder;
-            PmGlobalConfiguration.PmInternalsFolder = "./unittests/internals";
+            PmGlobalConfiguration.PmInternalsFolder = "D:\\temp\\pm_tests\\tests";
 
             PmGlobalConfiguration.PmTarget = PmTargets.TraditionalMemoryMappedFile;
 
