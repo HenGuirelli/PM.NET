@@ -2,9 +2,14 @@
 
 namespace PM.Transactions.Tests
 {
+    public class InnerDomainObject2
+    {
+    }
+
     public class InnerDomainObject
     {
         public virtual int PropInt { get; set; }
+        public PmList<InnerDomainObject2> InnerDomainObject2s { get; set; } = new();
     }
 
     public class DomainObject

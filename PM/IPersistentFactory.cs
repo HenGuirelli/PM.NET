@@ -104,7 +104,7 @@ namespace PM
                 else
                 {
                     var innerObj = prop.GetValue(obj);
-                    if (innerObj != null)
+                    if (innerObj != null && !(innerObj is ICustomPmClass))
                     {
                         var pointer = _pointersToPersistentObjects.GetNext();
                         var proxyInnerObj = CreateInternalObjectByObject(
