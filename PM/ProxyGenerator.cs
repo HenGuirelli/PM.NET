@@ -3,6 +3,7 @@ using PM.CastleHelpers;
 using PM.Managers;
 using PM.Proxies;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace PM
 {
@@ -133,6 +134,30 @@ namespace PM
         private readonly IProxyTargetAccessor _proxyTargetAccessor;
         private readonly Type _type;
 
+        private static DateTime _startTimeApplication;
+        private static Stopwatch _totalTimeOnGC = new();
+
+        private static readonly Thread _thread;
+
+        static CacheItem()
+        {
+            _startTimeApplication = DateTime.Now;
+            _thread = new Thread(() =>
+            {
+                while (true)
+                {
+                    var totalTimeApplication = DateTime.Now - _startTimeApplication;
+                    Console.WriteLine(
+                        $"Total time app:\t{totalTimeApplication.TotalMilliseconds} " +
+                        $"Total time GC:\t{_totalTimeOnGC.ElapsedMilliseconds}");
+
+                    Thread.Sleep(5000);
+                }
+            });
+            _thread.Name = "CacheItem thread";
+            _thread.Start();
+        }
+
         public CacheItem(PmProxyGenerator pmProxyGenerator, object proxy, Type type)
         {
             _pmProxyGenerator = pmProxyGenerator;
@@ -153,6 +178,7 @@ namespace PM
 
         ~CacheItem()
         {
+            _totalTimeOnGC.Start();
             try
             {
                 var interceptor = CastleManager.GetInterceptor(Proxy);
@@ -174,6 +200,8 @@ namespace PM
                 GC.ReRegisterForFinalize(this);
                 _pmProxyGenerator.EnqueueCache(_type, this);
             }
+
+            _totalTimeOnGC.Stop();
         }
     }
 }
