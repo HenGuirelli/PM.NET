@@ -1,4 +1,5 @@
-﻿using PM.Core;
+﻿using PM.Collections.Internals;
+using PM.Core;
 using System.Collections.Concurrent;
 using System.Drawing;
 using System.Reflection;
@@ -19,9 +20,8 @@ namespace PM.Managers
 
     public static class FileHandlerManager
     {
-        public static readonly ConcurrentDictionary<string, FileHandlerItem> 
-            _fileHandlersByFilename = new();
-        public static readonly HashSet<FileBasedStream> _fileHandlers = new();
+        private static readonly FileHandlerTimedCollection
+            _fileHandlersByFilename = new(5_000);
 
         public static FileHandlerItem CreateRootHandler(string filepath, int size = 4096)
         {
@@ -66,11 +66,16 @@ namespace PM.Managers
         private static FileHandlerItem RegisterNewHandler(FileBasedStream fileBasedStream)
         {
             var fileHandlerItem = new FileHandlerItem(fileBasedStream);
-            _fileHandlersByFilename.TryAdd(
-                fileBasedStream.FilePath,
-                fileHandlerItem);
-
-            _fileHandlers.Add(fileBasedStream);
+            try
+            {
+                _fileHandlersByFilename.TryAdd(
+                    fileBasedStream.FilePath,
+                    fileHandlerItem);
+            }
+            catch (ApplicationException ex)
+            {
+                _fileHandlersByFilename.CleanOldValues(_fileHandlersByFilename.Capacity / 2);
+            }
 
             return fileHandlerItem;
         }
@@ -100,8 +105,7 @@ namespace PM.Managers
                 // Only reference from this class
                 if (!fileHandlerItem.HasMemoryReference && fileHandlerItem.FilePointerReference == 0)
                 {
-                    if (_fileHandlersByFilename.TryRemove(filepath, out var removedHandler) &&
-                        _fileHandlers.Remove(removedHandler.FileBasedStream))
+                    if (_fileHandlersByFilename.TryRemove(filepath, out var removedHandler))
                     {
                         removedHandler.FileBasedStream.Close();
                         File.Delete(filepath);
