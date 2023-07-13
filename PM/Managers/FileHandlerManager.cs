@@ -1,8 +1,5 @@
 ﻿using PM.Collections.Internals;
 using PM.Core;
-using System.Collections.Concurrent;
-using System.Drawing;
-using System.Reflection;
 
 namespace PM.Managers
 {
@@ -68,13 +65,19 @@ namespace PM.Managers
             var fileHandlerItem = new FileHandlerItem(fileBasedStream);
             try
             {
-                _fileHandlersByFilename.TryAdd(
+                _fileHandlersByFilename.Add(
                     fileBasedStream.FilePath,
                     fileHandlerItem);
             }
             catch (ApplicationException ex)
             {
-                _fileHandlersByFilename.CleanOldValues(_fileHandlersByFilename.Capacity / 2);
+                var streamsToClose = 
+                    _fileHandlersByFilename.CleanOldValues(_fileHandlersByFilename.Capacity / 2);
+
+                foreach (var item in streamsToClose)
+                {
+                    CloseAndRemoveFile(item);
+                }
             }
 
             return fileHandlerItem;

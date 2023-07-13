@@ -1,14 +1,21 @@
-﻿using PM.Managers;
+﻿using PM.Core;
+using PM.Managers;
 using System.Collections.Concurrent;
 
 namespace PM.Collections.Internals
 {
-    internal class LimitedDictItem<TKey, TValue>
+    public class LimitedDictItem<TKey, TValue>
     {
-        public TValue Value { get; set; }
-        public TKey Key { get; set; }
+        public TValue Value { get; }
+        public TKey Key { get; }
         public DateTime AddedDatetime { get; } = DateTime.Now;
         public DateTime LastGetDatetime { get; private set; } = DateTime.Now;
+
+        public LimitedDictItem(TKey key, TValue value)
+        {
+            Key = key;
+            Value = value;
+        }
 
         internal void UpdateLastGetTime(List<LimitedDictItem<TKey, TValue>> items)
         {
@@ -18,7 +25,7 @@ namespace PM.Collections.Internals
         }
     }
 
-    internal class FileHandlerTimedCollection
+    public class FileHandlerTimedCollection
     {
         public int Capacity { get; set; }
         public int Count => _fileHandlersByFilename.Count;
@@ -32,15 +39,18 @@ namespace PM.Collections.Internals
             Capacity = capacity;
         }
 
-        public bool TryAdd(string key, FileHandlerItem value)
+        public void Add(string key, FileHandlerItem value)
         {
             if (Count >= Capacity)
             {
                 throw new ApplicationException("Capacity limit reached");
             }
-            var dictItem = new LimitedDictItem<string, FileHandlerItem> { Value = value };
+            var dictItem = new LimitedDictItem<string, FileHandlerItem>(key, value);
             _orderedFileHandlers.Add(dictItem);
-            return _fileHandlersByFilename.TryAdd(key, dictItem);
+            if (!_fileHandlersByFilename.TryAdd(key, dictItem))
+            {
+                throw new Exception("Error on add item " + key);
+            }
         }
 
         public bool TryGetValue(string key, out FileHandlerItem value)
@@ -60,26 +70,25 @@ namespace PM.Collections.Internals
             if (_fileHandlersByFilename.TryRemove(key, out var dictItem))
             {
                 value = dictItem.Value;
-                
+
                 return true;
             }
             value = default;
             return false;
         }
 
-        public IEnumerable<LimitedDictItem<string, FileHandlerItem>> CleanOldValues(int qtyToClean)
+        public IEnumerable<FileBasedStream> CleanOldValues(int qtyToClean)
         {
-            var removedItems = new List<LimitedDictItem<string, FileHandlerItem>>();
+            var removedItems = new List<FileBasedStream>();
             for (int i = 0; i < qtyToClean; i++)
             {
                 LimitedDictItem<string, FileHandlerItem> itemToRemove = _orderedFileHandlers[i];
                 _orderedFileHandlers.Remove(itemToRemove);
                 _fileHandlersByFilename.Remove(itemToRemove.Key, out var _);
 
-                removedItems.Add(itemToRemove);
+                removedItems.Add(itemToRemove.Value.FileBasedStream);
             }
             return removedItems;
-
         }
     }
 }
