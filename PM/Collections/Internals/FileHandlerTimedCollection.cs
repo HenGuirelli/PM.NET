@@ -4,24 +4,11 @@ using System.Collections.Concurrent;
 
 namespace PM.Collections.Internals
 {
-    public class LimitedDictItem<TKey, TValue>
+    public class CollectionLimitReachedException : ApplicationException
     {
-        public TValue Value { get; }
-        public TKey Key { get; }
-        public DateTime AddedDatetime { get; } = DateTime.Now;
-        public DateTime LastGetDatetime { get; private set; } = DateTime.Now;
-
-        public LimitedDictItem(TKey key, TValue value)
+        public CollectionLimitReachedException(int limit)
+            : base($"Capacity limit of {limit} reached")
         {
-            Key = key;
-            Value = value;
-        }
-
-        internal void UpdateLastGetTime(List<LimitedDictItem<TKey, TValue>> items)
-        {
-            LastGetDatetime = DateTime.Now;
-            items.Remove(this);
-            items.Add(this);
         }
     }
 
@@ -29,9 +16,9 @@ namespace PM.Collections.Internals
     {
         public int Capacity { get; set; }
         public int Count => _fileHandlersByFilename.Count;
-        private readonly ConcurrentDictionary<string, LimitedDictItem<string, FileHandlerItem>>
+        private readonly ConcurrentDictionary<string, FileHandlerTimedDictItem<string, FileHandlerItem>>
             _fileHandlersByFilename = new();
-        private readonly List<LimitedDictItem<string, FileHandlerItem>>
+        private readonly List<FileHandlerTimedDictItem<string, FileHandlerItem>>
             _orderedFileHandlers = new();
 
         public FileHandlerTimedCollection(int capacity)
@@ -43,9 +30,9 @@ namespace PM.Collections.Internals
         {
             if (Count >= Capacity)
             {
-                throw new ApplicationException("Capacity limit reached");
+                throw new CollectionLimitReachedException(Capacity);
             }
-            var dictItem = new LimitedDictItem<string, FileHandlerItem>(key, value);
+            var dictItem = new FileHandlerTimedDictItem<string, FileHandlerItem>(key, value);
             _orderedFileHandlers.Add(dictItem);
             if (!_fileHandlersByFilename.TryAdd(key, dictItem))
             {
@@ -82,7 +69,7 @@ namespace PM.Collections.Internals
             var removedItems = new List<FileBasedStream>();
             for (int i = 0; i < qtyToClean; i++)
             {
-                LimitedDictItem<string, FileHandlerItem> itemToRemove = _orderedFileHandlers[i];
+                FileHandlerTimedDictItem<string, FileHandlerItem> itemToRemove = _orderedFileHandlers[i];
                 _orderedFileHandlers.Remove(itemToRemove);
                 _fileHandlersByFilename.Remove(itemToRemove.Key, out var _);
 

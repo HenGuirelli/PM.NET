@@ -87,7 +87,9 @@ namespace PM.Tests.Collections
         [Fact]
         public void OnAddPersistentWhenOverflowDefaultCapacity_ShouldAdd()
         {
-            var count = 300;
+            DeleteAllFilesFromFolder(PmGlobalConfiguration.PmInternalsFolder);
+
+            var count = 1600;
             var path = Path.Combine(
                 PmGlobalConfiguration.PmInternalsFolder,
                 nameof(OnAddPersistentWhenOverflowDefaultCapacity_ShouldAdd));

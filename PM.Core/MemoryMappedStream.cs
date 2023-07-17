@@ -6,24 +6,37 @@ namespace PM.Core
     {
         private MemoryMappedFile _memoryMappedFile;
         private MemoryMappedViewStream _memoryMappedViewStream;
-        private long _size;
+        private readonly long _size;
+        private readonly bool _createFileIfNotExists;
 
         public MemoryMappedStream(string filePath, long size, bool createFileIfNotExists = true)
         {
             FilePath = filePath;
-
-            if (createFileIfNotExists && !File.Exists(filePath))
-            {
-                using var fs = new FileStream(
-                    filePath,
-                    FileMode.Create,
-                    FileAccess.Write,
-                    FileShare.None);
-                fs.SetLength(size);
-            }
-            _memoryMappedFile = MemoryMappedFile.CreateFromFile(filePath);
-            _memoryMappedViewStream = _memoryMappedFile.CreateViewStream(0, size, MemoryMappedFileAccess.ReadWrite);
             _size = size;
+            _createFileIfNotExists = createFileIfNotExists;
+            Open();
+        }
+
+        private void Open()
+        {
+            try
+            {
+                if (_createFileIfNotExists && !File.Exists(FilePath))
+                {
+                    using var fs = new FileStream(
+                        FilePath,
+                        FileMode.Create,
+                        FileAccess.Write,
+                        FileShare.None);
+                    fs.SetLength(_size);
+                }
+                _memoryMappedFile = MemoryMappedFile.CreateFromFile(FilePath);
+                _memoryMappedViewStream =
+                    _memoryMappedFile.CreateViewStream(0, _size, MemoryMappedFileAccess.ReadWrite);
+            }
+            catch (Exception ex)
+            {
+            }
         }
 
         public override bool CanRead => true;
@@ -53,7 +66,15 @@ namespace PM.Core
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            return _memoryMappedViewStream.Seek(offset, origin);
+            try
+            {
+                return _memoryMappedViewStream.Seek(offset, origin);
+            }
+            catch (ObjectDisposedException)
+            {
+                Open();
+                return Seek(offset, origin);
+            }
         }
 
         public override void SetLength(long value)
@@ -63,14 +84,20 @@ namespace PM.Core
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            _memoryMappedViewStream.Write(buffer, offset, count);
+            try
+            {
+                _memoryMappedViewStream.Write(buffer, offset, count);
+            }
+            catch (System.NotSupportedException ex)
+            {
+
+            }
         }
 
 
         public override void Resize(int size)
         {
-            _memoryMappedViewStream?.Dispose();
-            _memoryMappedFile?.Dispose();
+            Close();
 
             var fs = new FileStream(
                 FilePath,

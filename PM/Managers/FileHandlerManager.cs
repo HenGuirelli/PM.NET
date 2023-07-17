@@ -1,5 +1,6 @@
 ﻿using PM.Collections.Internals;
 using PM.Core;
+using Serilog;
 
 namespace PM.Managers
 {
@@ -69,15 +70,27 @@ namespace PM.Managers
                     fileBasedStream.FilePath,
                     fileHandlerItem);
             }
-            catch (ApplicationException ex)
+            catch (CollectionLimitReachedException)
             {
-                var streamsToClose = 
+                var streamsToClose =
                     _fileHandlersByFilename.CleanOldValues(_fileHandlersByFilename.Capacity / 2);
 
                 foreach (var item in streamsToClose)
                 {
-                    CloseAndRemoveFile(item);
+                    try
+                    {
+                        item.Close();
+                        Log.Information("File {FilePath} closed", item.FilePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "File {FilePath} failed to closed", item.FilePath);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error on RegisterNewHandler");
             }
 
             return fileHandlerItem;
@@ -103,6 +116,28 @@ namespace PM.Managers
 
         public static bool CloseAndRemoveFile(string filepath)
         {
+            if (CloseFile(filepath))
+            {
+                File.Delete(filepath);
+                return true;
+            }
+            else
+            {
+                try
+                {
+                    File.Delete(filepath);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error on delete file {filepath} on disk", filepath);
+                }
+            }
+            return false;
+        }
+
+        public static bool CloseFile(string filepath)
+        {
             if (_fileHandlersByFilename.TryGetValue(filepath, out var fileHandlerItem))
             {
                 // Only reference from this class
@@ -111,23 +146,11 @@ namespace PM.Managers
                     if (_fileHandlersByFilename.TryRemove(filepath, out var removedHandler))
                     {
                         removedHandler.FileBasedStream.Close();
-                        File.Delete(filepath);
                         return true;
                     }
                 }
-                return false;
             }
-            else
-            {
-                try
-                {
-                    File.Delete(filepath);
-                }
-                catch
-                {
-                }
-            }
-            return true;
+            return false;
         }
     }
 }
