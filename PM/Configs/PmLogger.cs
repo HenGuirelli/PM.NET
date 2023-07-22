@@ -54,7 +54,9 @@ namespace PM.Configs
             }
             if ((Target & PmLogTarget.File) != 0)
             {
-                loggerConfiguration = writeTo.File(Path.Combine(Directory!, "PM.NET.log"));
+                loggerConfiguration = writeTo.File(
+                    Path.Combine(Directory!, "PM.NET.log"),
+                    fileSizeLimitBytes: null);
             }
 
             Log.Logger = loggerConfiguration.CreateLogger();
