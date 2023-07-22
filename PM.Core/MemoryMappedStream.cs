@@ -19,24 +19,18 @@ namespace PM.Core
 
         private void Open()
         {
-            try
+            if (_createFileIfNotExists && !File.Exists(FilePath))
             {
-                if (_createFileIfNotExists && !File.Exists(FilePath))
-                {
-                    using var fs = new FileStream(
-                        FilePath,
-                        FileMode.Create,
-                        FileAccess.Write,
-                        FileShare.None);
-                    fs.SetLength(_size);
-                }
-                _memoryMappedFile = MemoryMappedFile.CreateFromFile(FilePath);
-                _memoryMappedViewStream =
-                    _memoryMappedFile.CreateViewStream(0, _size, MemoryMappedFileAccess.ReadWrite);
+                using var fs = new FileStream(
+                    FilePath,
+                    FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.None);
+                fs.SetLength(_size);
             }
-            catch (Exception ex)
-            {
-            }
+            _memoryMappedFile = MemoryMappedFile.CreateFromFile(FilePath);
+            _memoryMappedViewStream =
+                _memoryMappedFile.CreateViewStream(0, _size, MemoryMappedFileAccess.ReadWrite);
         }
 
         public override bool CanRead => true;
