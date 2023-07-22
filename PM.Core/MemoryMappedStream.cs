@@ -1,4 +1,5 @@
-﻿using System.IO.MemoryMappedFiles;
+﻿using Serilog;
+using System.IO.MemoryMappedFiles;
 
 namespace PM.Core
 {
@@ -6,7 +7,7 @@ namespace PM.Core
     {
         private MemoryMappedFile _memoryMappedFile;
         private MemoryMappedViewStream _memoryMappedViewStream;
-        private readonly long _size;
+        private long _size;
         private readonly bool _createFileIfNotExists;
 
         public MemoryMappedStream(string filePath, long size, bool createFileIfNotExists = true)
@@ -28,6 +29,7 @@ namespace PM.Core
                     FileShare.None);
                 fs.SetLength(_size);
             }
+            Log.Verbose("Opening file={file}, size={size}", FilePath, _size);
             _memoryMappedFile = MemoryMappedFile.CreateFromFile(FilePath);
             _memoryMappedViewStream =
                 _memoryMappedFile.CreateViewStream(0, _size, MemoryMappedFileAccess.ReadWrite);
@@ -54,8 +56,7 @@ namespace PM.Core
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            var result = _memoryMappedViewStream.Read(buffer, offset, count);
-            return result;
+            return _memoryMappedViewStream.Read(buffer, offset, count);
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -64,8 +65,9 @@ namespace PM.Core
             {
                 return _memoryMappedViewStream.Seek(offset, origin);
             }
-            catch (ObjectDisposedException)
+            catch (ObjectDisposedException ex)
             {
+                Log.Error(ex, "ObjectDisposedException on See. reopen file={file}", FilePath);
                 Open();
                 return Seek(offset, origin);
             }
@@ -78,19 +80,16 @@ namespace PM.Core
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            try
-            {
-                _memoryMappedViewStream.Write(buffer, offset, count);
-            }
-            catch (System.NotSupportedException ex)
-            {
-
-            }
+            _memoryMappedViewStream.Write(buffer, offset, count);
         }
 
 
         public override void Resize(int size)
         {
+            Log.Verbose("Resizing file {file}. " +
+                "Old size={oldSize}, new size={size}", 
+                FilePath, _size, size);
+
             Close();
 
             var fs = new FileStream(
@@ -100,6 +99,7 @@ namespace PM.Core
                 FileShare.None);
             fs.SetLength(size);
             fs.Dispose();
+            _size = size;
 
             _memoryMappedFile = MemoryMappedFile.CreateFromFile(FilePath);
             _memoryMappedViewStream = _memoryMappedFile.CreateViewStream(0, size, MemoryMappedFileAccess.ReadWrite);
@@ -107,6 +107,7 @@ namespace PM.Core
 
         public override void Close()
         {
+            Log.Verbose("Closing file {file}", FilePath);
             _memoryMappedViewStream?.Dispose();
             _memoryMappedFile?.Dispose();
         }

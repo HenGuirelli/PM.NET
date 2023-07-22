@@ -70,8 +70,11 @@ namespace PM.Collections.Internals
             for (int i = 0; i < qtyToClean; i++)
             {
                 FileHandlerTimedDictItem<string, FileHandlerItem> itemToRemove = _orderedFileHandlers[i];
-                _orderedFileHandlers.Remove(itemToRemove);
-                _fileHandlersByFilename.Remove(itemToRemove.Key, out var _);
+                if (itemToRemove != null)
+                {
+                    _orderedFileHandlers.Remove(itemToRemove);
+                    _fileHandlersByFilename.Remove(itemToRemove.Key, out var _);
+                }
 
                 removedItems.Add(itemToRemove.Value.FileBasedStream);
             }

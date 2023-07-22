@@ -1,4 +1,5 @@
 ﻿using Serilog;
+using Serilog.Events;
 
 namespace PM.Configs
 {
@@ -6,6 +7,16 @@ namespace PM.Configs
     {
         public PmLogTarget Target { get; private set; } = PmLogTarget.None;
         public string? Directory { get; private set; }
+        private LogEventLevel _logEventLevel = LogEventLevel.Verbose;
+        public LogEventLevel LogEventLevel
+        {
+            get => _logEventLevel;
+            set
+            {
+                _logEventLevel = value;
+                UpdateLogger();
+            }
+        }
 
         public PmLogger()
         {
@@ -33,7 +44,8 @@ namespace PM.Configs
 
         private void UpdateLogger()
         {
-            var loggerConfiguration = new LoggerConfiguration();
+            var loggerConfiguration = new LoggerConfiguration()
+                .MinimumLevel.Is(LogEventLevel);
             var writeTo = loggerConfiguration.WriteTo;
 
             if ((Target & PmLogTarget.Console) != 0)
@@ -42,7 +54,7 @@ namespace PM.Configs
             }
             if ((Target & PmLogTarget.File) != 0)
             {
-                loggerConfiguration = writeTo.File(Directory!);
+                loggerConfiguration = writeTo.File(Path.Combine(Directory!, "PM.NET.log"));
             }
 
             Log.Logger = loggerConfiguration.CreateLogger();

@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿using Serilog;
+using System.Drawing;
+using System.Runtime.InteropServices;
 
 namespace PM.Core
 {
@@ -33,6 +35,7 @@ namespace PM.Core
         public PmStream(string path, long length)
         {
             FilePath = path;
+            Log.Verbose("Creating file={file}, size={size}", path, length);
             MapFile(path, length);
 
             if (_pmemPtr == IntPtr.Zero)
