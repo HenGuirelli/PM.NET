@@ -2,6 +2,7 @@
 using PM.CastleHelpers;
 using PM.Managers;
 using PM.Proxies;
+using Serilog;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
@@ -147,9 +148,11 @@ namespace PM
                 while (true)
                 {
                     var totalTimeApplication = DateTime.Now - _startTimeApplication;
-                    Console.WriteLine(
-                        $"Total time app:\t{totalTimeApplication.TotalMilliseconds} " +
-                        $"Total time GC:\t{_totalTimeOnGC.ElapsedMilliseconds}");
+                    Log.Information(
+                        "Total time app:\t{TotalMilliseconds} " +
+                        "Total time GC:\t{ElapsedMilliseconds}",
+                        totalTimeApplication.TotalMilliseconds,
+                        _totalTimeOnGC.ElapsedMilliseconds);
 
                     Thread.Sleep(5000);
                 }
