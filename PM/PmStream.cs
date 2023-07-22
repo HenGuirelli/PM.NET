@@ -1,6 +1,7 @@
 ﻿using PM.Core;
 using PM.Factories;
 using PM.Managers;
+using Serilog;
 
 namespace PM
 {
@@ -46,7 +47,17 @@ namespace PM
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            return _pm.Seek(offset, origin);
+            try
+            {
+                return _pm.Seek(offset, origin);
+            }
+            catch (ObjectDisposedException ex)
+            {
+                Log.Error(ex, "ObjectDisposedException on Seek. reopening file {file}", FilePath);
+                FileHandlerManager.RegisterNewHandler(_pm);
+                _pm.Open();
+                return _pm.Seek(offset, origin);
+            }
         }
 
         public override void SetLength(long value)
@@ -62,6 +73,11 @@ namespace PM
         public override void Close()
         {
             Dispose();
+        }
+
+        public override void Open()
+        {
+            _pm.Open();
         }
 
         public void Dispose()

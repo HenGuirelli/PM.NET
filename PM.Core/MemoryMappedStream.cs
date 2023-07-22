@@ -18,7 +18,7 @@ namespace PM.Core
             Open();
         }
 
-        private void Open()
+        public override void Open()
         {
             if (_createFileIfNotExists && !File.Exists(FilePath))
             {
@@ -61,16 +61,7 @@ namespace PM.Core
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            try
-            {
-                return _memoryMappedViewStream.Seek(offset, origin);
-            }
-            catch (ObjectDisposedException ex)
-            {
-                Log.Error(ex, "ObjectDisposedException on See. reopen file={file}", FilePath);
-                Open();
-                return Seek(offset, origin);
-            }
+            return _memoryMappedViewStream.Seek(offset, origin);
         }
 
         public override void SetLength(long value)
@@ -87,7 +78,7 @@ namespace PM.Core
         public override void Resize(int size)
         {
             Log.Verbose("Resizing file {file}. " +
-                "Old size={oldSize}, new size={size}", 
+                "Old size={oldSize}, new size={size}",
                 FilePath, _size, size);
 
             Close();

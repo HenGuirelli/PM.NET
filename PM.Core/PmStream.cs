@@ -125,6 +125,11 @@ namespace PM.Core
             }
         }
 
+        public override void Open()
+        {
+            MapFile(FilePath, Length);
+        }
+
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);

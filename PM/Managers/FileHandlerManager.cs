@@ -61,7 +61,7 @@ namespace PM.Managers
             return RegisterNewHandler(pm);
         }
 
-        private static FileHandlerItem RegisterNewHandler(FileBasedStream fileBasedStream)
+        public static FileHandlerItem RegisterNewHandler(FileBasedStream fileBasedStream)
         {
             var fileHandlerItem = new FileHandlerItem(fileBasedStream);
             try
@@ -75,18 +75,25 @@ namespace PM.Managers
                 var streamsToClose =
                     _fileHandlersByFilename.CleanOldValues(_fileHandlersByFilename.Capacity / 2);
 
+                var itensCloseds = new List<string>(streamsToClose.Count());
                 foreach (var item in streamsToClose)
                 {
                     try
                     {
                         item.Close();
-                        Log.Verbose("File {FilePath} closed", item.FilePath);
+                        itensCloseds.Add(item.FilePath);
                     }
                     catch (Exception ex)
                     {
                         Log.Error(ex, "File {FilePath} failed to closed", item.FilePath);
                     }
+                    Log.Verbose("Files closed: {files}", itensCloseds);
                 }
+
+
+                _fileHandlersByFilename.Add(
+                    fileBasedStream.FilePath,
+                    fileHandlerItem);
             }
             catch (Exception ex)
             {

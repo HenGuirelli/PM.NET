@@ -1,5 +1,6 @@
 ﻿using PM.Core;
 using PM.Managers;
+using Serilog;
 using System.Collections.Concurrent;
 
 namespace PM.Collections.Internals
@@ -34,6 +35,7 @@ namespace PM.Collections.Internals
             }
             var dictItem = new FileHandlerTimedDictItem<string, FileHandlerItem>(key, value);
             _orderedFileHandlers.Add(dictItem);
+            Log.Verbose("{class} Add {key}", nameof(FileHandlerTimedCollection), key);
             if (!_fileHandlersByFilename.TryAdd(key, dictItem))
             {
                 throw new Exception("Error on add item " + key);
