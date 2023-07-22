@@ -9,7 +9,7 @@ namespace PM.Configs
 
         public PmLogger()
         {
-            SetTarget(PmLogTarget.Console);
+            SetTarget(PmLogTarget.None);
         }
 
         public void SetTarget(PmLogTarget target, string? directory = null)

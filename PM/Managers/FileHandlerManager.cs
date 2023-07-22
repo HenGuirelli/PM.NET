@@ -80,7 +80,7 @@ namespace PM.Managers
                     try
                     {
                         item.Close();
-                        Log.Information("File {FilePath} closed", item.FilePath);
+                        Log.Verbose("File {FilePath} closed", item.FilePath);
                     }
                     catch (Exception ex)
                     {
