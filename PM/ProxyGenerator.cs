@@ -195,7 +195,7 @@ namespace PM
             }
             catch (Exception ex)
             {
-                // TODO: log error
+                Log.Error(ex, "Error on destructor object");
             }
 
             if (_pmProxyGenerator.GetCacheCount(_type) < _pmProxyGenerator.MinProxyCacheCount)
