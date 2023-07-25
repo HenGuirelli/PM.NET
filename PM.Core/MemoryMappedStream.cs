@@ -10,7 +10,7 @@ namespace PM.Core
         public override bool CanRead => true;
         public override bool CanSeek => true;
         public override bool CanWrite => true;
-        public override long Length => _memoryMappedViewStream.Length;
+        public override long Length => _size;
         public override long Position
         {
             get => _memoryMappedViewStream.Position;

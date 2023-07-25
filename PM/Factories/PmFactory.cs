@@ -21,7 +21,7 @@ namespace PM.Factories
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error on create Stream");
+                Log.Error(ex, "Error on create Stream {filename}", pmMemoryMappedFile);
                 throw;
             }
             throw new ArgumentException(
