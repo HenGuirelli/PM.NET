@@ -18,7 +18,6 @@ namespace PM.Core
         }
 
 
-
         private MemoryMappedFile _memoryMappedFile;
         private MemoryMappedViewStream _memoryMappedViewStream;
         private long _size;

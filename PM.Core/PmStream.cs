@@ -29,6 +29,7 @@ namespace PM.Core
         private long _length;
         private long _position;
 
+
         public PmStream(string path, long length)
         {
             FilePath = path;
