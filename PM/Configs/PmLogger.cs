@@ -8,6 +8,8 @@ namespace PM.Configs
         public PmLogTarget Target { get; private set; } = PmLogTarget.None;
         public string? Directory { get; private set; }
         private LogEventLevel _logEventLevel = LogEventLevel.Verbose;
+        private LoggerConfiguration _loggerConfiguration;
+
         public LogEventLevel LogEventLevel
         {
             get => _logEventLevel;
@@ -23,7 +25,10 @@ namespace PM.Configs
             SetTarget(PmLogTarget.None);
         }
 
-        public void SetTarget(PmLogTarget target, string? directory = null)
+        public void SetTarget(
+            PmLogTarget target,
+            LogEventLevel logEventLevel = LogEventLevel.Information,
+            string? directory = null)
         {
             if (target == PmLogTarget.File && string.IsNullOrWhiteSpace(directory))
             {
@@ -38,28 +43,29 @@ namespace PM.Configs
 
             Target = target;
             Directory = directory;
+            _logEventLevel = logEventLevel;
 
             UpdateLogger();
         }
 
         private void UpdateLogger()
         {
-            var loggerConfiguration = new LoggerConfiguration()
+            _loggerConfiguration = new LoggerConfiguration()
                 .MinimumLevel.Is(LogEventLevel);
-            var writeTo = loggerConfiguration.WriteTo;
+            var writeTo = _loggerConfiguration.WriteTo;
 
             if ((Target & PmLogTarget.Console) != 0)
             {
-                loggerConfiguration = writeTo.Console();
+                _loggerConfiguration = writeTo.Console();
             }
             if ((Target & PmLogTarget.File) != 0)
             {
-                loggerConfiguration = writeTo.File(
+                _loggerConfiguration = writeTo.File(
                     Path.Combine(Directory!, "PM.NET.log"),
                     fileSizeLimitBytes: null);
             }
 
-            Log.Logger = loggerConfiguration.CreateLogger();
+            Log.Logger = _loggerConfiguration.CreateLogger();
             Log.Information("Serilog setup finished, target={target}", Target);
         }
     }

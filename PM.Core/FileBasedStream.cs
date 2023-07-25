@@ -1,5 +1,6 @@
 ﻿using Serilog;
 using System.Diagnostics;
+using System.Text;
 
 namespace PM.Core
 {
@@ -60,14 +61,34 @@ namespace PM.Core
             base.Dispose(disposing);
         }
 
-        private static string GetStack()
+        public static string GetStack()
         {
             if (Log.IsEnabled(Serilog.Events.LogEventLevel.Verbose))
             {
                 var stackTrace = new StackTrace();
-                return stackTrace.ToString();
+                return FormatStackTrace(stackTrace);
             }
             return string.Empty;
+        }
+
+        public static string FormatStackTrace(StackTrace stackTrace)
+        {
+            var frames = stackTrace.GetFrames();
+            if (frames == null)
+                return string.Empty;
+
+            var formattedStack = new StringBuilder();
+            foreach (var frame in frames)
+            {
+                var method = frame.GetMethod();
+                var typeName = method?.DeclaringType?.FullName ?? "Unknown Type";
+                var methodName = method?.Name ?? "Unknown Method";
+                var lineNumber = frame.GetFileLineNumber();
+
+                formattedStack.AppendLine($"{typeName}.{methodName}() (Line {lineNumber})");
+            }
+
+            return formattedStack.ToString();
         }
     }
 }
