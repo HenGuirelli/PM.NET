@@ -6,10 +6,24 @@ namespace PM.Core
 {
     public class MemoryMappedStream : FileBasedStream
     {
+
+        public override bool CanRead => true;
+        public override bool CanSeek => true;
+        public override bool CanWrite => true;
+        public override long Length => _memoryMappedViewStream.Length;
+        public override long Position
+        {
+            get => _memoryMappedViewStream.Position;
+            set => _memoryMappedViewStream.Position = value;
+        }
+
+
+
         private MemoryMappedFile _memoryMappedFile;
         private MemoryMappedViewStream _memoryMappedViewStream;
         private long _size;
         private readonly bool _createFileIfNotExists;
+
 
         public MemoryMappedStream(string filePath, long size, bool createFileIfNotExists = true)
         {
@@ -21,6 +35,7 @@ namespace PM.Core
 
         public override void Open()
         {
+            base.Open();
             if (_createFileIfNotExists && !File.Exists(FilePath))
             {
                 using var fs = new FileStream(
@@ -30,29 +45,14 @@ namespace PM.Core
                     FileShare.None);
                 fs.SetLength(_size);
             }
-            var stackTrace = new StackTrace();
-            Log.Verbose("Opening file={file}, size={size}, on={StackTrace}", FilePath, _size, stackTrace.ToString());
             _memoryMappedFile = MemoryMappedFile.CreateFromFile(FilePath);
             _memoryMappedViewStream =
                 _memoryMappedFile.CreateViewStream(0, _size, MemoryMappedFileAccess.ReadWrite);
         }
 
-        public override bool CanRead => true;
-
-        public override bool CanSeek => true;
-
-        public override bool CanWrite => true;
-
-        public override long Length => _memoryMappedViewStream.Length;
-
-        public override long Position
-        {
-            get => _memoryMappedViewStream.Position;
-            set => _memoryMappedViewStream.Position = value;
-        }
-
         public override void Flush()
         {
+            base.Flush();
             _memoryMappedViewStream.Flush();
         }
 
@@ -68,6 +68,7 @@ namespace PM.Core
 
         public override void SetLength(long value)
         {
+            base.SetLength(value);
             _memoryMappedViewStream.SetLength(value);
         }
 
@@ -76,12 +77,9 @@ namespace PM.Core
             _memoryMappedViewStream.Write(buffer, offset, count);
         }
 
-
         public override void Resize(int size)
         {
-            Log.Verbose("Resizing file {file}. " +
-                "Old size={oldSize}, new size={size}",
-                FilePath, _size, size);
+            base.Resize(size);
 
             Close();
 
@@ -100,7 +98,8 @@ namespace PM.Core
 
         public override void Close()
         {
-            Log.Verbose("Closing file {file}", FilePath);
+            base.Close();
+
             _memoryMappedViewStream?.Dispose();
             _memoryMappedFile?.Dispose();
         }

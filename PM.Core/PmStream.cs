@@ -1,24 +1,15 @@
 ﻿using Serilog;
-using System.Drawing;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace PM.Core
 {
     public class PmStream : FileBasedStream
     {
-        private IntPtr _pmemPtr;
-        private long _length;
-        private long _position;
-        private bool _isPersistent;
-
         public override bool CanRead => true;
-
         public override bool CanSeek => true;
-
         public override bool CanWrite => true;
-
         public override long Length => _length;
-
         public override long Position
         {
             get => _position;
@@ -32,6 +23,12 @@ namespace PM.Core
             }
         }
 
+
+        private IntPtr _pmemPtr;
+        private bool _isPersistent;
+        private long _length;
+        private long _position;
+
         public PmStream(string path, long length)
         {
             FilePath = path;
@@ -42,6 +39,12 @@ namespace PM.Core
             {
                 throw new Exception("Failed to map PMEM file.");
             }
+        }
+
+        public override void Open()
+        {
+            base.Open();
+            MapFile(FilePath, Length);
         }
 
         private void MapFile(string path, long length)
@@ -63,6 +66,7 @@ namespace PM.Core
 
         public override void Flush()
         {
+            base.Flush();
             LibpmemNativeMethods.Flush(_pmemPtr, (ulong)_length);
         }
 
@@ -100,6 +104,7 @@ namespace PM.Core
 
         public override void SetLength(long value)
         {
+            base.SetLength(value);
             if (value < 0 || value > _length)
             {
                 throw new ArgumentOutOfRangeException(nameof(value));
@@ -117,17 +122,22 @@ namespace PM.Core
             _position += count;
         }
 
+        public override void Resize(int size)
+        {
+            base.Resize(size);
+
+            Close();
+            MapFile(FilePath, size);
+        }
+
         public override void Close()
         {
+            base.Close();
+
             if (_pmemPtr != IntPtr.Zero)
             {
                 LibpmemNativeMethods.Unmap(_pmemPtr, _length);
             }
-        }
-
-        public override void Open()
-        {
-            MapFile(FilePath, Length);
         }
 
         protected override void Dispose(bool disposing)
@@ -135,12 +145,6 @@ namespace PM.Core
             base.Dispose(disposing);
             Close();
             IsDisposed = true;
-        }
-
-        public override void Resize(int size)
-        {
-            LibpmemNativeMethods.Unmap(_pmemPtr, _length);
-            MapFile(FilePath, size);
         }
     }
 }
