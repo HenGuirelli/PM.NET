@@ -135,8 +135,8 @@ namespace PM
         private readonly IProxyTargetAccessor _proxyTargetAccessor;
         private readonly Type _type;
 
-        private static DateTime _startTimeApplication;
-        private static Stopwatch _totalTimeOnGC = new();
+        private static readonly DateTime _startTimeApplication;
+        private static readonly Stopwatch _totalTimeOnGC = new();
 
         private static readonly Thread _thread;
 
@@ -189,7 +189,8 @@ namespace PM
                 if (interceptor!.FilePointerCount == 0 &&
                     interceptor!.FilePointer.EndsWith(PmExtensions.PmInternalFile))
                 {
-                    FileHandlerManager.ReleaseObjectFromMemory(interceptor!.PmMemoryMappedFile);
+                    Log.Verbose("Removing file {filepath} of object {@obj}",
+                        interceptor!.FilePointer, Proxy);
                     FileHandlerManager.CloseAndRemoveFile(interceptor!.PmMemoryMappedFile);
                 }
             }

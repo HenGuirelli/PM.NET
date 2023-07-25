@@ -83,7 +83,6 @@ namespace PM.Startup
                 var parsedListItemFile = ulong.Parse(Path.GetFileNameWithoutExtension(listItemFile));
                 if (!allPmListItemReferences.Contains(parsedListItemFile))
                 {
-                    FileHandlerManager.ReleaseObjectFromMemory(listItemFile);
                     FileHandlerManager.CloseAndRemoveFile(listItemFile);
                 }
             }

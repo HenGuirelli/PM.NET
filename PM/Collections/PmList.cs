@@ -3,6 +3,7 @@ using PM.CastleHelpers;
 using PM.Configs;
 using PM.Core;
 using PM.Managers;
+using Serilog;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Reflection;
@@ -208,10 +209,16 @@ namespace PM.Collections
 
             var pointer = _pointersToPersistentObjects.GetNext();
             var obj = _persistentFactory.CreateInternalObjectInList(item, pointer);
+            
+            if (CastleManager.TryGetInterceptor(obj, out var objInterceptor))
+            {
+                objInterceptor!.FilePointerCount++;
+            }
 
             _items[ListCount++] = pointer;
             _cache[pointer] = obj;
             _items.Flush();
+            Log.Verbose("Object {@obj} added into list {file}", obj, Filepath);
             return (T)obj;
         }
 
@@ -298,6 +305,11 @@ namespace PM.Collections
             var pointer = _pointersToPersistentObjects.GetNext();
             var obj = _persistentFactory.CreateInternalObjectInList(item, pointer);
 
+            if (CastleManager.TryGetInterceptor(obj, out var objInterceptor))
+            {
+                objInterceptor!.FilePointerCount++;
+            }
+
             _items[ListCount++] = pointer;
             _items.Flush();
             return (T)obj;
@@ -320,6 +332,7 @@ namespace PM.Collections
             {
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
+            var obj = _items[index];
             if (index < ListCount)
             {
                 for (int i = index; i < ListCount - 1; i++)
@@ -329,9 +342,12 @@ namespace PM.Collections
             }
             _items[ListCount - 1] = default;
             ListCount--;
-            //var pm = PmFactory.CreatePm(
-            //        Path.Combine(PmGlobalConfiguration.PmInternalsFolder, _items[index].ToString()));
-            //pm.DeleteFile();
+
+            Log.Verbose("Object {@obj} removed from list {file}", obj, Filepath);
+            if (CastleManager.TryGetInterceptor(obj, out var objInterceptor))
+            {
+                objInterceptor!.FilePointerCount--;
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -354,7 +370,6 @@ namespace PM.Collections
 
                 if (!IsRoot)
                 {
-                    FileHandlerManager.ReleaseObjectFromMemory(Filepath);
                     FileHandlerManager.CloseAndRemoveFile(Filepath);
                 }
             }

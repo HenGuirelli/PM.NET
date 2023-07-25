@@ -6,6 +6,7 @@ using PM.Configs;
 using PM.CastleHelpers;
 using PM.Collections;
 using System.Globalization;
+using Serilog;
 
 namespace PM.Managers
 {
@@ -257,8 +258,9 @@ namespace PM.Managers
                             var stringPmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm.FileBasedStream);
                             return stringPmCSharpDefinedTypes.ReadString();
                         }
-                        catch (FileNotFoundException)
+                        catch (FileNotFoundException ex)
                         {
+                            Log.Error(ex, "Error on get value from pmem");
                             return null;
                         }
                     }

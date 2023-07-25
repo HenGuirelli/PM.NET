@@ -1,14 +1,24 @@
 ﻿using PM.Collections.Internals;
 using PM.Core;
 using Serilog;
+using System.Diagnostics;
 
 namespace PM.Managers
 {
     public class FileHandlerItem
     {
         public FileBasedStream FileBasedStream { get; }
-        public bool HasMemoryReference { get; set; } = true;
-        public ulong FilePointerReference { get; set; }
+        private ulong _filePointerReference;
+        public ulong FilePointerReference
+        {
+            get => _filePointerReference;
+            set
+            {
+                Log.Verbose("file {filename} set PointerReference to {pointerReference}",
+                    FileBasedStream.FilePath, value);
+                _filePointerReference = value;
+            }
+        }
 
         public FileHandlerItem(FileBasedStream fileBasedStream)
         {
@@ -52,7 +62,6 @@ namespace PM.Managers
             {
                 if (pmCached.FileBasedStream.IsDisposed)
                 {
-                    ReleaseObjectFromMemory(pmCached.FileBasedStream);
                     return CreateHandler(filepath, size);
                 }
                 return pmCached;
@@ -73,6 +82,7 @@ namespace PM.Managers
             catch (CollectionLimitReachedException)
             {
                 var streamsToClose =
+                    //_fileHandlersByFilename.CleanOldValues((int)(_fileHandlersByFilename.Capacity * .2));
                     _fileHandlersByFilename.CleanOldValues(_fileHandlersByFilename.Capacity / 2);
 
                 var itensCloseds = new List<string>(streamsToClose.Count());
@@ -87,7 +97,7 @@ namespace PM.Managers
                     {
                         Log.Error(ex, "File {FilePath} failed to closed", item.FilePath);
                     }
-                    Log.Verbose("Files closed: {files}", itensCloseds);
+                    //Log.Verbose("Files closed: {files}", itensCloseds);
                 }
 
 
@@ -103,19 +113,6 @@ namespace PM.Managers
             return fileHandlerItem;
         }
 
-        public static void ReleaseObjectFromMemory(FileBasedStream fileBasedStream)
-        {
-            ReleaseObjectFromMemory(fileBasedStream.FilePath);
-        }
-
-        public static void ReleaseObjectFromMemory(string filepath)
-        {
-            if (_fileHandlersByFilename.TryGetValue(filepath, out var fileHandlerItem))
-            {
-                fileHandlerItem.HasMemoryReference = false;
-            }
-        }
-
         public static bool CloseAndRemoveFile(FileBasedStream fileBasedStream)
         {
             return CloseAndRemoveFile(fileBasedStream.FilePath);
@@ -126,6 +123,7 @@ namespace PM.Managers
             if (CloseFile(filepath))
             {
                 File.Delete(filepath);
+                Log.Verbose("File {filepath} deleted successfully", filepath);
                 return true;
             }
             else
@@ -133,6 +131,7 @@ namespace PM.Managers
                 try
                 {
                     File.Delete(filepath);
+                    Log.Verbose("File {filepath} deleted successfully (handler already closed)", filepath);
                     return true;
                 }
                 catch (Exception ex)
@@ -148,14 +147,32 @@ namespace PM.Managers
             if (_fileHandlersByFilename.TryGetValue(filepath, out var fileHandlerItem))
             {
                 // Only reference from this class
-                if (!fileHandlerItem.HasMemoryReference && fileHandlerItem.FilePointerReference == 0)
+                if (fileHandlerItem.FilePointerReference == 0)
                 {
                     if (_fileHandlersByFilename.TryRemove(filepath, out var removedHandler))
                     {
                         removedHandler.FileBasedStream.Close();
+                        Log.Verbose("File handler from {filename} closed successfully", filepath);
                         return true;
                     }
                 }
+                else
+                {
+                    Log.Information(
+                        "Method {method} called but file handler from {filename} " +
+                        "yet have {reference} references",
+                        nameof(CloseFile),
+                        filepath,
+                        fileHandlerItem.FilePointerReference);
+                }
+            }
+            else
+            {
+                var stackTrace = new StackTrace();
+                Log.Information(
+                    "Argument filepath {filepath} not found to close handler, stack={stackTrace}",
+                    filepath,
+                    stackTrace.ToString());
             }
             return false;
         }

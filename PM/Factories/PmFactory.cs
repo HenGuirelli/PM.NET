@@ -8,13 +8,21 @@ namespace PM.Factories
     {
         public static FileBasedStream CreatePm(string pmMemoryMappedFile, long size = 4096)
         {
-            if (PmGlobalConfiguration.PmTarget == PmTargets.PM)
+            try
             {
-                return new Core.PmStream(pmMemoryMappedFile, size);
+                if (PmGlobalConfiguration.PmTarget == PmTargets.PM)
+                {
+                    return new Core.PmStream(pmMemoryMappedFile, size);
+                }
+                if (PmGlobalConfiguration.PmTarget == PmTargets.TraditionalMemoryMappedFile)
+                {
+                    return new MemoryMappedStream(pmMemoryMappedFile, size: size);
+                }
             }
-            if (PmGlobalConfiguration.PmTarget == PmTargets.TraditionalMemoryMappedFile)
+            catch (Exception ex)
             {
-                return new MemoryMappedStream(pmMemoryMappedFile, size: size);
+                Log.Error(ex, "Error on create Stream");
+                throw;
             }
             throw new ArgumentException(
                 nameof(PmGlobalConfiguration.PmTarget));

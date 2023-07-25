@@ -1,5 +1,6 @@
 ﻿using Serilog;
 using System.IO.MemoryMappedFiles;
+using System.Diagnostics;
 
 namespace PM.Core
 {
@@ -29,7 +30,8 @@ namespace PM.Core
                     FileShare.None);
                 fs.SetLength(_size);
             }
-            Log.Verbose("Opening file={file}, size={size}", FilePath, _size);
+            var stackTrace = new StackTrace();
+            Log.Verbose("Opening file={file}, size={size}, on={StackTrace}", FilePath, _size, stackTrace.ToString());
             _memoryMappedFile = MemoryMappedFile.CreateFromFile(FilePath);
             _memoryMappedViewStream =
                 _memoryMappedFile.CreateViewStream(0, _size, MemoryMappedFileAccess.ReadWrite);

@@ -5,7 +5,7 @@ using PM.Managers;
 using PM.PmContent;
 using PM.Proxies;
 using PM.Startup;
-using System.Reflection;
+using Serilog;
 
 namespace PM
 {
@@ -23,6 +23,13 @@ namespace PM
 
         static IPersistentFactory()
         {
+            AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+            {
+                var exception = (Exception)args.ExceptionObject;
+                Log.Error(exception, "Unhandled Exception: {Message}", exception.Message);
+                Log.CloseAndFlush();
+            };
+
             _thread = new Thread(() =>
             {
                 while (true)
