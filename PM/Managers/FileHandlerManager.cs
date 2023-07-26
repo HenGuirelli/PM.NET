@@ -169,9 +169,8 @@ namespace PM.Managers
             else
             {
                 Log.Information(
-                    "Argument filepath {filepath} not found to close handler, stack={stackTrace}",
-                    filepath,
-                    FileBasedStream.GetStack());
+                    "Argument filepath {filepath} not found to close handler",
+                    filepath);
             }
             return false;
         }

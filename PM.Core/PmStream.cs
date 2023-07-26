@@ -81,12 +81,12 @@ namespace PM.Core
                 return 0;
             }
             Marshal.Copy(_pmemPtr + (nint)_position, buffer, offset, buffer.Length);
-            _position += count;
             return count;
         }
 
         public override long Seek(long offset, SeekOrigin origin)
         {
+            base.LogSeek(offset, origin);
             long newPosition = origin switch
             {
                 SeekOrigin.Begin => offset,
@@ -116,7 +116,6 @@ namespace PM.Core
         {
             base.Write(buffer, offset, count);
             Marshal.Copy(buffer, offset, _pmemPtr + (nint)_position, count);
-            _position += count;
         }
 
         public override void Resize(int size)

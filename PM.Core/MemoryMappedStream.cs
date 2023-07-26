@@ -62,6 +62,7 @@ namespace PM.Core
 
         public override long Seek(long offset, SeekOrigin origin)
         {
+            base.LogSeek(offset, origin);
             return _memoryMappedViewStream.Seek(offset, origin);
         }
 
