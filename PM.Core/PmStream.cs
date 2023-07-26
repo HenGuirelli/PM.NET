@@ -10,6 +10,7 @@ namespace PM.Core
         public override bool CanSeek => true;
         public override bool CanWrite => true;
         public override long Length => _length;
+        public bool IsPersistent { get; private set; }
         public override long Position
         {
             get => _position;
@@ -25,7 +26,6 @@ namespace PM.Core
 
 
         private IntPtr _pmemPtr;
-        private bool _isPersistent;
         private long _length;
         private long _position;
 
@@ -33,7 +33,6 @@ namespace PM.Core
         public PmStream(string path, long length)
         {
             FilePath = path;
-            Log.Verbose("Creating file={file}, size={size}", path, length);
             MapFile(path, length);
 
             if (_pmemPtr == IntPtr.Zero)
@@ -61,7 +60,7 @@ namespace PM.Core
                 mappedLength: ref mappedLength,
                 isPersistent: ref isPersistent);
 
-            _isPersistent = isPersistent != 0;
+            IsPersistent = isPersistent != 0;
             _length = (long)mappedLength;
         }
 
@@ -115,10 +114,7 @@ namespace PM.Core
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            if (_position + count > _length)
-            {
-                _length = _position + count;
-            }
+            base.Write(buffer, offset, count);
             Marshal.Copy(buffer, offset, _pmemPtr + (nint)_position, count);
             _position += count;
         }

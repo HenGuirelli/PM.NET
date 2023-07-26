@@ -1,6 +1,4 @@
 ﻿using Serilog;
-using System.Diagnostics;
-using System.Text;
 
 namespace PM.Core
 {
@@ -11,84 +9,50 @@ namespace PM.Core
 
         public virtual void Delete()
         {
-            Log.Verbose("Deleting file={file}, size={size}, stack={StackTrace}",
-                FilePath,
-                Length,
-                GetStack());
-
+            Log.Verbose("Deleting file={file}, size={size}", FilePath, Length);
             File.Delete(FilePath);
         }
 
         public virtual void Open()
         {
-            Log.Verbose("Opening file={file}, size={size}, stack={StackTrace}",
-                FilePath,
-                Length,
-                GetStack());
+            Log.Verbose("Opening file={file}, size={size}", FilePath, Length);
         }
 
         public override void Flush()
         {
-            Log.Verbose("Flushing file={file}, size={size}, stack={StackTrace}",
-                FilePath,
-                Length,
-                GetStack());
+            Log.Verbose("Flushing file={file}, size={size}", FilePath, Length);
         }
 
         public override void SetLength(long value)
         {
-            Log.Verbose("SetLength called on file={file}, size={size}, stack={StackTrace}",
-                FilePath,
-                Length,
-                GetStack());
+            Log.Verbose("SetLength called on file={file}, size={size}", FilePath, Length);
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            Log.Verbose(
+                "Writing on file={file}, size={size}, " +
+                "buffer={buffer}, offset={offset}, count={count}",
+                FilePath, Length,
+                buffer, offset, count);
         }
 
         public virtual void Resize(int size)
         {
             Log.Verbose("Resizing file {file}. " +
-                "Old size={oldSize}, new size={size}, stack={StackTrace}",
-                FilePath, Length, size, GetStack());
+                "Old size={oldSize}, new size={size}",
+                FilePath, Length, size);
         }
 
         public override void Close()
         {
-            Log.Verbose("Closing file {file}, stack={StackTrace}", FilePath, GetStack());
+            Log.Verbose("Closing file {file}", FilePath);
         }
 
         protected override void Dispose(bool disposing)
         {
-            Log.Verbose("Disposing file {file}, stack={StackTrace}", FilePath, GetStack());
+            Log.Verbose("Disposing file {file}", FilePath);
             base.Dispose(disposing);
-        }
-
-        public static string GetStack()
-        {
-            if (Log.IsEnabled(Serilog.Events.LogEventLevel.Verbose))
-            {
-                var stackTrace = new StackTrace();
-                return FormatStackTrace(stackTrace);
-            }
-            return string.Empty;
-        }
-
-        public static string FormatStackTrace(StackTrace stackTrace)
-        {
-            var frames = stackTrace.GetFrames();
-            if (frames == null)
-                return string.Empty;
-
-            var formattedStack = new StringBuilder();
-            foreach (var frame in frames)
-            {
-                var method = frame.GetMethod();
-                var typeName = method?.DeclaringType?.FullName ?? "Unknown Type";
-                var methodName = method?.Name ?? "Unknown Method";
-                var lineNumber = frame.GetFileLineNumber();
-
-                formattedStack.AppendLine($"{typeName}.{methodName}() (Line {lineNumber})");
-            }
-
-            return formattedStack.ToString();
         }
     }
 }

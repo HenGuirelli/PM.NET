@@ -73,6 +73,7 @@ namespace PM.Core
 
         public override void Write(byte[] buffer, int offset, int count)
         {
+            base.Write(buffer, offset, count);
             _memoryMappedViewStream.Write(buffer, offset, count);
         }
 
