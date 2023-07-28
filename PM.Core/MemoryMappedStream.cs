@@ -74,7 +74,12 @@ namespace PM.Core
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            base.Write(buffer, offset, count);
+            Log.Verbose(
+                "Writing on file={file}, size={size}, " +
+                "buffer={buffer}, offset={offset}, count={count}",
+                FilePath, Length,
+                buffer, offset, count);
+            Log.CloseAndFlush();
             _memoryMappedViewStream.Write(buffer, offset, count);
         }
 

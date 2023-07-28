@@ -42,16 +42,6 @@ namespace PM.Core
             Log.CloseAndFlush();
         }
 
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            Log.Verbose(
-                "Writing on file={file}, size={size}, " +
-                "buffer={buffer}, offset={offset}, count={count}",
-                FilePath, Length,
-                buffer, offset, count);
-            Log.CloseAndFlush();
-        }
-
         public virtual void Resize(int size)
         {
             Log.Verbose("Resizing file {file}. " +

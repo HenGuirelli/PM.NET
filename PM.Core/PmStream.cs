@@ -114,8 +114,16 @@ namespace PM.Core
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            base.Write(buffer, offset, count);
+            Log.Verbose(
+                "Writing on file={file}, size={size}, " +
+                "buffer={buffer}, offset={offset}, count={count}. " +
+                "destination={deatination}",
+                FilePath, Length,
+                buffer, offset, count,
+                _pmemPtr + (nint)_position);
+            Log.CloseAndFlush();
             Marshal.Copy(buffer, offset, _pmemPtr + (nint)_position, count);
+            _position += count;
         }
 
         public override void Resize(int size)
