@@ -105,6 +105,7 @@ namespace PM.Core
         public override void Close()
         {
             base.Close();
+            IsClosed = true;
 
             _memoryMappedViewStream?.Dispose();
             _memoryMappedFile?.Dispose();
@@ -114,7 +115,6 @@ namespace PM.Core
         {
             base.Dispose(disposing);
             Close();
-            IsClosed = true;
         }
     }
 }
