@@ -60,7 +60,7 @@ namespace PM.Managers
         {
             if (_fileHandlersByFilename.TryGetValue(filepath, out var pmCached))
             {
-                if (pmCached.FileBasedStream.IsDisposed)
+                if (pmCached.FileBasedStream.IsClosed)
                 {
                     return CreateHandler(filepath, size);
                 }

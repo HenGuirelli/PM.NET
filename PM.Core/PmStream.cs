@@ -87,7 +87,7 @@ namespace PM.Core
         public override long Seek(long offset, SeekOrigin origin)
         {
             base.LogSeek(offset, origin);
-            if (IsDisposed)
+            if (IsClosed)
             {
                 throw new ObjectDisposedException($"file {FilePath} disposed");
             }
@@ -142,7 +142,7 @@ namespace PM.Core
         public override void Close()
         {
             base.Close();
-            IsDisposed = true;
+            IsClosed = true;
 
             if (_pmemPtr != IntPtr.Zero)
             {

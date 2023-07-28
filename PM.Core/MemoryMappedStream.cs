@@ -114,7 +114,7 @@ namespace PM.Core
         {
             base.Dispose(disposing);
             Close();
-            IsDisposed = true;
+            IsClosed = true;
         }
     }
 }

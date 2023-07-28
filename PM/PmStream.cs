@@ -49,11 +49,17 @@ namespace PM
         {
             try
             {
+                if (_pm.IsClosed)
+                {
+                    Log.Information("File {file} closed on Seek. reopening file", FilePath);
+                    FileHandlerManager.RegisterNewHandler(_pm);
+                    _pm.Open();
+                }
                 return _pm.Seek(offset, origin);
             }
-            catch (ObjectDisposedException ex)
+            catch (Exception ex)
             {
-                Log.Error(ex, "{nameEx} on Seek. reopening file {file}", nameof(ObjectDisposedException), FilePath);
+                Log.Error(ex, "{nameEx} on Seek. Try reopening file {file}", nameof(ObjectDisposedException), FilePath);
                 FileHandlerManager.RegisterNewHandler(_pm);
                 _pm.Open();
                 return _pm.Seek(offset, origin);
@@ -84,7 +90,7 @@ namespace PM
         {
             _pm.Close();
             _pm.Dispose();
-            IsDisposed = true;
+            IsClosed = true;
         }
     }
 }
