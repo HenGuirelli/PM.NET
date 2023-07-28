@@ -33,7 +33,8 @@ namespace PM.Core
         public PmStream(string path, long length)
         {
             FilePath = path;
-            MapFile(path, length);
+            _length = length;
+            this.Open();
 
             if (_pmemPtr == IntPtr.Zero)
             {
@@ -62,6 +63,10 @@ namespace PM.Core
 
             IsPersistent = isPersistent != 0;
             _length = (long)mappedLength;
+
+            Log.Verbose(
+                "PM file {filepath} with size {size} mapped into pointer {startP} to {endP} ",
+                FilePath, _length, _pmemPtr, _pmemPtr + (nint)_length);
         }
 
         public override void Flush()

@@ -62,6 +62,7 @@ namespace PM.Managers
             {
                 if (pmCached.FileBasedStream.IsClosed)
                 {
+                    pmCached.FileBasedStream.Open();
                     return CreateHandler(filepath, size);
                 }
                 return pmCached;
