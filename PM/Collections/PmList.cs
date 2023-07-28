@@ -218,7 +218,7 @@ namespace PM.Collections
             _items[ListCount++] = pointer;
             _cache[pointer] = obj;
             _items.Flush();
-            Log.Verbose("Object {@obj} added into list {file}", obj, Filepath);
+            Log.Verbose("Object {@obj} added into list {file}", item, Filepath);
             return (T)obj;
         }
 

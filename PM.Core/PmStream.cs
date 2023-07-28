@@ -87,6 +87,11 @@ namespace PM.Core
         public override long Seek(long offset, SeekOrigin origin)
         {
             base.LogSeek(offset, origin);
+            if (IsDisposed)
+            {
+                throw new ObjectDisposedException($"file {FilePath} disposed");
+            }
+
             long newPosition = origin switch
             {
                 SeekOrigin.Begin => offset,
@@ -114,15 +119,15 @@ namespace PM.Core
 
         public override void Write(byte[] buffer, int offset, int count)
         {
+            var destination = _pmemPtr + (nint)_position;
             Log.Verbose(
                 "Writing on file={file}, size={size}, " +
-                "buffer={buffer}, offset={offset}, count={count}. " +
-                "destination={deatination}",
+                "buffer={buffer}, offset={offset}, count={count}, " +
+                "destination={destination}",
                 FilePath, Length,
                 buffer, offset, count,
-                _pmemPtr + (nint)_position);
-            Log.CloseAndFlush();
-            Marshal.Copy(buffer, offset, _pmemPtr + (nint)_position, count);
+                destination);
+            Marshal.Copy(buffer, offset, destination, count);
             _position += count;
         }
 
@@ -137,9 +142,11 @@ namespace PM.Core
         public override void Close()
         {
             base.Close();
+            IsDisposed = true;
 
             if (_pmemPtr != IntPtr.Zero)
             {
+                Log.Verbose("PM closed filepath={filepath}, size={size}", FilePath, Length);
                 LibpmemNativeMethods.Unmap(_pmemPtr, _length);
             }
         }
@@ -148,7 +155,6 @@ namespace PM.Core
         {
             base.Dispose(disposing);
             Close();
-            IsDisposed = true;
         }
     }
 }

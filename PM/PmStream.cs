@@ -53,7 +53,7 @@ namespace PM
             }
             catch (ObjectDisposedException ex)
             {
-                Log.Error(ex, "ObjectDisposedException on Seek. reopening file {file}", FilePath);
+                Log.Error(ex, "{nameEx} on Seek. reopening file {file}", nameof(ObjectDisposedException), FilePath);
                 FileHandlerManager.RegisterNewHandler(_pm);
                 _pm.Open();
                 return _pm.Seek(offset, origin);
