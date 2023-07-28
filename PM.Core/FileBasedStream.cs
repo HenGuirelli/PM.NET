@@ -16,6 +16,7 @@ namespace PM.Core
         public virtual void Open()
         {
             Log.Verbose("Opening file={file}, size={size}", FilePath, Length);
+            IsClosed = false;
         }
 
         public override void Flush()

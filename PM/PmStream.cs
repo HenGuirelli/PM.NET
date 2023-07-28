@@ -83,6 +83,7 @@ namespace PM
 
         public override void Open()
         {
+            IsClosed = false;
             _pm.Open();
         }
 
