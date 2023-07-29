@@ -51,7 +51,7 @@ namespace PM
             {
                 if (_pm.IsClosed)
                 {
-                    Log.Information("File {file} closed on Seek. reopening file", FilePath);
+                    Log.Debug("File {file} closed on Seek. reopening file", FilePath);
                     FileHandlerManager.RegisterNewHandler(_pm);
                     _pm.Open();
                 }
