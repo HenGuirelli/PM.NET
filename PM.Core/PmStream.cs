@@ -162,8 +162,13 @@ namespace PM.Core
 
             if (_pmemPtr != IntPtr.Zero)
             {
-                Log.Verbose("PM closed filepath={filepath}, size={size}", FilePath, Length);
-                LibpmemNativeMethods.Unmap(_pmemPtr, _length);
+                Log.Verbose("PM unmapped pointer={}, filepath={filepath}, size={size}",
+                    _pmemPtr, FilePath, Length);
+                if (LibpmemNativeMethods.Unmap(_pmemPtr, _length) == -1)
+                {
+                    Log.Error("Error on Unmap memory area pointer={pointer}, size={size}",
+                        _pmemPtr, Length);
+                }
             }
             else
             {
