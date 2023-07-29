@@ -162,7 +162,7 @@ namespace PM.Core
 
             if (_pmemPtr != IntPtr.Zero)
             {
-                Log.Verbose("PM unmapped pointer={}, filepath={filepath}, size={size}",
+                Log.Verbose("PM unmapped pointer={pointer}, filepath={filepath}, size={size}",
                     _pmemPtr, FilePath, Length);
                 if (LibpmemNativeMethods.Unmap(_pmemPtr, _length) == -1)
                 {
