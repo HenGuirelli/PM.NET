@@ -30,6 +30,14 @@ namespace PM
                 Log.CloseAndFlush();
             };
 
+            AppDomain.CurrentDomain.FirstChanceException += (sender, args) =>
+            {
+                if (args.Exception is AccessViolationException er)
+                {
+                    Log.Fatal(er, "AccessViolationException raised");
+                }
+            };
+
             _thread = new Thread(() =>
             {
                 while (true)
