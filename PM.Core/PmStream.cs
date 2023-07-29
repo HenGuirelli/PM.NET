@@ -132,19 +132,7 @@ namespace PM.Core
                 FilePath, Length,
                 buffer, offset, count,
                 destination);
-            try{
-                Marshal.Copy(buffer, offset, destination, count);
-            }catch(System.AccessViolationException ex){
-                Log.Error(ex, 
-                    "Error on writing on file={file}, size={size}, " +
-                    "buffer={buffer}, offset={offset}, count={count}, " +
-                    "destination={destination}",
-                    FilePath, Length,
-                    buffer, offset, count,
-                    destination);
-                Open();
-                Marshal.Copy(buffer, offset, destination, count);
-            }
+            Marshal.Copy(buffer, offset, destination, count);
             _position += count;
         }
 
