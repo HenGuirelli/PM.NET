@@ -154,6 +154,10 @@ namespace PM.Core
                 Log.Verbose("PM closed filepath={filepath}, size={size}", FilePath, Length);
                 LibpmemNativeMethods.Unmap(_pmemPtr, _length);
             }
+            else
+            {
+                Log.Verbose("Unable to close PM filepath={filepath}, size={size}. _pmPtr is Zero", FilePath, Length);
+            }
         }
 
         protected override void Dispose(bool disposing)
