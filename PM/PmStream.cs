@@ -78,7 +78,8 @@ namespace PM
 
         public override void Close()
         {
-            Dispose();
+            IsClosed = true;
+            _pm.Close();
         }
 
         public override void Open()
@@ -89,7 +90,6 @@ namespace PM
 
         public void Dispose()
         {
-            _pm.Close();
             _pm.Dispose();
             IsClosed = true;
         }

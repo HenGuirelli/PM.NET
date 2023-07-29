@@ -34,11 +34,6 @@ namespace PM.Core
             FilePath = path;
             _length = length;
             this.Open();
-
-            if (_pmemPtr == IntPtr.Zero)
-            {
-                throw new Exception("Failed to map PMEM file.");
-            }
         }
 
         public override void Open()
@@ -59,6 +54,12 @@ namespace PM.Core
                 mode: Mode.Octal777,
                 mappedLength: ref mappedLength,
                 isPersistent: ref isPersistent);
+
+
+            if (_pmemPtr == IntPtr.Zero)
+            {
+                throw new Exception("Failed to map PMEM file.");
+            }
 
             IsPersistent = isPersistent != 0;
             _length = (long)mappedLength;
@@ -162,7 +163,7 @@ namespace PM.Core
 
             if (_pmemPtr != IntPtr.Zero)
             {
-                if (LibpmemNativeMethods.Unmap(_pmemPtr, _length) == 0)
+                if (LibpmemNativeMethods.Unmap(_pmemPtr, Length) == 0)
                 {
                     Log.Verbose("PM unmapped pointer={pointer}, filepath={filepath}, size={size}",
                         _pmemPtr, FilePath, Length);
