@@ -30,14 +30,6 @@ namespace PM
                 Log.CloseAndFlush();
             };
 
-            AppDomain.CurrentDomain.FirstChanceException += (sender, args) =>
-            {
-                if (args.Exception is AccessViolationException er)
-                {
-                    Log.Fatal(er, "AccessViolationException raised");
-                }
-            };
-
             _thread = new Thread(() =>
             {
                 while (true)
@@ -46,15 +38,20 @@ namespace PM
 
                     try
                     {
+                        Log.Information("Collect starting");
                         _pointers =
                             _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
+                        Log.Information("Collect ending successfully");
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        Log.Error(ex, "Error on collect files");
                     }
                 }
             });
+            Log.Information("First collect starting");
             _pointers = _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
+            Log.Information("First collect ending successfully");
             _generator = new(_pointers);
 
             _thread.Start();

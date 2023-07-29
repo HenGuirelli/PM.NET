@@ -3,6 +3,7 @@ using PM.Core;
 using PM.Managers;
 using PM.PmContent;
 using System.Reflection;
+using Serilog;
 
 namespace PM.Startup
 {
@@ -63,6 +64,7 @@ namespace PM.Startup
             {
                 if (!_referenceTree.Contains(Path.GetFileNameWithoutExtension(pmFile)))
                 {
+                    Log.Debug("Removing file {file} not in reference tree", pmFile);
                     FileHandlerManager.CloseAndRemoveFile(pmFile);
                 }
             }
@@ -83,10 +85,12 @@ namespace PM.Startup
                 var parsedListItemFile = ulong.Parse(Path.GetFileNameWithoutExtension(listItemFile));
                 if (!allPmListItemReferences.Contains(parsedListItemFile))
                 {
+                    Log.Debug("Removing file {listItemFile} not in reference tree", listItemFile);
                     FileHandlerManager.CloseAndRemoveFile(listItemFile);
                 }
             }
 
+            Log.Verbose("Pointers files: {@pointers}", _pointerCount);
             return _pointerCount;
         }
 
@@ -127,7 +131,7 @@ namespace PM.Startup
             }
         }
 
-        void CreateTreeByNode(Node node)
+        private void CreateTreeByNode(Node node)
         {
             var pm = FileHandlerManager.CreateHandler(node.Filepath);
             var pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm.FileBasedStream);
@@ -174,7 +178,7 @@ namespace PM.Startup
             _pointerCount[pointer]++;
         }
 
-        static List<Type> GetAllLoadedClasses()
+        private static List<Type> GetAllLoadedClasses()
         {
             List<Type> types = new List<Type>();
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();

@@ -1,5 +1,4 @@
 ﻿using Serilog;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace PM.Core
@@ -132,7 +131,19 @@ namespace PM.Core
                 FilePath, Length,
                 buffer, offset, count,
                 destination);
-            Marshal.Copy(buffer, offset, destination, count);
+            try{
+                Marshal.Copy(buffer, offset, destination, count);
+            }catch(System.AccessViolationException ex){
+                Log.Error(ex, 
+                    "Error on writing on file={file}, size={size}, " +
+                    "buffer={buffer}, offset={offset}, count={count}, " +
+                    "destination={destination}",
+                    FilePath, Length,
+                    buffer, offset, count,
+                    destination);
+                Open();
+                Marshal.Copy(buffer, offset, destination, count);
+            }
             _position += count;
         }
 
