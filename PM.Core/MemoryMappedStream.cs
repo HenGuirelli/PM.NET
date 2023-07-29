@@ -79,7 +79,6 @@ namespace PM.Core
                 "buffer={buffer}, offset={offset}, count={count}",
                 FilePath, Length,
                 buffer, offset, count);
-            Log.CloseAndFlush();
             _memoryMappedViewStream.Write(buffer, offset, count);
         }
 
