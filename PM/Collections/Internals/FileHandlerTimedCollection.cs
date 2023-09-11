@@ -62,11 +62,10 @@ namespace PM.Collections.Internals
                     throw new CollectionLimitReachedException(Capacity);
                 }
                 var dictItem = new FileHandlerTimedDictItem<string, FileHandlerItem>(key, value);
-                _orderedFileHandlers.Add(dictItem);
-                Log.Verbose("{class} Add {key}", nameof(FileHandlerTimedCollection), key);
-                if (!_fileHandlersByFilename.TryAdd(key, dictItem))
+                if (_fileHandlersByFilename.TryAdd(key, dictItem))
                 {
-                    throw new Exception("Error on add item " + key);
+                    _orderedFileHandlers.Add(dictItem);
+                    Log.Verbose("{class} Add {key}", nameof(FileHandlerTimedCollection), key);
                 }
             }
             finally

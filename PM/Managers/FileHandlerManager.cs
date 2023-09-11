@@ -159,7 +159,7 @@ namespace PM.Managers
                 }
                 else
                 {
-                    Log.Information(
+                    Log.Debug(
                         "Method {method} called but file handler from {filename} " +
                         "yet have {reference} references",
                         nameof(CloseFile),
@@ -169,7 +169,7 @@ namespace PM.Managers
             }
             else
             {
-                Log.Information(
+                Log.Debug(
                     "Argument filepath {filepath} not found to close handler",
                     filepath);
             }
