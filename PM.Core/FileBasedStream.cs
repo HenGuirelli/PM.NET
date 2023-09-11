@@ -6,6 +6,7 @@ namespace PM.Core
     {
         public virtual string FilePath { get; protected set; } = string.Empty;
         public bool IsClosed { get; protected set; } = true;
+        public IntPtr InitialPointer { get; protected set; }
 
         public virtual void Delete()
         {

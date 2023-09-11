@@ -1,6 +1,5 @@
 ﻿using Serilog;
 using System.IO.MemoryMappedFiles;
-using System.Diagnostics;
 
 namespace PM.Core
 {
@@ -47,6 +46,13 @@ namespace PM.Core
             _memoryMappedFile = MemoryMappedFile.CreateFromFile(FilePath);
             _memoryMappedViewStream =
                 _memoryMappedFile.CreateViewStream(0, _size, MemoryMappedFileAccess.ReadWrite);
+
+            unsafe
+            {
+                byte* pointer = null;
+                _memoryMappedViewStream.SafeMemoryMappedViewHandle.AcquirePointer(ref pointer);
+                InitialPointer = (IntPtr)pointer;
+            }
         }
 
         public override void Flush()
