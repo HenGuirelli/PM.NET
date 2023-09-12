@@ -136,7 +136,7 @@ namespace PM.Core
             _position += count;
         }
 
-        public override void Resize(int size)
+        public override void Resize(long size)
         {
             base.Resize(size);
 

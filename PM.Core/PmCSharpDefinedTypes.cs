@@ -1,5 +1,4 @@
 ﻿using System.Buffers.Binary;
-using System.Diagnostics;
 using System.Text;
 
 namespace PM.Core
@@ -9,6 +8,7 @@ namespace PM.Core
         private readonly FileBasedStream _pm;
         const string ReadErrorExceptionMessage = "Error on read from Stream";
         public string FilePath => _pm.FilePath;
+        public FileBasedStream FileBasedStream => _pm;
 
         public PmCSharpDefinedTypes(FileBasedStream pm)
         {
@@ -344,7 +344,7 @@ namespace PM.Core
             _pm.Delete();
         }
 
-        internal void Resize(int size)
+        internal void Resize(long size)
         {
             _pm.Resize(size);
         }

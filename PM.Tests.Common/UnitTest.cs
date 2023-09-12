@@ -28,6 +28,15 @@ namespace PM.Tests.Common
             return new MemoryMappedStream(CreateFilePath(mappedMemoryFilePath), size);
         }
 
+        protected static void DeleteFile(string filename)
+        {
+            var filepath = Path.Combine(PmGlobalConfiguration.PmInternalsFolder, filename);
+            if (File.Exists(filepath))
+            {
+                File.Delete(filepath);
+            }
+        }
+
         protected static void DeleteAllFilesFromFolder(string folder)
         {
             foreach (string file in Directory.EnumerateFiles(folder))

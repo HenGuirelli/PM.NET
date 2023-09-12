@@ -88,32 +88,45 @@ namespace PM.Core
             _memoryMappedViewStream.Write(buffer, offset, count);
         }
 
-        public override void Resize(int size)
+        public override void Resize(long size)
         {
             base.Resize(size);
 
             Close();
-
-            var fs = new FileStream(
-                FilePath,
-                FileMode.OpenOrCreate,
-                FileAccess.ReadWrite,
-                FileShare.None);
-            fs.SetLength(size);
-            fs.Dispose();
             _size = size;
 
-            _memoryMappedFile = MemoryMappedFile.CreateFromFile(FilePath);
-            _memoryMappedViewStream = _memoryMappedFile.CreateViewStream(0, size, MemoryMappedFileAccess.ReadWrite);
+            using (var fs = new FileStream(
+                                    FilePath,
+                                    FileMode.Create,
+                                    FileAccess.Write,
+                                    FileShare.None))
+            {
+                fs.SetLength(_size);
+            }
+
+            Open();
         }
 
         public override void Close()
         {
-            base.Close();
-            IsClosed = true;
+            if (!IsClosed)
+            {
+                base.Close();
 
-            _memoryMappedViewStream?.Dispose();
-            _memoryMappedFile?.Dispose();
+                if (InitialPointer != IntPtr.Zero)
+                {
+                    _memoryMappedViewStream.SafeMemoryMappedViewHandle.ReleasePointer();
+                    InitialPointer = IntPtr.Zero;
+                }
+
+                _memoryMappedViewStream?.Close();
+                _memoryMappedViewStream?.Dispose();
+                _memoryMappedFile?.Dispose();
+
+
+
+                IsClosed = true;
+            }
         }
 
         protected override void Dispose(bool disposing)

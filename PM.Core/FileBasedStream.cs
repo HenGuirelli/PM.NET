@@ -39,7 +39,7 @@ namespace PM.Core
             Log.Verbose("SetLength called on file={file}, size={size}", FilePath, Length);
         }
 
-        public virtual void Resize(int size)
+        public virtual void Resize(long size)
         {
             Log.Verbose("Resizing file {file}. " +
                 "Old size={oldSize}, new size={size}",

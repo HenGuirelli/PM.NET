@@ -40,7 +40,7 @@ namespace PM
             return _pm.Read(buffer, offset, count);
         }
 
-        public override void Resize(int size)
+        public override void Resize(long size)
         {
             _pm.Resize(size);
         }
