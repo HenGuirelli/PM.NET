@@ -92,12 +92,14 @@ namespace PM.Core
         {
             base.Resize(size);
 
+            Flush();
+
             Close();
             _size = size;
 
             using (var fs = new FileStream(
                                     FilePath,
-                                    FileMode.Create,
+                                    FileMode.Open,
                                     FileAccess.Write,
                                     FileShare.None))
             {

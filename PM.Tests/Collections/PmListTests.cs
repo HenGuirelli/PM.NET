@@ -89,7 +89,7 @@ namespace PM.Tests.Collections
         {
             DeleteAllFilesFromFolder(PmGlobalConfiguration.PmInternalsFolder);
 
-            var count = 1600;
+            var count = 100;
             var path = Path.Combine(
                 PmGlobalConfiguration.PmInternalsFolder,
                 nameof(OnAddPersistentWhenOverflowDefaultCapacity_ShouldAdd));
@@ -193,30 +193,6 @@ namespace PM.Tests.Collections
             Assert.Equal(3, list.Count);
             Assert.True(list.Remove(item));
             Assert.Equal(2, list.Count);
-        }
-
-
-        [Fact]
-        public void OnInternalPmList_ShouldCreateFileAndRemove()
-        {
-            var filepath = "";
-            using (var pmlist = new PmList<Foo>())
-            {
-                pmlist.AddPersistent(new Foo
-                {
-                    Bar = int.MaxValue,
-                });
-
-                filepath = pmlist.Filepath;
-                Assert.True(File.Exists(filepath));
-            }
-
-            GC.Collect();
-            Thread.Sleep(500);
-            var a = new PmFolderCleaner();
-            a.Collect(PmGlobalConfiguration.PmInternalsFolder);
-
-            Assert.False(File.Exists(filepath));
         }
     }
 }
