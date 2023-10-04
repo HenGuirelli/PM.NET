@@ -5,7 +5,12 @@ namespace PM.Core
     public abstract class FileBasedStream : Stream
     {
         public virtual string FilePath { get; protected set; } = string.Empty;
-        public bool IsClosed { get; protected set; } = true;
+        private bool _isClosed = true;
+        public virtual bool IsClosed
+        {
+            get => _isClosed;
+            set => _isClosed = value;
+        }
         public IntPtr InitialPointer { get; protected set; }
 
         public virtual void Delete()

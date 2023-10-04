@@ -9,6 +9,8 @@ namespace PM
     {
         private readonly FileBasedStream _pm;
 
+        public override bool IsClosed { get => _pm.IsClosed; set => _pm.IsClosed = value; }
+
         public override string FilePath => _pm.FilePath;
 
         public PmStream(string filepath, long size = 4096)
@@ -78,14 +80,14 @@ namespace PM
 
         public override void Close()
         {
-            IsClosed = true;
             _pm.Close();
+            IsClosed = true;
         }
 
         public override void Open()
         {
-            IsClosed = false;
             _pm.Open();
+            IsClosed = false;
         }
 
         public void Dispose()

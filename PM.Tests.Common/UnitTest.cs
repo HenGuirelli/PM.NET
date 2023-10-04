@@ -14,6 +14,14 @@ namespace PM.Tests.Common
             PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
         }
 
+        protected void ClearFolder()
+        {
+            foreach( var filename in Directory.GetFiles(PmGlobalConfiguration.PmInternalsFolder))
+            {
+                File.Delete(filename);
+            }
+        }
+
         protected static string CreateFilePath(string filename)
         {
             return Path.Combine(PmGlobalConfiguration.PmInternalsFolder, filename);

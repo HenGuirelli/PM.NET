@@ -1,7 +1,6 @@
 ﻿using PM.Collections.Internals;
 using PM.Core;
 using Serilog;
-using System.Diagnostics;
 
 namespace PM.Managers
 {
@@ -113,6 +112,17 @@ namespace PM.Managers
 
             return fileHandlerItem;
         }
+
+#if DEBUG
+        public static void CloseAllHandlers()
+        {
+            var fileHandlers = _fileHandlersByFilename.CleanOldValues(_fileHandlersByFilename.Count);
+            foreach(var handler in fileHandlers)
+            {
+                CloseAndRemoveFile(handler);
+            }
+        }
+#endif
 
         public static bool CloseAndRemoveFile(FileBasedStream fileBasedStream)
         {

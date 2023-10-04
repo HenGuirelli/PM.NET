@@ -30,31 +30,38 @@ namespace PM
                 Log.CloseAndFlush();
             };
 
-            _thread = new Thread(() =>
+            try
             {
-                while (true)
+                _thread = new Thread(() =>
                 {
-                    Thread.Sleep(PmGlobalConfiguration.CollectFileInterval);
-
-                    try
+                    while (true)
                     {
-                        Log.Information("Collect starting");
-                        _pointers =
-                            _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
-                        Log.Information("Collect ending successfully");
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "Error on collect files");
-                    }
-                }
-            });
-            Log.Information("First collect starting");
-            _pointers = _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
-            Log.Information("First collect ending successfully");
-            _generator = new(_pointers);
+                        Thread.Sleep(PmGlobalConfiguration.CollectFileInterval);
 
-            _thread.Start();
+                        try
+                        {
+                            Log.Information("Collect starting");
+                            _pointers =
+                                _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
+                            Log.Information("Collect ending successfully");
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "Error on collect files");
+                        }
+                    }
+                });
+                Log.Information("First collect starting");
+                _pointers = _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
+                Log.Information("First collect ending successfully");
+                _generator = new(_pointers);
+
+                _thread.Start();
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
 
         object CreateInternalObjectInList(object obj, ulong pmPointer, int fileSizeBytes = 4096)
@@ -87,7 +94,7 @@ namespace PM
 
             if (obj is IProxyTargetAccessor innerInterceptor)
             {
-                throw new ApplicationException($"object of type {objType} already has a proxy");
+                return obj;
             }
 
             var isRoot = IsRootObj(pmFilePath);
