@@ -8,13 +8,13 @@ namespace PM.Tests.Common
     [Collection("PM.UnitTests")]
     public abstract class UnitTest
     {
-        protected UnitTest()
+        static UnitTest()
         {
             PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
             PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
         }
 
-        protected void ClearFolder()
+        protected static void ClearFolder()
         {
             foreach( var filename in Directory.GetFiles(PmGlobalConfiguration.PmInternalsFolder))
             {
