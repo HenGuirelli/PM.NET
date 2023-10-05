@@ -1,9 +1,9 @@
-﻿using PM.Proxies;
-
-namespace PM.Transactions
+﻿namespace PM.Transactions
 {
     public static class TransactionExtensions
     {
+        private static readonly object _transactionLock = new object();
+
         public static void Transaction<T>(
             this T obj,
             Action transactionMethod)
@@ -19,23 +19,26 @@ namespace PM.Transactions
             ref TransactionState state)
         where T : class, new()
         {
-            var transaction = new TransactionManager<T>(obj);
-            state = transaction.State;
-            try
+            lock (_transactionLock)
             {
-                transaction.Begin();
+                var transaction = new TransactionManager<T>(obj);
                 state = transaction.State;
+                try
+                {
+                    transaction.Begin();
+                    state = transaction.State;
 
-                transactionMethod.Invoke();
+                    transactionMethod.Invoke();
 
-                transaction.Commit();
-                state = transaction.State;
-            }
-            catch
-            {
-                transaction.RollBack();
-                state = transaction.State;
-                throw;
+                    transaction.Commit();
+                    state = transaction.State;
+                }
+                catch
+                {
+                    transaction.RollBack();
+                    state = transaction.State;
+                    throw;
+                }
             }
         }
     }

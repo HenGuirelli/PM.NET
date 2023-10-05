@@ -16,6 +16,8 @@ namespace PM.Transactions
 
         private readonly T _obj;
         public LogFile LogFile { get; set; }
+        public const string RootExtension = ".root";
+
         private readonly IPmInterceptor _interceptor;
         private readonly string _transactionID;
         private readonly Dictionary<PropertyInfo, object> _propertiesValues = new();
@@ -52,7 +54,7 @@ namespace PM.Transactions
             if (obj is null) throw new ArgumentNullException(nameof(obj));
 
             _obj = obj;
-            _transactionID = Guid.NewGuid().ToString();
+            _transactionID = Guid.NewGuid().ToString() + RootExtension;
 
             var filename = Path.Combine(PM.Configs.PmGlobalConfiguration.PmTransactionFolder, _transactionID);
             var pm = FileHandlerManager.CreateHandler(filename);
