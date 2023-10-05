@@ -5,7 +5,6 @@ using PM.Tests.Common;
 using Bogus;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Collections.Concurrent;
 using PM.Core;
 

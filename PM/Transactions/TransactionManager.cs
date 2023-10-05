@@ -54,7 +54,7 @@ namespace PM.Transactions
             _obj = obj;
             _transactionID = Guid.NewGuid().ToString();
 
-            var filename = Path.Combine(PmGlobalConfiguration.PmTransactionFolder, _transactionID);
+            var filename = Path.Combine(PM.Configs.PmGlobalConfiguration.PmTransactionFolder, _transactionID);
             var pm = FileHandlerManager.CreateHandler(filename);
             LogFile = new LogFile(new PmCSharpDefinedTypes(pm.FileBasedStream));
 
