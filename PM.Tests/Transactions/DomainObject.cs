@@ -1,4 +1,6 @@
 ﻿using PM.Collections;
+using PM.Configs;
+using System.IO;
 
 namespace PM.Transactions.Tests
 {
@@ -30,5 +32,33 @@ namespace PM.Transactions.Tests
         public virtual bool PropBool { get; set; }
 
         public PmList<InnerDomainObject> PmList { get; set; }
+    }
+
+
+    public class SelfReferenceClass
+    {
+        public virtual int Value { get; set; }
+        public virtual SelfReferenceClass? Reference { get; set; }
+    }
+
+    public class Account
+    {
+        public virtual decimal Balance { get; set; }
+        public virtual string Name { get; set; }
+    }
+
+    public class CheckingAccounts
+    {
+        private readonly PmList<Account> _list = new PmList<Account>();
+
+        public Account AddAccount(string name, decimal balance)
+        {
+            var account = new Account
+            {
+                Name = name,
+                Balance = balance
+            };
+            return _list.AddPersistent(account);
+        }
     }
 }

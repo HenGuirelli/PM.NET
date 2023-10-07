@@ -12,7 +12,7 @@ namespace PM.Transactions.Tests
 {
     public class TransactionExtensionsTests : UnitTest
     {
-        static TransactionExtensionsTests() { ClearFolder(); }
+        static TransactionExtensionsTests() {/* ClearFolder();*/ }
 
         [Fact]
         public void OnRunTransaction_ShouldCommitValues()
@@ -193,6 +193,48 @@ namespace PM.Transactions.Tests
             
             Assert.False(hasError);
             Assert.Equal(0, ignored);
+        }
+
+        [Fact]
+        public void OnTransaction_WithMultipleObjects()
+        {
+            IPersistentFactory factory = new PersistentFactory();
+            var obj = factory.CreateRootObject<SelfReferenceClass>(
+                CreateFilePath(nameof(OnTransaction_WithMultipleObjects)));
+
+            obj.Transaction(() =>
+            {
+                obj.Reference = new SelfReferenceClass
+                {
+                    Value = 30
+                };
+
+                obj.Value = 42;
+            });
+
+            Assert.Equal(30, obj.Reference!.Value);
+        }
+
+        [Fact]
+        public void OnTransaction_CheckingAccounts()
+        {
+            PmGlobalConfiguration.PersistentGCEnable = false;
+            PmGlobalConfiguration.ProxyCacheCount = 0;
+
+            IPersistentFactory factory = new PersistentFactory();
+            var checkingAccounts = factory.CreateRootObject<CheckingAccounts>(nameof(OnTransaction_CheckingAccounts));
+
+            decimal amount = 42;
+            var accountA = checkingAccounts.AddAccount("Bob", 100);
+            var accountB = checkingAccounts.AddAccount("Alice", 50);
+
+            checkingAccounts.Transaction(() => {
+                accountA.Balance -= amount;
+                accountB.Balance += amount;
+            });
+
+            Assert.Equal(58, accountA.Balance);
+            Assert.Equal(92, accountB.Balance);
         }
     }
 }

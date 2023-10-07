@@ -61,5 +61,7 @@ namespace PM.Configs
         #endregion PmTransactionFolder
 
         public static PmLogger Logger { get; set; } = new PmLogger();
+        public static bool PersistentGCEnable { get; set; } = true;
+        public static int ProxyCacheCount { get; set; } = 500;
     }
 }

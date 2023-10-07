@@ -12,9 +12,9 @@ namespace PM
     public interface IPersistentFactory
     {
         private static readonly PointersToPersistentObjects _pointersToPersistentObjects = new();
-        private static readonly PmProxyGenerator _generator = new();
+        private static readonly PmProxyGenerator _generator = new(proxyCacheCount: PmGlobalConfiguration.ProxyCacheCount);
         private static readonly IPmFolderCleaner _pmPointerCounter = new PmFolderCleaner();
-        private static readonly ClassHashManager _classHashManager = ClassHashManager.Instance;
+        private static readonly ClassHashManager _classHashManager;
 
         private static readonly AsyncLocal<int> _recursionCount = new();
 
@@ -30,37 +30,41 @@ namespace PM
                 Log.CloseAndFlush();
             };
 
-            try
+            if (PmGlobalConfiguration.PersistentGCEnable)
             {
-                _thread = new Thread(() =>
+                _classHashManager = ClassHashManager.Instance;
+                try
                 {
-                    while (true)
+                    _thread = new Thread(() =>
                     {
-                        Thread.Sleep(PmGlobalConfiguration.CollectFileInterval);
-
-                        try
+                        while (true)
                         {
-                            Log.Information("Collect starting");
-                            _pointers =
-                                _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
-                            Log.Information("Collect ending successfully");
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(ex, "Error on collect files");
-                        }
-                    }
-                });
-                Log.Information("First collect starting");
-                _pointers = _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
-                Log.Information("First collect ending successfully");
-                _generator = new(_pointers);
+                            Thread.Sleep(PmGlobalConfiguration.CollectFileInterval);
 
-                _thread.Start();
-            }
-            catch (Exception ex)
-            {
+                            try
+                            {
+                                Log.Information("Collect starting");
+                                _pointers =
+                                    _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
+                                Log.Information("Collect ending successfully");
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, "Error on collect files");
+                            }
+                        }
+                    });
+                    Log.Information("First collect starting");
+                    _pointers = _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
+                    Log.Information("First collect ending successfully");
+                    _generator = new(_pointers);
 
+                    _thread.Start();
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Error on initial collect", ex);
+                }
             }
         }
 
@@ -188,6 +192,7 @@ namespace PM
 
             if (_recursionCount.Value == 0 &&
                 !isLoad &&
+                _classHashManager != null &&
                 _classHashManager.GetHashFile(type) == null)
             {
                 _recursionCount.Value++;

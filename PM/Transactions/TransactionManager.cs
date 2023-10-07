@@ -15,12 +15,15 @@ namespace PM.Transactions
         public TransactionState State { get; private set; } = TransactionState.NotStarted;
 
         private readonly T _obj;
+        private readonly Type _type;
+
         public LogFile LogFile { get; set; }
         public const string RootExtension = ".root";
 
         private readonly IPmInterceptor _interceptor;
         private readonly string _transactionID;
         private readonly Dictionary<PropertyInfo, object> _propertiesValues = new();
+        private readonly PointersToPersistentObjects _pointersToPersistentObjects = new();
 
         static TransactionManager()
         {
@@ -49,14 +52,15 @@ namespace PM.Transactions
             }
         }
 
-        public TransactionManager(T obj)
+        public TransactionManager(T obj, bool isRootObject)
         {
             if (obj is null) throw new ArgumentNullException(nameof(obj));
 
             _obj = obj;
-            _transactionID = Guid.NewGuid().ToString() + RootExtension;
+            _type = _obj.GetType();
+            _transactionID = Guid.NewGuid().ToString() + (isRootObject ? RootExtension : string.Empty);
 
-            var filename = Path.Combine(PM.Configs.PmGlobalConfiguration.PmTransactionFolder, _transactionID);
+            var filename = Path.Combine(PmGlobalConfiguration.PmTransactionFolder, _transactionID);
             var pm = FileHandlerManager.CreateHandler(filename);
             LogFile = new LogFile(new PmCSharpDefinedTypes(pm.FileBasedStream));
 
@@ -77,7 +81,8 @@ namespace PM.Transactions
             ObjectMapper = _interceptor.OriginalFileInterceptorRedirect.ObjectMapper;
             _interceptor.TransactionInterceptorRedirect.Value = this;
             LogFile.WriteOriginalFileName(_interceptor.PmMemoryMappedFile.FilePath);
-            // After this point, the sets will call this object instead the original InterceptorRedirect
+            // After this point, the sets will call this object on method 'InsertValuePm'
+            // instead the original InterceptorRedirect
         }
 
         public void Commit()
@@ -154,10 +159,45 @@ namespace PM.Transactions
             else if (value is string valueStr) LogFile.WriteString(offset, valueStr);
             else
             {
-                throw new ArgumentException($"value of type {value.GetType()} invalid in transaction");
+                if (value is ICustomPmClass customObj)
+                {
+                    ulong pointer = customObj.PmPointer;
+                    LogFile.WriteULong(offset, pointer);
+                }
+                else if (value is null)
+                {
+                    ulong nullPtr = 0;
+                    LogFile.WriteULong(offset, nullPtr);
+                }
+                else
+                {
+                    ulong pointer = GetPointerIfExistsOrNew(property);
+                    // User defined objects
+                    IPersistentFactory persistentFactory = new PersistentFactory();
+                    var proxy = persistentFactory.CreateInternalObjectByObject(
+                        value,
+                        pointer);
+                    LogFile.WriteULong(offset, pointer);
+                    _propertiesValues[property] = proxy;
+                    return;
+                }
             }
 
             _propertiesValues[property] = value;
+        }
+
+
+        private ulong GetPointerIfExistsOrNew(PropertyInfo property)
+        {
+            var pmManager = (PmManager)_interceptor.OriginalFileInterceptorRedirect;
+            var pointer = pmManager._pm.GetULongPropertValue(property);
+            var pointerAlreadyExists = pointer != 0;
+            if (!pointerAlreadyExists)
+            {
+                pointer = _pointersToPersistentObjects.GetNext();
+            }
+
+            return pointer;
         }
     }
 }

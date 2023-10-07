@@ -1,5 +1,6 @@
 ﻿using Castle.DynamicProxy;
 using PM.CastleHelpers;
+using PM.Configs;
 using PM.Managers;
 using PM.Proxies;
 using Serilog;
@@ -57,6 +58,15 @@ namespace PM
 
         public object CreateClassProxy(Type type, IPmInterceptor interceptor)
         {
+            if (MinProxyCacheCount == 0)
+            {
+                var obj = Activator.CreateInstance(type);
+                var proxy= _generator.CreateClassProxyWithTarget(type, obj, _standardInterceptor);
+                var cacheItem = new CacheItem(this, proxy, type);
+                cacheItem.SetInterceptor(interceptor);
+                return cacheItem.Proxy;
+            }
+
             if (_proxyCaching.TryGetValue(type, out var foundCachingItens) &&
                 foundCachingItens.TryDequeue(out var cache))
             {
@@ -181,31 +191,34 @@ namespace PM
 
         ~CacheItem()
         {
-            _totalTimeOnGC.Start();
-            try
+            if (PmGlobalConfiguration.PersistentGCEnable)
             {
-                var interceptor = CastleManager.GetInterceptor(Proxy);
-
-                if (interceptor!.FilePointerCount == 0 &&
-                    interceptor!.FilePointer.EndsWith(PmExtensions.PmInternalFile))
+                _totalTimeOnGC.Start();
+                try
                 {
-                    Log.Verbose("Removing file {filepath} of object {@obj}",
-                        interceptor!.FilePointer, Proxy);
-                    FileHandlerManager.CloseAndRemoveFile(interceptor!.PmMemoryMappedFile);
+                    var interceptor = CastleManager.GetInterceptor(Proxy);
+
+                    if (interceptor!.FilePointerCount == 0 &&
+                        interceptor!.FilePointer.EndsWith(PmExtensions.PmInternalFile))
+                    {
+                        Log.Verbose("Removing file {filepath} of object {@obj}",
+                            interceptor!.FilePointer, Proxy);
+                        FileHandlerManager.CloseAndRemoveFile(interceptor!.PmMemoryMappedFile);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error on destructor object");
-            }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error on destructor object");
+                }
 
-            if (_pmProxyGenerator.GetCacheCount(_type) < _pmProxyGenerator.MinProxyCacheCount)
-            {
-                GC.ReRegisterForFinalize(this);
-                _pmProxyGenerator.EnqueueCache(_type, this);
-            }
+                if (_pmProxyGenerator.GetCacheCount(_type) < _pmProxyGenerator.MinProxyCacheCount)
+                {
+                    GC.ReRegisterForFinalize(this);
+                    _pmProxyGenerator.EnqueueCache(_type, this);
+                }
 
-            _totalTimeOnGC.Stop();
+                _totalTimeOnGC.Stop();
+            }
         }
     }
 }
