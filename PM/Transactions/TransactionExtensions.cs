@@ -21,7 +21,7 @@
         {
             lock (_transactionLock)
             {
-                var transaction = new TransactionManager<T>(obj);
+                var transaction = new TransactionManager<T>(obj, true);
                 state = transaction.State;
                 try
                 {

@@ -98,7 +98,7 @@ namespace PM.Transactions.Tests
             IPersistentFactory factory = new PersistentFactory();
             var obj = factory.CreateRootObject<DomainObject>(CreateFilePath(nameof(OnApplyPendingTransactions_WhenTransactionCrashCopingToOriginalFile_ShouldApplyTransaction)));
 
-            var transactionManager = new TransactionManager<DomainObject>(obj);
+            var transactionManager = new TransactionManager<DomainObject>(obj, true);
             transactionManager.Begin();
             obj.PropInt = int.MaxValue;
             // Commit only the log file, not the whole transaction.
@@ -224,17 +224,29 @@ namespace PM.Transactions.Tests
             IPersistentFactory factory = new PersistentFactory();
             var checkingAccounts = factory.CreateRootObject<CheckingAccounts>(nameof(OnTransaction_CheckingAccounts));
 
+
+            //Assert.Equal(58, checkingAccounts.AccountA.Balance);
+            //Assert.Equal(92, checkingAccounts.AccountB.Balance);
+
             decimal amount = 42;
-            var accountA = checkingAccounts.AddAccount("Bob", 100);
-            var accountB = checkingAccounts.AddAccount("Alice", 50);
+            checkingAccounts.AccountA = new Account
+            {
+                Balance = 100,
+                Name = "Bob"
+            };
+            checkingAccounts.AccountB = new Account
+            {
+                Balance = 50,
+                Name = "Alice"
+            };
 
             checkingAccounts.Transaction(() => {
-                accountA.Balance -= amount;
-                accountB.Balance += amount;
+                checkingAccounts.AccountA.Balance -= amount;
+                checkingAccounts.AccountB.Balance += amount;
             });
 
-            Assert.Equal(58, accountA.Balance);
-            Assert.Equal(92, accountB.Balance);
+            Assert.Equal(58, checkingAccounts.AccountA.Balance);
+            Assert.Equal(92, checkingAccounts.AccountB.Balance);
         }
     }
 }

@@ -173,7 +173,7 @@ namespace PM.Managers
             if (_fileHandlersByFilename.TryGetValue(filepath, out var fileHandlerItem))
             {
                 // Only reference from this class
-                if (fileHandlerItem.FilePointerReference == 0)
+                if (fileHandlerItem.FilePointerReference == 1)
                 {
                     if (_fileHandlersByFilename.TryRemove(filepath, out var removedHandler))
                     {

@@ -49,16 +49,7 @@ namespace PM.Transactions.Tests
 
     public class CheckingAccounts
     {
-        private readonly PmList<Account> _list = new PmList<Account>();
-
-        public Account AddAccount(string name, decimal balance)
-        {
-            var account = new Account
-            {
-                Name = name,
-                Balance = balance
-            };
-            return _list.AddPersistent(account);
-        }
+        public virtual Account AccountA { get; set; }
+        public virtual Account AccountB { get; set; }
     }
 }
