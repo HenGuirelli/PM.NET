@@ -92,10 +92,10 @@ namespace PM.Managers
                                 pointer);
                             _pm.UpdateProperty(property, pointer);
 
-                            if (CastleManager.TryGetInterceptor(proxy, out var objInterceptor))
-                            {
-                                objInterceptor!.FilePointerCount++;
-                            }
+                            //if (CastleManager.TryGetInterceptor(proxy, out var objInterceptor))
+                            //{
+                            //    objInterceptor!.FilePointerCount++;
+                            //}
 
 
                             SubtractReferencePointerFromOldObject(property);

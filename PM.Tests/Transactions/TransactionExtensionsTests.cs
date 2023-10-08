@@ -12,7 +12,7 @@ namespace PM.Transactions.Tests
 {
     public class TransactionExtensionsTests : UnitTest
     {
-        static TransactionExtensionsTests() {/* ClearFolder();*/ }
+        static TransactionExtensionsTests() { ClearFolder(); }
 
         [Fact]
         public void OnRunTransaction_ShouldCommitValues()
