@@ -4,7 +4,7 @@
     {
         public string Filename { get; set; }
         public string Filepath { get; set; }
-
+        public bool Visited { get; set; } = false;
         private readonly List<Node> _childrens = new List<Node>();
 
         public Node? GetChild(string file)
@@ -24,6 +24,7 @@
 
         public bool HasChildren(string filename)
         {
+            Visited = true;
             var child = GetChild(filename);
             return child != null;
         }
