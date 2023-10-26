@@ -47,7 +47,7 @@ namespace PM.Core
             int isPersistent = 0;
             ulong mappedLength = 0;
 
-            _pmemPtr = LibpmemNativeMethods.MapFile(
+            InitialPointer = _pmemPtr = LibpmemNativeMethods.MapFile(
                 path: path,
                 length: length,
                 flags: Flags.PMEM_FILE_CREATE,
@@ -136,7 +136,7 @@ namespace PM.Core
             _position += count;
         }
 
-        public override void Resize(int size)
+        public override void Resize(long size)
         {
             base.Resize(size);
 

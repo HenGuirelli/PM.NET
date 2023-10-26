@@ -5,7 +5,6 @@ using PM.Tests.Common;
 using Bogus;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Collections.Concurrent;
 using PM.Core;
 
@@ -13,6 +12,8 @@ namespace PM.Transactions.Tests
 {
     public class TransactionExtensionsTests : UnitTest
     {
+        static TransactionExtensionsTests() { ClearFolder(); }
+
         [Fact]
         public void OnRunTransaction_ShouldCommitValues()
         {
@@ -97,7 +98,7 @@ namespace PM.Transactions.Tests
             IPersistentFactory factory = new PersistentFactory();
             var obj = factory.CreateRootObject<DomainObject>(CreateFilePath(nameof(OnApplyPendingTransactions_WhenTransactionCrashCopingToOriginalFile_ShouldApplyTransaction)));
 
-            var transactionManager = new TransactionManager<DomainObject>(obj);
+            var transactionManager = new TransactionManager<DomainObject>(obj, true);
             transactionManager.Begin();
             obj.PropInt = int.MaxValue;
             // Commit only the log file, not the whole transaction.
@@ -189,10 +190,63 @@ namespace PM.Transactions.Tests
             }
             Task.WhenAll(tasks).Wait();
             stopWatch.Stop();
-            //File.AppendAllText(@"D:\temp\metrica mestrado\transactions.txt", $"{parallelDegree};{stopWatch.ElapsedMilliseconds}\n");
-
+            
             Assert.False(hasError);
             Assert.Equal(0, ignored);
+        }
+
+        [Fact]
+        public void OnTransaction_WithMultipleObjects()
+        {
+            IPersistentFactory factory = new PersistentFactory();
+            var obj = factory.CreateRootObject<SelfReferenceClass>(
+                CreateFilePath(nameof(OnTransaction_WithMultipleObjects)));
+
+            obj.Transaction(() =>
+            {
+                obj.Reference = new SelfReferenceClass
+                {
+                    Value = 30
+                };
+
+                obj.Value = 42;
+            });
+
+            Assert.Equal(30, obj.Reference!.Value);
+        }
+
+        [Fact]
+        public void OnTransaction_CheckingAccounts()
+        {
+            PmGlobalConfiguration.PersistentGCEnable = false;
+            PmGlobalConfiguration.ProxyCacheCount = 0;
+
+            IPersistentFactory factory = new PersistentFactory();
+            var checkingAccounts = factory.CreateRootObject<CheckingAccounts>(nameof(OnTransaction_CheckingAccounts));
+
+
+            //Assert.Equal(58, checkingAccounts.AccountA.Balance);
+            //Assert.Equal(92, checkingAccounts.AccountB.Balance);
+
+            decimal amount = 42;
+            checkingAccounts.AccountA = new Account
+            {
+                Balance = 100,
+                Name = "Bob"
+            };
+            checkingAccounts.AccountB = new Account
+            {
+                Balance = 50,
+                Name = "Alice"
+            };
+
+            checkingAccounts.Transaction(() => {
+                checkingAccounts.AccountA.Balance -= amount;
+                checkingAccounts.AccountB.Balance += amount;
+            });
+
+            Assert.Equal(58, checkingAccounts.AccountA.Balance);
+            Assert.Equal(92, checkingAccounts.AccountB.Balance);
         }
     }
 }

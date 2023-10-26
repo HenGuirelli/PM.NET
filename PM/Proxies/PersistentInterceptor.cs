@@ -8,7 +8,7 @@ namespace PM.Proxies
 {
     internal class PersistentInterceptor : IPmInterceptor
     {
-        public AsyncLocal<IInterceptorRedirect> TransactionInterceptorRedirect { get; } = new();
+        public ThreadLocal<IInterceptorRedirect> TransactionInterceptorRedirect { get; } = new();
         public FileBasedStream PmMemoryMappedFile { get; }
         public IInterceptorRedirect OriginalFileInterceptorRedirect { get; }
         private readonly Type _targetType;
@@ -24,6 +24,10 @@ namespace PM.Proxies
             set => FileHandlerItem.FilePointerReference = value; 
         }
 
+#if DEBUG
+        private static readonly Dictionary<PersistentInterceptor, int> _allPersistentInterceptor = new();   
+#endif
+
         public PersistentInterceptor(
             PmManager pmManager,
             FileHandlerItem fileHandlerItem,
@@ -37,6 +41,10 @@ namespace PM.Proxies
             FilePointer = filePointer ?? throw new ArgumentNullException(nameof(filePointer));
             PmPointer = pmPointer;
             FileHandlerItem = fileHandlerItem;
+
+#if DEBUG
+            _allPersistentInterceptor[this] = GetHashCode();
+#endif
         }
 
         public void Intercept(IInvocation invocation)

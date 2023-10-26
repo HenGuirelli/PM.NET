@@ -1,6 +1,5 @@
 ﻿using Serilog;
 using System.IO.MemoryMappedFiles;
-using System.Diagnostics;
 
 namespace PM.Core
 {
@@ -47,6 +46,13 @@ namespace PM.Core
             _memoryMappedFile = MemoryMappedFile.CreateFromFile(FilePath);
             _memoryMappedViewStream =
                 _memoryMappedFile.CreateViewStream(0, _size, MemoryMappedFileAccess.ReadWrite);
+
+            unsafe
+            {
+                byte* pointer = null;
+                _memoryMappedViewStream.SafeMemoryMappedViewHandle.AcquirePointer(ref pointer);
+                InitialPointer = (IntPtr)pointer;
+            }
         }
 
         public override void Flush()
@@ -82,32 +88,47 @@ namespace PM.Core
             _memoryMappedViewStream.Write(buffer, offset, count);
         }
 
-        public override void Resize(int size)
+        public override void Resize(long size)
         {
             base.Resize(size);
 
-            Close();
+            Flush();
 
-            var fs = new FileStream(
-                FilePath,
-                FileMode.OpenOrCreate,
-                FileAccess.ReadWrite,
-                FileShare.None);
-            fs.SetLength(size);
-            fs.Dispose();
+            Close();
             _size = size;
 
-            _memoryMappedFile = MemoryMappedFile.CreateFromFile(FilePath);
-            _memoryMappedViewStream = _memoryMappedFile.CreateViewStream(0, size, MemoryMappedFileAccess.ReadWrite);
+            using (var fs = new FileStream(
+                                    FilePath,
+                                    FileMode.Open,
+                                    FileAccess.Write,
+                                    FileShare.None))
+            {
+                fs.SetLength(_size);
+            }
+
+            Open();
         }
 
         public override void Close()
         {
-            base.Close();
-            IsClosed = true;
+            if (!IsClosed)
+            {
+                base.Close();
 
-            _memoryMappedViewStream?.Dispose();
-            _memoryMappedFile?.Dispose();
+                if (InitialPointer != IntPtr.Zero)
+                {
+                    _memoryMappedViewStream.SafeMemoryMappedViewHandle.ReleasePointer();
+                    InitialPointer = IntPtr.Zero;
+                }
+
+                _memoryMappedViewStream?.Close();
+                _memoryMappedViewStream?.Dispose();
+                _memoryMappedFile?.Dispose();
+
+
+
+                IsClosed = true;
+            }
         }
 
         protected override void Dispose(bool disposing)

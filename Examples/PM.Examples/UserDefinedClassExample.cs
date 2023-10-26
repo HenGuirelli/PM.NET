@@ -8,6 +8,11 @@ namespace PM.Examples
 {
     public class UserDefinedClassExample : UnitTest
     {
+        public UserDefinedClassExample()
+        {
+            ClearFolder();
+        }
+
         [Fact]
         public void BasicSetAndGet()
         {

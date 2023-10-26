@@ -1,11 +1,9 @@
 ﻿using PM.Core;
-using PM.Factories;
 using System.Reflection;
 using PM.Proxies;
 using PM.Configs;
 using PM.CastleHelpers;
 using PM.Collections;
-using System.Globalization;
 using Serilog;
 
 namespace PM.Managers
@@ -15,7 +13,7 @@ namespace PM.Managers
         public ObjectPropertiesInfoMapper ObjectMapper { get; }
         public FileBasedStream PmMemoryMappedFile { get; }
 
-        private readonly PmUserDefinedTypes _pm;
+        internal readonly PmUserDefinedTypes _pm;
 
         internal readonly Dictionary<PropertyInfo, object> UserDefinedObjectsByProperty = new();
 
@@ -94,10 +92,10 @@ namespace PM.Managers
                                 pointer);
                             _pm.UpdateProperty(property, pointer);
 
-                            if (CastleManager.TryGetInterceptor(proxy, out var objInterceptor))
-                            {
-                                objInterceptor!.FilePointerCount++;
-                            }
+                            //if (CastleManager.TryGetInterceptor(proxy, out var objInterceptor))
+                            //{
+                            //    objInterceptor!.FilePointerCount++;
+                            //}
 
 
                             SubtractReferencePointerFromOldObject(property);

@@ -210,10 +210,10 @@ namespace PM.Collections
             var pointer = _pointersToPersistentObjects.GetNext();
             var obj = _persistentFactory.CreateInternalObjectInList(item, pointer);
             
-            if (CastleManager.TryGetInterceptor(obj, out var objInterceptor))
-            {
-                objInterceptor!.FilePointerCount++;
-            }
+            //if (CastleManager.TryGetInterceptor(obj, out var objInterceptor))
+            //{
+            //    objInterceptor!.FilePointerCount++;
+            //}
 
             _items[ListCount++] = pointer;
             _cache[pointer] = obj;
@@ -305,10 +305,10 @@ namespace PM.Collections
             var pointer = _pointersToPersistentObjects.GetNext();
             var obj = _persistentFactory.CreateInternalObjectInList(item, pointer);
 
-            if (CastleManager.TryGetInterceptor(obj, out var objInterceptor))
-            {
-                objInterceptor!.FilePointerCount++;
-            }
+            //if (CastleManager.TryGetInterceptor(obj, out var objInterceptor))
+            //{
+            //    objInterceptor!.FilePointerCount++;
+            //}
 
             _items[ListCount++] = pointer;
             _items.Flush();

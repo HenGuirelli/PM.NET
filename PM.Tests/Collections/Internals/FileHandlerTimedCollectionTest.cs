@@ -1,6 +1,5 @@
 ﻿using PM.Collections.Internals;
 using PM.Core;
-using System;
 using System.IO;
 using Xunit;
 
@@ -9,7 +8,7 @@ namespace PM.Tests.Collections.Internals
     public class FileHandlerTimedCollectionTest
     {
         [Fact]
-        public void OnFullCapcity_ShouldThrowException()
+        public void OnFullCapacity_ShouldThrowException()
         {
             var capacity = 10;
             var fileHandlerTimedCollection = new FileHandlerTimedCollection(capacity);

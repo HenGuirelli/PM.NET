@@ -19,17 +19,19 @@ var creationThread = new Thread(() =>
     {
         var innerObj = new TestClass();
         obj.MyProperty = innerObj;
-        CastleManager.TryGetInterceptor(obj.MyProperty, out var interceptor);
-        Console.WriteLine($"Objeto interno para ser coletado: {interceptor!.FilePointer}");
-        filenames[count] = interceptor!.FilePointer;
-        count++;
+        if (CastleManager.TryGetInterceptor(obj.MyProperty, out var interceptor))
+        {
+            Console.WriteLine($"Objeto interno para ser coletado: {interceptor!.FilePointer}");
+            filenames[count] = interceptor!.FilePointer;
+            count++;
 
-        Thread.Sleep(1000);
-        obj.MyProperty = null;
-        Console.WriteLine("Objeto interno setado para null, esperando GC coletar");
+            Thread.Sleep(1000);
+            obj.MyProperty = null;
+            Console.WriteLine("Objeto interno setado para null, esperando GC coletar");
 
-        Thread.Sleep(1000);
-        GC.Collect();
+            Thread.Sleep(1000);
+            GC.Collect();
+        }
     }
 });
 

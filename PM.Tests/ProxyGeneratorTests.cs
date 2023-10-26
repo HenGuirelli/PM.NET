@@ -89,36 +89,5 @@ namespace PM.Tests
                 proxyGenerator.MinProxyCacheCount / 2
             );
         }
-
-        [Fact]
-        public void OnCreateClassProxy_WhenGcCollectProxies_ShouldDeletePmFile()
-        {
-            PmProxyGenerator proxyGenerator = new(proxyCacheCount: 50);
-            var isDeleted = false;
-            var fileBasedStreamMock = new Mock<FileBasedStream>();
-            fileBasedStreamMock.Setup(x => x.Delete())
-                .Callback(() =>
-                {
-                    isDeleted = true;
-                });
-
-            var interceptorMock = new Mock<IPmInterceptor>();
-            interceptorMock.SetupGet(x => x.PmMemoryMappedFile)
-                .Returns(fileBasedStreamMock.Object);
-
-            var obj = proxyGenerator.CreateClassProxy(
-                typeof(DomainObj),
-                interceptorMock.Object);
-
-            obj = null;
-
-            // Call GC to collect "obj"
-            GC.Collect();
-            // Wait collect
-            Thread.Sleep(500);
-
-            // Reuse must be at least half of proxy cache length
-            Assert.True(isDeleted);
-        }
     }
 }

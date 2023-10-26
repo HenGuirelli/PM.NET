@@ -52,7 +52,7 @@ namespace PM.Tests.Startup
             var pointers = testingObject.Collect(PmGlobalConfiguration.PmInternalsFolder);
 
             Assert.Equal(
-                9,
+                10,
                 Directory.GetFiles(PmGlobalConfiguration.PmInternalsFolder).Length);
         }
 

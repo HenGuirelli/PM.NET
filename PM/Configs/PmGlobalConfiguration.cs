@@ -34,31 +34,34 @@ namespace PM.Configs
         #endregion PmInternalsFolder
 
         #region PmTransactionFolder
-        private static string _pmTransactionFolder = Path.Combine(PmInternalsFolder, "transactions");
+        public static string PmTransactionFolderName { get; set; } = "transactions";
+        private static string _pmTransactionPathFolder => Path.Combine(PmInternalsFolder, PmTransactionFolderName);
         private static bool _pmTransactionFolderCreated = false;
         public static string PmTransactionFolder
         {
             get
             {
-                if (!_pmTransactionFolderCreated && !Directory.Exists(_pmTransactionFolder))
+                if (!_pmTransactionFolderCreated && !Directory.Exists(_pmTransactionPathFolder))
                 {
-                    Directory.CreateDirectory(_pmTransactionFolder);
+                    Directory.CreateDirectory(_pmTransactionPathFolder);
                     _pmTransactionFolderCreated = true;
                 }
-                return _pmTransactionFolder;
+                return _pmTransactionPathFolder;
             }
             set
             {
-                if (!_pmTransactionFolderCreated && !Directory.Exists(_pmTransactionFolder))
+                if (!_pmTransactionFolderCreated && !Directory.Exists(_pmTransactionPathFolder))
                 {
-                    Directory.CreateDirectory(_pmTransactionFolder);
+                    Directory.CreateDirectory(_pmTransactionPathFolder);
                     _pmTransactionFolderCreated = true;
                 }
-                _pmTransactionFolder = value;
+                PmTransactionFolderName = value;
             }
         }
         #endregion PmTransactionFolder
 
         public static PmLogger Logger { get; set; } = new PmLogger();
+        public static bool PersistentGCEnable { get; set; } = true;
+        public static int ProxyCacheCount { get; set; } = 500;
     }
 }

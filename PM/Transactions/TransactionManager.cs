@@ -5,20 +5,72 @@ using System.Reflection;
 using PM.Configs;
 using PM.Managers;
 using PM.CastleHelpers;
+using Castle.DynamicProxy;
+using System;
 
 namespace PM.Transactions
 {
     public class TransactionManager<T> : IInterceptorRedirect
          where T : class, new()
     {
+        public LogFile LogFile => _genericTransactionManager.LogFile;
+
+        private readonly TransactionManager _genericTransactionManager;
+        public TransactionState State => _genericTransactionManager.State;
+
+        public TransactionManager(T obj, bool isRootObject)
+        {
+            _genericTransactionManager = new TransactionManager(obj, isRootObject);
+        }
+
+        public ObjectPropertiesInfoMapper ObjectMapper => _genericTransactionManager.ObjectMapper!;
+
+        public static void ApplyPendingTransactions() => TransactionManager.ApplyPendingTransactions();
+
+        public void Begin()
+        {
+            _genericTransactionManager.Begin();
+        }
+
+        public void Commit()
+        {
+            _genericTransactionManager.Commit();
+        }
+
+        public void RollBack()
+        {
+            _genericTransactionManager.RollBack();
+        }
+
+        public object? GetValuePm(PropertyInfo property)
+        {
+            return _genericTransactionManager.GetValuePm(property);
+        }
+
+        public void InsertValuePm(PropertyInfo property, object value)
+        {
+            _genericTransactionManager.InsertValuePm(property, value);
+        }
+    }
+
+    public class TransactionManager : IInterceptorRedirect
+    {
         public ObjectPropertiesInfoMapper? ObjectMapper { get; private set; }
         public TransactionState State { get; private set; } = TransactionState.NotStarted;
 
-        private readonly T _obj;
+        private readonly object _obj;
+        private readonly Type _type;
+        private readonly bool _isRootObject;
+
+        private readonly List<TransactionManager> _allInternalObjectsTransactionManagers = new();
+
         public LogFile LogFile { get; set; }
+        public const string RootExtension = ".root";
+
         private readonly IPmInterceptor _interceptor;
         private readonly string _transactionID;
         private readonly Dictionary<PropertyInfo, object> _propertiesValues = new();
+        private readonly PointersToPersistentObjects _pointersToPersistentObjects = new();
 
         static TransactionManager()
         {
@@ -47,12 +99,14 @@ namespace PM.Transactions
             }
         }
 
-        public TransactionManager(T obj)
+        public TransactionManager(object obj, bool isRootObject)
         {
             if (obj is null) throw new ArgumentNullException(nameof(obj));
 
             _obj = obj;
-            _transactionID = Guid.NewGuid().ToString();
+            _type = _obj.GetType();
+            _isRootObject = isRootObject;
+            _transactionID = Guid.NewGuid().ToString() + (isRootObject ? RootExtension : string.Empty);
 
             var filename = Path.Combine(PmGlobalConfiguration.PmTransactionFolder, _transactionID);
             var pm = FileHandlerManager.CreateHandler(filename);
@@ -65,7 +119,7 @@ namespace PM.Transactions
             }
             else
             {
-                throw new PmTransactionException($"Object {typeof(T)} is not a PersistentObject");
+                throw new PmTransactionException($"Object {obj.GetType().Name} is not a PersistentObject");
             }
         }
 
@@ -75,7 +129,31 @@ namespace PM.Transactions
             ObjectMapper = _interceptor.OriginalFileInterceptorRedirect.ObjectMapper;
             _interceptor.TransactionInterceptorRedirect.Value = this;
             LogFile.WriteOriginalFileName(_interceptor.PmMemoryMappedFile.FilePath);
-            // After this point, the sets will call this object instead the original InterceptorRedirect
+            // After this point, the sets will call this object on method 'InsertValuePm'
+            // instead the original InterceptorRedirect
+            
+            if (_isRootObject) RedirectAllInternalsObjects(_obj);
+        }
+
+        private void RedirectAllInternalsObjects(object obj)
+        {
+            foreach (var prop in obj.GetType().GetProperties())
+            {
+                var propType = prop.PropertyType;
+                if (!propType.IsPrimitive &&
+                    propType != typeof(decimal) &&
+                    propType != typeof(string))
+                {
+                    var innerObj = prop.GetValue(obj);
+                    if (innerObj != null && !(innerObj is ICustomPmClass))
+                    {
+                        RedirectAllInternalsObjects(innerObj);
+                        var transactionManager = new TransactionManager(innerObj, false);
+                        _allInternalObjectsTransactionManagers.Add(transactionManager);
+                        transactionManager.Begin();
+                    }
+                }
+            }
         }
 
         public void Commit()
@@ -85,6 +163,16 @@ namespace PM.Transactions
             CopyLogToOriginal();
             LogFile.DeleteFile();
             State = TransactionState.Commited;
+
+            if (_isRootObject) CommitAllInternalsObjects(_obj);
+        }
+
+        private void CommitAllInternalsObjects(object obj)
+        {
+            foreach(var transactionManager in _allInternalObjectsTransactionManagers)
+            {
+                transactionManager.Commit();
+            }
         }
 
         public void Lock()
@@ -113,13 +201,34 @@ namespace PM.Transactions
                 pm.FileBasedStream.Seek(item.Item1, SeekOrigin.Begin);
                 pm.FileBasedStream.Write(item.Item3);
             }
+
+            if (_isRootObject) CopyLogToOriginalAllInternalsObjects(_obj);
+        }
+
+        private void CopyLogToOriginalAllInternalsObjects(object obj)
+        {
+            foreach (var transactionManager in _allInternalObjectsTransactionManagers)
+            {
+                transactionManager.CopyLogToOriginal();
+            }
         }
 
         public void RollBack()
         {
             _interceptor.TransactionInterceptorRedirect.Value = null;
             LogFile.RollBack();
+
+            if (_isRootObject) RollBackAllInternalsObjects(_obj);
+
             State = TransactionState.RollBacked;
+        }
+
+        private void RollBackAllInternalsObjects(object obj)
+        {
+            foreach (var transactionManager in _allInternalObjectsTransactionManagers)
+            {
+                transactionManager.RollBack();
+            }
         }
 
         public object? GetValuePm(PropertyInfo property)
@@ -152,10 +261,45 @@ namespace PM.Transactions
             else if (value is string valueStr) LogFile.WriteString(offset, valueStr);
             else
             {
-                throw new ArgumentException($"value of type {value.GetType()} invalid in transaction");
+                if (value is ICustomPmClass customObj)
+                {
+                    ulong pointer = customObj.PmPointer;
+                    LogFile.WriteULong(offset, pointer);
+                }
+                else if (value is null)
+                {
+                    ulong nullPtr = 0;
+                    LogFile.WriteULong(offset, nullPtr);
+                }
+                else
+                {
+                    ulong pointer = GetPointerIfExistsOrNew(property);
+                    // User defined objects
+                    IPersistentFactory persistentFactory = new PersistentFactory();
+                    var proxy = persistentFactory.CreateInternalObjectByObject(
+                        value,
+                        pointer);
+                    LogFile.WriteULong(offset, pointer);
+                    _propertiesValues[property] = proxy;
+                    return;
+                }
             }
 
             _propertiesValues[property] = value;
+        }
+
+
+        private ulong GetPointerIfExistsOrNew(PropertyInfo property)
+        {
+            var pmManager = (PmManager)_interceptor.OriginalFileInterceptorRedirect;
+            var pointer = pmManager._pm.GetULongPropertValue(property);
+            var pointerAlreadyExists = pointer != 0;
+            if (!pointerAlreadyExists)
+            {
+                pointer = _pointersToPersistentObjects.GetNext();
+            }
+
+            return pointer;
         }
     }
 }

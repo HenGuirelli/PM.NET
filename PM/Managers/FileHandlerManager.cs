@@ -1,7 +1,6 @@
 ﻿using PM.Collections.Internals;
 using PM.Core;
 using Serilog;
-using System.Diagnostics;
 
 namespace PM.Managers
 {
@@ -30,6 +29,7 @@ namespace PM.Managers
     {
         private static readonly FileHandlerTimedCollection
             _fileHandlersByFilename = new(5_000);
+        private static object _createHandlerLock = new();
 
         public static FileHandlerItem CreateRootHandler(string filepath, int size = 4096)
         {
@@ -56,19 +56,32 @@ namespace PM.Managers
             return CreateHandler(PmExtensions.AddExtension(filepath, extension), size);
         }
 
+        private static volatile bool _handlerCreation = false;
         public static FileHandlerItem CreateHandler(string filepath, int size = 4096)
         {
-            if (_fileHandlersByFilename.TryGetValue(filepath, out var pmCached))
+            lock (_createHandlerLock)
             {
-                if (pmCached.FileBasedStream.IsClosed)
+                try
                 {
-                    pmCached.FileBasedStream.Open();
-                    return CreateHandler(filepath, size);
+                    SpinWait.SpinUntil(() => !_handlerCreation);
+                    _handlerCreation = true;
+                    if (_fileHandlersByFilename.TryGetValue(filepath, out var pmCached))
+                    {
+                        if (pmCached.FileBasedStream.IsClosed)
+                        {
+                            pmCached.FileBasedStream.Open();
+                        }
+                        pmCached.FilePointerReference++;
+                        return pmCached;
+                    }
+                    var pm = new PmStream(filepath, size);
+                    return RegisterNewHandler(pm);
                 }
-                return pmCached;
+                finally
+                {
+                    _handlerCreation = false;
+                }
             }
-            var pm = new PmStream(filepath, size);
-            return RegisterNewHandler(pm);
         }
 
         public static FileHandlerItem RegisterNewHandler(FileBasedStream fileBasedStream)
@@ -79,6 +92,7 @@ namespace PM.Managers
                 _fileHandlersByFilename.Add(
                     fileBasedStream.FilePath,
                     fileHandlerItem);
+                //fileHandlerItem.FilePointerReference++;
             }
             catch (CollectionLimitReachedException)
             {
@@ -114,6 +128,17 @@ namespace PM.Managers
             return fileHandlerItem;
         }
 
+#if DEBUG
+        public static void CloseAllHandlers()
+        {
+            var fileHandlers = _fileHandlersByFilename.CleanOldValues(_fileHandlersByFilename.Count);
+            foreach (var handler in fileHandlers)
+            {
+                CloseAndRemoveFile(handler);
+            }
+        }
+#endif
+
         public static bool CloseAndRemoveFile(FileBasedStream fileBasedStream)
         {
             return CloseAndRemoveFile(fileBasedStream.FilePath);
@@ -148,7 +173,7 @@ namespace PM.Managers
             if (_fileHandlersByFilename.TryGetValue(filepath, out var fileHandlerItem))
             {
                 // Only reference from this class
-                if (fileHandlerItem.FilePointerReference == 0)
+                if (fileHandlerItem.FilePointerReference <= 1)
                 {
                     if (_fileHandlersByFilename.TryRemove(filepath, out var removedHandler))
                     {

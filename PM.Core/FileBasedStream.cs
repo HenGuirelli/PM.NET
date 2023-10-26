@@ -5,7 +5,13 @@ namespace PM.Core
     public abstract class FileBasedStream : Stream
     {
         public virtual string FilePath { get; protected set; } = string.Empty;
-        public bool IsClosed { get; protected set; } = true;
+        private bool _isClosed = true;
+        public virtual bool IsClosed
+        {
+            get => _isClosed;
+            set => _isClosed = value;
+        }
+        public IntPtr InitialPointer { get; protected set; }
 
         public virtual void Delete()
         {
@@ -38,7 +44,7 @@ namespace PM.Core
             Log.Verbose("SetLength called on file={file}, size={size}", FilePath, Length);
         }
 
-        public virtual void Resize(int size)
+        public virtual void Resize(long size)
         {
             Log.Verbose("Resizing file {file}. " +
                 "Old size={oldSize}, new size={size}",
