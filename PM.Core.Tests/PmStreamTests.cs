@@ -10,7 +10,7 @@ namespace PM.Core.Tests
         [Fact]
         public void OnWriteAndReadOnStream()
         {
-            using var stream = new PmStream(
+            using var stream = new PmMarshalStream(
                 CreateFilePath(nameof(OnWriteAndReadOnStream)),
                 4096);
 

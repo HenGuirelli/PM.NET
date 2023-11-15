@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace PM.Core
 {
-    public class PmStream : FileBasedStream
+    public class PmMarshalStream : FileBasedStream
     {
         public override bool CanRead => true;
         public override bool CanSeek => true;
@@ -31,7 +31,7 @@ namespace PM.Core
         private IntPtr _pmemPtr;
 
 
-        public PmStream(string path, long length)
+        public PmMarshalStream(string path, long length)
         {
             FilePath = path;
             _length = length;

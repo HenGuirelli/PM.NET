@@ -12,7 +12,7 @@ namespace PM.Factories
             {
                 if (PmGlobalConfiguration.PmTarget == PmTargets.PM)
                 {
-                    return new Core.PmStream(pmMemoryMappedFile, size);
+                    return new Core.PmMarshalStream(pmMemoryMappedFile, size);
                 }
                 if (PmGlobalConfiguration.PmTarget == PmTargets.TraditionalMemoryMappedFile)
                 {
