@@ -8,8 +8,12 @@ namespace PM.Core
         public override bool CanRead => true;
         public override bool CanSeek => true;
         public override bool CanWrite => true;
+
+        private long _length;
         public override long Length => _length;
         public bool IsPersistent { get; private set; }
+
+        private long _position;
         public override long Position
         {
             get => _position;
@@ -25,8 +29,6 @@ namespace PM.Core
 
 
         private IntPtr _pmemPtr;
-        private long _length;
-        private long _position;
 
 
         public PmStream(string path, long length)
