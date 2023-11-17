@@ -1,4 +1,6 @@
-﻿using System.CommandLine;
+﻿using BenchmarkDotNet.Running;
+using Benchmarks;
+using System.CommandLine;
 
 class Program
 {
@@ -30,6 +32,7 @@ class Program
         runCommand.SetHandler((outputDirectory, target, stream) =>
         {
             // run benchmarks
+            BenchmarkRunner.Run<PmStreamsBenchmark>();
         }, outputDirectoryOption, targetOption, streamOption);
 
         return await rootCommand.InvokeAsync(args);
