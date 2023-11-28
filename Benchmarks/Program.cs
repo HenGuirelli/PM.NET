@@ -1,4 +1,5 @@
-﻿using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Running;
 using Benchmarks;
 using System.CommandLine;
 
@@ -32,11 +33,16 @@ class Program
         runCommand.SetHandler((outputDirectory, target, stream) =>
         {
             // run benchmarks
-            BenchmarkRunner.Run<PmStreamsBenchmark>();
+            # if DEBUG
+                BenchmarkRunner.Run<PmStreamsBenchmark>(
+                    DefaultConfig.Instance
+                    .WithOptions(ConfigOptions.DisableOptimizationsValidator));
+            # else
+                BenchmarkRunner.Run<PmStreamsBenchmark>();
+            #endif
+
         }, outputDirectoryOption, targetOption, streamOption);
 
         return await rootCommand.InvokeAsync(args);
     }
 }
-
-

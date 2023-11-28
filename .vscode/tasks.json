@@ -19,6 +19,18 @@
                 "reveal": "silent"
             },
             "problemMatcher": "$msCompile"
-        }
+        },
+        {
+            "label": "build Benchmark Release",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/Benchmarks/Benchmarks.csproj",
+                "-c",
+                "Release"
+            ],
+            "problemMatcher": "$msCompile"
+        }  
     ]
 }

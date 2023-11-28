@@ -16,6 +16,32 @@
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
             "console": "internalConsole"
+        },
+        {
+            "name": "Run Benchmarks",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build Benchmark Release",
+            "program": "${workspaceFolder}/Benchmarks/bin/Release/net7.0/Benchmarks.dll",
+            "args": [
+                "run", "--stream", "-o", "./output"
+            ],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        },
+        {
+            "name": "Run Benchmarks (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Benchmarks/bin/Debug/net7.0/Benchmarks.dll",
+            "args": [
+                "run", "--stream", "-o", "./output"
+            ],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "internalConsole"
         }
     ]
 }

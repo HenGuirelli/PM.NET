@@ -33,6 +33,7 @@ namespace PM.Core
 
         public PmMarshalStream(string path, long length)
         {
+            if (path is null) throw new ArgumentNullException(nameof(path));
             FilePath = path;
             _length = length;
             this.Open();
@@ -60,7 +61,8 @@ namespace PM.Core
 
             if (_pmemPtr == IntPtr.Zero)
             {
-                throw new Exception("Failed to map PMEM file.");
+                var errorMsg = LibpmemNativeMethods.ErrorMsg();
+                throw new Exception("Failed to map PMEM file. Reason: " + errorMsg);
             }
 
             IsPersistent = isPersistent != 0;
