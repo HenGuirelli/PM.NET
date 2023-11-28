@@ -33,13 +33,16 @@ class Program
         runCommand.SetHandler((outputDirectory, target, stream) =>
         {
             // run benchmarks
-            # if DEBUG
-                BenchmarkRunner.Run<PmStreamsBenchmark>(
-                    DefaultConfig.Instance
-                    .WithOptions(ConfigOptions.DisableOptimizationsValidator));
-            # else
-                BenchmarkRunner.Run<PmStreamsBenchmark>();
-            #endif
+            if (stream)
+            {
+                # if DEBUG
+                    BenchmarkRunner.Run<PmStreamsBenchmark>(
+                        DefaultConfig.Instance
+                        .WithOptions(ConfigOptions.DisableOptimizationsValidator));
+                # else
+                    BenchmarkRunner.Run<PmStreamsBenchmark>();
+                # endif
+            }
 
         }, outputDirectoryOption, targetOption, streamOption);
 
