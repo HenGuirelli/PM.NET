@@ -35,7 +35,7 @@ class Program
             // run benchmarks
             if (stream)
             {
-                # if DEBUG
+                #if DEBUG
                     BenchmarkRunner.Run<PmStreamsBenchmark>(
                         DefaultConfig.Instance
                         .WithOptions(ConfigOptions.DisableOptimizationsValidator));

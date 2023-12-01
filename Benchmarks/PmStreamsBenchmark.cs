@@ -17,13 +17,15 @@ namespace Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            if (!Directory.Exists(@"./benchmarks"))
+            var configFile = new ConfigFile();
+
+            if (!Directory.Exists(configFile.StreamFolder))
             {
-                Directory.CreateDirectory(@"./benchmarks");
+                Directory.CreateDirectory(configFile.StreamFolder!);
             }
             else
             {
-                foreach(var filename in Directory.GetFiles(@"./benchmarks"))
+                foreach(var filename in Directory.GetFiles(configFile.StreamFolder))
                 {
                     File.Delete(filename);
                 }
@@ -32,9 +34,8 @@ namespace Benchmarks
             _data = new byte[DataLength];
             new Random(42).NextBytes(_data);
 
-            int nProcessID = Process.GetCurrentProcess().Id;
-            _pmMarshalStream = new PmMarshalStream(@$"./benchmarks/PmMarshalStream{nProcessID}.pm", DataLength);
-            _pmMemCpyStream  = new PmMemCopyStream(@$"./benchmarks/PmMemCpyStream{nProcessID}.pm", DataLength);
+            _pmMarshalStream = new PmMarshalStream(configFile.PmMarshalStreamFilePath!, DataLength);
+            _pmMemCpyStream  = new PmMemCopyStream(configFile.PmMemCopyStreamFilePath!, DataLength);
         }
 
 #region PmMarshalStream
