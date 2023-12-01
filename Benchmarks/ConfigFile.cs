@@ -5,17 +5,22 @@ namespace Benchmarks
 {
     internal class ConfigFileContent
     {
-        public string? StreamFilePath { get; set; }
+        public string? StreamSSDFilePath { get; set; }
+        public string? StreamPmFilePath { get; set; }
     }
 
     internal class ConfigFile
     {
         private readonly ConfigFileContent? _content;
         private readonly int _processID;
-        public string? StreamFolder => _content?.StreamFilePath;
+        public string? StreamSSDFilePath => _content?.StreamSSDFilePath;
+        public string? StreamPmFilePath => _content?.StreamPmFilePath;
 
-        public string? PmMarshalStreamFilePath => Path.Combine(StreamFolder!, $"PmMarshalStream{_processID}.pm");
-        public string? PmMemCopyStreamFilePath => Path.Combine(StreamFolder!, $"PmMemCopyStreamFilePath{_processID}.pm");
+        public string? PmMarshalSSDStreamFilePath => Path.Combine(StreamSSDFilePath!, $"PmMarshalStream{_processID}.pm");
+        public string? PmMemCopySSDStreamFilePath => Path.Combine(StreamSSDFilePath!, $"PmMemCopyStreamFilePath{_processID}.pm");
+
+        public string? PmMarshalPmStreamFilePath => Path.Combine(StreamPmFilePath!, $"PmMarshalStream{_processID}.pm");
+        public string? PmMemCopyPmStreamFilePath => Path.Combine(StreamPmFilePath!, $"PmMemCopyStreamFilePath{_processID}.pm");
 
         public ConfigFile()
         {
