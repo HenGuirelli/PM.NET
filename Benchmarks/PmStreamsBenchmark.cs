@@ -21,18 +21,8 @@ namespace Benchmarks
         public void Setup()
         {
             var configFile = new ConfigFile();
-
-            if (!Directory.Exists(configFile.StreamSSDFilePath))
-            {
-                Directory.CreateDirectory(configFile.StreamSSDFilePath!);
-            }
-            else
-            {
-                foreach (var filename in Directory.GetFiles(configFile.StreamSSDFilePath))
-                {
-                    File.Delete(filename);
-                }
-            }
+            CleanFolder(configFile.StreamSSDFilePath!);
+            CleanFolder(configFile.StreamPmFilePath!);
 
             _data = new byte[DataLength];
             new Random(42).NextBytes(_data);
@@ -218,6 +208,21 @@ namespace Benchmarks
             _memoryMappedStreamPm?.Read(buffer, 0, buffer.Length);
         }
         #endregion
+
+        private static void CleanFolder(string folder)
+        {
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+            else
+            {
+                foreach (var filename in Directory.GetFiles(folder))
+                {
+                    File.Delete(filename);
+                }
+            }
+        }
 
         [GlobalCleanup]
         public void Cleanup()
