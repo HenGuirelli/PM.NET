@@ -11,6 +11,8 @@ namespace Benchmarks
         private PmMemCopyStream? _pmMemCpySSDStream;
         private PmMarshalStream _pmMarshalPmStream;
         private PmMemCopyStream _pmMemCpyPmStream;
+        private MemoryMappedStream _memoryMappedStreamSSD;
+        private MemoryMappedStream _memoryMappedStreamPm;
         private byte[]? _data;
         [Params(2, 2048, 4096, 8192, 16384, 32768, 65536)]
         public int DataLength;
@@ -40,6 +42,9 @@ namespace Benchmarks
 
             _pmMarshalPmStream = new PmMarshalStream(configFile.PmMarshalPmStreamFilePath!, DataLength);
             _pmMemCpyPmStream = new PmMemCopyStream(configFile.PmMemCopyPmStreamFilePath!, DataLength);
+
+            _memoryMappedStreamSSD = new MemoryMappedStream(configFile.MemoryMappedStreamSSDStreamFilePath!, DataLength);
+            _memoryMappedStreamPm = new MemoryMappedStream(configFile.MemoryMappedStreamPmStreamFilePath!, DataLength);
         }
 
         #region PmMarshalStream
@@ -165,6 +170,52 @@ namespace Benchmarks
         {
             var buffer = new byte[DataLength];
             _pmMemCpyPmStream?.Read(buffer, 0, buffer.Length);
+        }
+        #endregion
+
+        #region MemoryMappedStream
+        [Benchmark]
+        public void MemoryMappedStream_Write_SSD()
+        {
+            _memoryMappedStreamSSD?.Seek(0, SeekOrigin.Begin);
+            _memoryMappedStreamSSD?.Write(_data, 0, _data.Length);
+        }
+
+        [Benchmark]
+        public void MemoryMappedStream_Write_Flush_SSD()
+        {
+            _memoryMappedStreamSSD?.Seek(0, SeekOrigin.Begin);
+            _memoryMappedStreamSSD?.Write(_data, 0, _data.Length);
+            _memoryMappedStreamSSD?.Flush();
+        }
+
+        [Benchmark]
+        public void MemoryMappedStream_Read_SSD()
+        {
+            var buffer = new byte[DataLength];
+            _memoryMappedStreamSSD?.Read(buffer, 0, buffer.Length);
+        }
+
+        [Benchmark]
+        public void MemoryMappedStream_Write_Pm()
+        {
+            _memoryMappedStreamPm?.Seek(0, SeekOrigin.Begin);
+            _memoryMappedStreamPm?.Write(_data, 0, _data.Length);
+        }
+
+        [Benchmark]
+        public void MemoryMappedStream_Write_Flush_Pm()
+        {
+            _memoryMappedStreamPm?.Seek(0, SeekOrigin.Begin);
+            _memoryMappedStreamPm?.Write(_data, 0, _data.Length);
+            _memoryMappedStreamPm?.Flush();
+        }
+
+        [Benchmark]
+        public void MemoryMappedStream_Read_Pm()
+        {
+            var buffer = new byte[DataLength];
+            _memoryMappedStreamPm?.Read(buffer, 0, buffer.Length);
         }
         #endregion
 

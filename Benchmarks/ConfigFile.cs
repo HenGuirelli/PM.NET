@@ -22,6 +22,9 @@ namespace Benchmarks
         public string? PmMarshalPmStreamFilePath => Path.Combine(StreamPmFilePath!, $"PmMarshalStream{_processID}.pm");
         public string? PmMemCopyPmStreamFilePath => Path.Combine(StreamPmFilePath!, $"PmMemCopyStreamFilePath{_processID}.pm");
 
+        public string? MemoryMappedStreamSSDStreamFilePath => Path.Combine(StreamSSDFilePath!, $"MemoryMappedStream{_processID}.pm");
+        public string? MemoryMappedStreamPmStreamFilePath => Path.Combine(StreamPmFilePath!, $"MemoryMappedStream{_processID}.pm");
+
         public ConfigFile()
         {
             _content = JsonSerializer.Deserialize<ConfigFileContent>(File.ReadAllText(@"benchmarks.json"));
