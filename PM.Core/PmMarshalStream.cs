@@ -79,6 +79,12 @@ namespace PM.Core
             LibpmemNativeMethods.Flush(_pmemPtr, (ulong)_length);
         }
 
+        public override void Drain()
+        {
+            base.Drain();
+            LibpmemNativeMethods.PmemDrain();
+        }
+
         public override int Read(byte[] buffer, int offset, int count)
         {
             if (_position + count > _length)

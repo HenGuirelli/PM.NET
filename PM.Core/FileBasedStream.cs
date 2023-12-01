@@ -30,6 +30,11 @@ namespace PM.Core
             Log.Verbose("Flushing file={file}, size={size}", FilePath, Length);
         }
 
+        public virtual void Drain()
+        {
+            Log.Verbose("Drain PM");
+        }
+
         protected void LogSeek(long offset, SeekOrigin origin)
         {
             Log.Verbose(

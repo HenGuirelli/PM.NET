@@ -54,6 +54,14 @@ namespace Benchmarks
         }
 
         [Benchmark]
+        public void PmMarshalStream_Write_Drain()
+        {
+            _pmMarshalStream?.Seek(0, SeekOrigin.Begin);
+            _pmMarshalStream?.Write(_data, 0, _data.Length);
+            _pmMarshalStream?.Drain();
+        }
+
+        [Benchmark]
         public void PmMarshalStream_Read()
         {
             var buffer = new byte[DataLength];
@@ -75,6 +83,14 @@ namespace Benchmarks
             _pmMemCpyStream?.Seek(0, SeekOrigin.Begin);
             _pmMemCpyStream?.Write(_data, 0, _data.Length);
             _pmMemCpyStream?.Flush();
+        }
+
+        [Benchmark]
+        public void PmMemCpyStream_Write_Drain()
+        {
+            _pmMemCpyStream?.Seek(0, SeekOrigin.Begin);
+            _pmMemCpyStream?.Write(_data, 0, _data.Length);
+            _pmMemCpyStream?.Drain();
         }
 
         [Benchmark]
