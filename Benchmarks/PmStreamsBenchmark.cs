@@ -32,9 +32,10 @@ namespace Benchmarks
             _data = new byte[DataLength];
             new Random(42).NextBytes(_data);
 
-            int nProcessID = Process.GetCurrentProcess().Id;
-            _pmMarshalStream = new PmMarshalStream(@$"./benchmarks/PmMarshalStream{nProcessID}.pm", DataLength);
-            _pmMemCpyStream  = new PmMemCopyStream(@$"./benchmarks/PmMemCpyStream{nProcessID}.pm", DataLength);
+            var configFile = new ConfigFile();
+
+            _pmMarshalStream = new PmMarshalStream(configFile.PmMarshalStreamFilePath!, DataLength);
+            _pmMemCpyStream  = new PmMemCopyStream(configFile.PmMemCopyStreamFilePath!, DataLength);
         }
 
 #region PmMarshalStream

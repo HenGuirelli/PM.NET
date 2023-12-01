@@ -16,4 +16,10 @@
     <ProjectReference Include="..\PM.Core\PM.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="benchmarks.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

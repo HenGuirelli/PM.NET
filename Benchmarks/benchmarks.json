@@ -1,0 +1,6 @@
+﻿{
+	"Stream": {
+		"PmMarshalStreamFilePath": "./benchmarks/PmMarshalStream{processID}.pm",
+		"PmMemCopyStreamFilePath": "./benchmarks/PmMemCpyStream{processID}.pm"
+	}
+}

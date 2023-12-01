@@ -2,7 +2,7 @@
   "profiles": {
     "Benchmarks": {
       "commandName": "Project",
-      "commandLineArgs": "run -h"
+      "commandLineArgs": "run --stream -o ./output"
     }
   }
 }
