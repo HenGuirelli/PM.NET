@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace PM.Core
 {
-    public class PmMemCopyStream : FileBasedStream
+    public class PmMemCopyStream : MemoryMappedFileBasedStream
     {
         public override bool CanRead => true;
         public override bool CanSeek => true;

@@ -13,8 +13,8 @@ namespace Benchmarks
         private PmMemCopyStream? _pmMemCpySSDStream;
         private PmMarshalStream? _pmMarshalPmStream;
         private PmMemCopyStream? _pmMemCpyPmStream;
-        private MemoryMappedStream? _memoryMappedStreamSSD;
-        private MemoryMappedStream? _memoryMappedStreamPm;
+        private TraditionalMemoryMappedStream? _memoryMappedStreamSSD;
+        private TraditionalMemoryMappedStream? _memoryMappedStreamPm;
         private byte[] _data = Array.Empty<byte>();
 
         [GlobalSetup]
@@ -33,8 +33,8 @@ namespace Benchmarks
             _pmMarshalPmStream = new PmMarshalStream(configFile.PmMarshalPmStreamFilePath!, DataLength);
             _pmMemCpyPmStream = new PmMemCopyStream(configFile.PmMemCopyPmStreamFilePath!, DataLength);
 
-            _memoryMappedStreamSSD = new MemoryMappedStream(configFile.MemoryMappedStreamSSDStreamFilePath!, DataLength);
-            _memoryMappedStreamPm = new MemoryMappedStream(configFile.MemoryMappedStreamPmStreamFilePath!, DataLength);
+            _memoryMappedStreamSSD = new TraditionalMemoryMappedStream(configFile.MemoryMappedStreamSSDStreamFilePath!, DataLength);
+            _memoryMappedStreamPm = new TraditionalMemoryMappedStream(configFile.MemoryMappedStreamPmStreamFilePath!, DataLength);
         }
 
         #region PmMarshalStream

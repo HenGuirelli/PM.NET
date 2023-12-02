@@ -6,7 +6,7 @@ namespace PM.Factories
 {
     public class PmFactory
     {
-        public static FileBasedStream CreatePm(string pmMemoryMappedFile, long size = 4096)
+        public static MemoryMappedFileBasedStream CreatePm(string pmMemoryMappedFile, long size = 4096)
         {
             try
             {
@@ -16,7 +16,7 @@ namespace PM.Factories
                 }
                 if (PmGlobalConfiguration.PmTarget == PmTargets.TraditionalMemoryMappedFile)
                 {
-                    return new MemoryMappedStream(pmMemoryMappedFile, size: size);
+                    return new TraditionalMemoryMappedStream(pmMemoryMappedFile, size: size);
                 }
             }
             catch (Exception ex)

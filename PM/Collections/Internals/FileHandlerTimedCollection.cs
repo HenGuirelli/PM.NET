@@ -94,12 +94,12 @@ namespace PM.Collections.Internals
             }
         }
 
-        public IEnumerable<FileBasedStream> CleanOldValues(int qtyToClean)
+        public IEnumerable<MemoryMappedFileBasedStream> CleanOldValues(int qtyToClean)
         {
             try
             {
                 _lock.EnterWriteLock();
-                var removedItemsFileBasedStream = new List<FileBasedStream>();
+                var removedItemsFileBasedStream = new List<MemoryMappedFileBasedStream>();
                 var removedItems = new List<FileHandlerTimedDictItem<string, FileHandlerItem>>();
                 for (int i = 0; i < qtyToClean; i++)
                 {

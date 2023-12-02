@@ -3,7 +3,7 @@ using System.IO.MemoryMappedFiles;
 
 namespace PM.Core
 {
-    public class MemoryMappedStream : FileBasedStream
+    public class TraditionalMemoryMappedStream : MemoryMappedFileBasedStream
     {
 
         public override bool CanRead => true;
@@ -23,7 +23,7 @@ namespace PM.Core
         private readonly bool _createFileIfNotExists;
 
 
-        public MemoryMappedStream(string filePath, long size, bool createFileIfNotExists = true)
+        public TraditionalMemoryMappedStream(string filePath, long size, bool createFileIfNotExists = true)
         {
             FilePath = filePath;
             _size = size;

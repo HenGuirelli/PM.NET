@@ -12,7 +12,7 @@ namespace PM.Core.Tests
         {
             byte[] data = Encoding.UTF8.GetBytes("Hello, world!");
 
-            using var stream = new MemoryMappedStream(
+            using var stream = new TraditionalMemoryMappedStream(
                 CreateFilePath(nameof(OnMemoryMappedStreamTests)),
                 data.Length);
 

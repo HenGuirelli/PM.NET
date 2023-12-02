@@ -2,7 +2,7 @@
 
 namespace PM.Core
 {
-    public abstract class FileBasedStream : Stream
+    public abstract class MemoryMappedFileBasedStream : Stream
     {
         public virtual string FilePath { get; protected set; } = string.Empty;
         private bool _isClosed = true;

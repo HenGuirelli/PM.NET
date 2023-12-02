@@ -10,7 +10,7 @@ namespace PM.Proxies
         /// If a transaction is running, this redirector is called
         /// </summary>
         ThreadLocal<IInterceptorRedirect> TransactionInterceptorRedirect { get; }
-        FileBasedStream PmMemoryMappedFile { get; }
+        MemoryMappedFileBasedStream PmMemoryMappedFile { get; }
         FileHandlerItem FileHandlerItem { get; }
         IInterceptorRedirect OriginalFileInterceptorRedirect { get; }
 

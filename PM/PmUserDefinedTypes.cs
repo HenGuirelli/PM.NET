@@ -5,11 +5,11 @@ namespace PM
 {
     public class PmUserDefinedTypes : IDisposable
     {
-        public FileBasedStream PmMemoryMappedFile { get; }
+        public MemoryMappedFileBasedStream PmMemoryMappedFile { get; }
         private readonly PmCSharpDefinedTypes _pmCSharpDefined;
         private readonly ObjectPropertiesInfoMapper _objectPropertiesSizeMapper;
 
-        public PmUserDefinedTypes(FileBasedStream pm, ObjectPropertiesInfoMapper objectPropertiesInfoMapper)
+        public PmUserDefinedTypes(MemoryMappedFileBasedStream pm, ObjectPropertiesInfoMapper objectPropertiesInfoMapper)
         {
             _pmCSharpDefined = new PmCSharpDefinedTypes(pm);
             PmMemoryMappedFile = pm;

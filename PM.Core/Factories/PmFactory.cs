@@ -9,7 +9,7 @@ namespace PM.Core.Factories
             return new PmCSharpDefinedTypes(CreatePm(pmMemoryMappedFile, size));
         }
 
-        public static FileBasedStream CreatePm(string pmMemoryMappedFile, long size = 4096)
+        public static MemoryMappedFileBasedStream CreatePm(string pmMemoryMappedFile, long size = 4096)
         {
             try
             {
@@ -19,7 +19,7 @@ namespace PM.Core.Factories
                 }
                 if (PmGlobalConfiguration.PmTarget == PmTargets.TraditionalMemoryMappedFile)
                 {
-                    return new MemoryMappedStream(pmMemoryMappedFile, size: size);
+                    return new TraditionalMemoryMappedStream(pmMemoryMappedFile, size: size);
                 }
             }
             catch (Exception ex)

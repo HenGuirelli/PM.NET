@@ -41,7 +41,7 @@ namespace PM.Tests.Collections.Internals
                 //fileHandlerTimedCollection.Add(i.ToString(), null);
                 fileHandlerTimedCollection.Add(i.ToString(), 
                     new PM.Managers.FileHandlerItem(
-                        new MemoryMappedStream($"./{i}.logtest", 4096)));
+                        new TraditionalMemoryMappedStream($"./{i}.logtest", 4096)));
             }
 
             Assert.Equal(capacity, fileHandlerTimedCollection.Count);
