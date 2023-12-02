@@ -5,11 +5,6 @@ namespace PM.Core
 {
     public abstract class PmBasedStream : MemoryMappedFileBasedStream
     {
-        public override bool CanRead => true;
-        public override bool CanSeek => true;
-        public override bool CanWrite => true;
-        private long _length;
-        public override long Length => _length;
         public bool IsPersistent { get; protected set; }
 
         private long _position;
@@ -25,8 +20,6 @@ namespace PM.Core
                 _position = value;
             }
         }
-
-        private IntPtr _pmemPtr;
 
         private readonly ReaderWriterLockSlim _lock = new();
 
@@ -49,7 +42,7 @@ namespace PM.Core
             int isPersistent = 0;
             ulong mappedLength = 0;
 
-            InitialPointer = _pmemPtr = LibpmemNativeMethods.MapFile(
+            InitialPointer = LibpmemNativeMethods.MapFile(
                 path: path,
                 length: length,
                 flags: Flags.PMEM_FILE_CREATE,
@@ -57,8 +50,7 @@ namespace PM.Core
                 mappedLength: ref mappedLength,
                 isPersistent: ref isPersistent);
 
-
-            if (_pmemPtr == IntPtr.Zero)
+            if (InitialPointer == IntPtr.Zero)
             {
                 var errorMsg = LibpmemNativeMethods.ErrorMsg();
                 throw new Exception("Failed to map PMEM file. Reason: " + errorMsg);
@@ -69,13 +61,13 @@ namespace PM.Core
 
             Log.Verbose(
                 "PM file {filepath} with size {size} mapped into pointer {startP} to {endP} ",
-                FilePath, _length, _pmemPtr, _pmemPtr + (nint)_length);
+                FilePath, _length, InitialPointer, InitialPointer + (nint)_length);
         }
 
         public override void Flush()
         {
             base.Flush();
-            LibpmemNativeMethods.Flush(_pmemPtr, (ulong)_length);
+            LibpmemNativeMethods.Flush(InitialPointer, (ulong)_length);
         }
 
         public override void Drain()
@@ -98,7 +90,7 @@ namespace PM.Core
                 {
                     return 0;
                 }
-                Marshal.Copy(_pmemPtr + (nint)_position, buffer, offset, buffer.Length);
+                Marshal.Copy(InitialPointer + (nint)_position, buffer, offset, buffer.Length);
                 return count;
             }
             finally
@@ -147,7 +139,7 @@ namespace PM.Core
             {
                 _lock.EnterWriteLock();
 
-                var destination = _pmemPtr + (nint)_position;
+                var destination = InitialPointer + (nint)_position;
                 Log.Verbose(
                     "Writing on file={file}, size={size}, " +
                     "buffer={buffer}, offset={offset}, count={count}, " +
@@ -197,17 +189,17 @@ namespace PM.Core
                 base.Close();
                 IsClosed = true;
 
-                if (_pmemPtr != IntPtr.Zero)
+                if (InitialPointer != IntPtr.Zero)
                 {
-                    if (LibpmemNativeMethods.Unmap(_pmemPtr, Length) == 0)
+                    if (LibpmemNativeMethods.Unmap(InitialPointer, Length) == 0)
                     {
                         Log.Verbose("PM unmapped pointer={pointer}, filepath={filepath}, size={size}",
-                            _pmemPtr, FilePath, Length);
+                            InitialPointer, FilePath, Length);
                     }
                     else
                     {
                         Log.Error("Error on Unmap memory area pointer={pointer}, size={size}",
-                            _pmemPtr, Length);
+                            InitialPointer, Length);
                     }
                 }
                 else
