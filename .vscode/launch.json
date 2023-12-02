@@ -24,7 +24,7 @@
             "preLaunchTask": "build Benchmark Release",
             "program": "${workspaceFolder}/Benchmarks/bin/Release/net7.0/Benchmarks.dll",
             "args": [
-                "run", "--stream", "-o", "./output"
+                "run", "--stream"
             ],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
@@ -37,7 +37,7 @@
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/Benchmarks/bin/Debug/net7.0/Benchmarks.dll",
             "args": [
-                "run", "--stream", "-o", "./output"
+                "run", "--stream"
             ],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
