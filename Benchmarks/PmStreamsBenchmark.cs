@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using PM.Core;
 
 namespace Benchmarks
@@ -7,15 +6,16 @@ namespace Benchmarks
     [RPlotExporter]
     public class PmStreamsBenchmark
     {
-        private PmMarshalStream? _pmMarshalSSDStream;
-        private PmMemCopyStream? _pmMemCpySSDStream;
-        private PmMarshalStream _pmMarshalPmStream;
-        private PmMemCopyStream _pmMemCpyPmStream;
-        private MemoryMappedStream _memoryMappedStreamSSD;
-        private MemoryMappedStream _memoryMappedStreamPm;
-        private byte[]? _data;
         [Params(2, 2048, 4096, 8192, 16384, 32768, 65536)]
         public int DataLength;
+
+        private PmMarshalStream? _pmMarshalSSDStream;
+        private PmMemCopyStream? _pmMemCpySSDStream;
+        private PmMarshalStream? _pmMarshalPmStream;
+        private PmMemCopyStream? _pmMemCpyPmStream;
+        private MemoryMappedStream? _memoryMappedStreamSSD;
+        private MemoryMappedStream? _memoryMappedStreamPm;
+        private byte[] _data = Array.Empty<byte>();
 
         [GlobalSetup]
         public void Setup()
