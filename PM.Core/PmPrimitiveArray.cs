@@ -13,7 +13,7 @@
             set => Set(index, value);
         }
 
-        protected PmPrimitiveArray(FileBasedStream pm, int length)
+        protected PmPrimitiveArray(MemoryMappedFileBasedStream pm, int length)
         {
             Length = length;
             _cSharpDefinedPm = new PmCSharpDefinedTypes(pm);
@@ -56,7 +56,7 @@
 
     public abstract class PmPrimitiveArray
     {
-        public static PmPrimitiveArray<T> CreateNewArray<T>(FileBasedStream pm)
+        public static PmPrimitiveArray<T> CreateNewArray<T>(MemoryMappedFileBasedStream pm)
             where T : struct
         {
             var type = typeof(T);

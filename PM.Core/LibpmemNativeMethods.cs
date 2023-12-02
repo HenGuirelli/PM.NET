@@ -40,5 +40,12 @@ namespace PM.Core
 
         [DllImport("libpmem.so", EntryPoint = "pmem_memset_nodrain")]
         public static extern void PmemMemsetNoDrain(IntPtr dest, byte c, ulong len);
+
+        [DllImport("libpmem.so", EntryPoint = "pmem_errormsg")]
+        private static extern IntPtr _ErrorMsg();
+        public static string? ErrorMsg()
+        {
+            return Marshal.PtrToStringAuto(_ErrorMsg());
+        }
     }
 }

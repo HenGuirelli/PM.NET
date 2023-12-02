@@ -27,13 +27,13 @@ namespace PM.Tests.Common
             return Path.Combine(PmGlobalConfiguration.PmInternalsFolder, filename);
         }
 
-        protected static FileBasedStream CreatePmStream(string mappedMemoryFilePath, long size)
+        protected static MemoryMappedFileBasedStream CreatePmStream(string mappedMemoryFilePath, long size)
         {
             if (PmGlobalConfiguration.PmTarget == PmTargets.PM)
             {
                 return new PmStream(CreateFilePath(mappedMemoryFilePath), size);
             }
-            return new MemoryMappedStream(CreateFilePath(mappedMemoryFilePath), size);
+            return new TraditionalMemoryMappedStream(CreateFilePath(mappedMemoryFilePath), size);
         }
 
         protected static void DeleteFile(string filename)

@@ -11,7 +11,7 @@ namespace PM.Managers
     internal class PmManager : IInterceptorRedirect
     {
         public ObjectPropertiesInfoMapper ObjectMapper { get; }
-        public FileBasedStream PmMemoryMappedFile { get; }
+        public MemoryMappedFileBasedStream PmMemoryMappedFile { get; }
 
         internal readonly PmUserDefinedTypes _pm;
 

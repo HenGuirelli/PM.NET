@@ -5,9 +5,9 @@ using Serilog;
 
 namespace PM
 {
-    public class PmStream : FileBasedStream, IDisposable
+    public class PmStream : MemoryMappedFileBasedStream, IDisposable
     {
-        private readonly FileBasedStream _pm;
+        private readonly MemoryMappedFileBasedStream _pm;
 
         public override bool IsClosed { get => _pm.IsClosed; set => _pm.IsClosed = value; }
 

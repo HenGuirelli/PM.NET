@@ -9,7 +9,7 @@ namespace PM.Proxies
     internal class PersistentInterceptor : IPmInterceptor
     {
         public ThreadLocal<IInterceptorRedirect> TransactionInterceptorRedirect { get; } = new();
-        public FileBasedStream PmMemoryMappedFile { get; }
+        public MemoryMappedFileBasedStream PmMemoryMappedFile { get; }
         public IInterceptorRedirect OriginalFileInterceptorRedirect { get; }
         private readonly Type _targetType;
         private readonly Dictionary<MethodInfo, PropertyInfo> _methodToPropCache = new();
