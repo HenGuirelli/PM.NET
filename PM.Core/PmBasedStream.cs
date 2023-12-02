@@ -171,6 +171,7 @@ namespace PM.Core
                 _lock.EnterWriteLock();
 
                 base.Resize(size);
+                Drain();
                 Close();
                 MapFile(FilePath, size);
             }

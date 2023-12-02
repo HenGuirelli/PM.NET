@@ -5,6 +5,14 @@ namespace PM.Core
     public abstract class MemoryMappedFileBasedStream : Stream
     {
         public virtual string FilePath { get; protected set; } = string.Empty;
+        public override bool CanRead => true;
+        public override bool CanSeek => true;
+        public override bool CanWrite => true;
+
+        protected long _length;
+        public override long Length => _length;
+
+
         private bool _isClosed = true;
         public virtual bool IsClosed
         {
