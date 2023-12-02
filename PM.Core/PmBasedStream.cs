@@ -8,11 +8,11 @@ namespace PM.Core
         public override bool CanRead => true;
         public override bool CanSeek => true;
         public override bool CanWrite => true;
-        protected long _length;
+        private long _length;
         public override long Length => _length;
         public bool IsPersistent { get; protected set; }
 
-        protected long _position;
+        private long _position;
         public override long Position
         {
             get => _position;
@@ -26,7 +26,9 @@ namespace PM.Core
             }
         }
 
-        protected IntPtr _pmemPtr;
+        private IntPtr _pmemPtr;
+
+        private readonly ReaderWriterLockSlim _lock = new();
 
         protected PmBasedStream(string path, long length)
         {
@@ -70,7 +72,6 @@ namespace PM.Core
                 FilePath, _length, _pmemPtr, _pmemPtr + (nint)_length);
         }
 
-
         public override void Flush()
         {
             base.Flush();
@@ -85,16 +86,25 @@ namespace PM.Core
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (_position + count > _length)
+            try
             {
-                count = (int)(_length - _position);
+                _lock.EnterReadLock();
+
+                if (_position + count > _length)
+                {
+                    count = (int)(_length - _position);
+                }
+                if (count <= 0)
+                {
+                    return 0;
+                }
+                Marshal.Copy(_pmemPtr + (nint)_position, buffer, offset, buffer.Length);
+                return count;
             }
-            if (count <= 0)
+            finally
             {
-                return 0;
+                _lock.ExitReadLock();
             }
-            Marshal.Copy(_pmemPtr + (nint)_position, buffer, offset, buffer.Length);
-            return count;
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -133,18 +143,26 @@ namespace PM.Core
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            var destination = _pmemPtr + (nint)_position;
-            Log.Verbose(
-                "Writing on file={file}, size={size}, " +
-                "buffer={buffer}, offset={offset}, count={count}, " +
-                "destination={destination}",
-                FilePath, Length,
-                buffer, offset, count,
-                destination);
+            try
+            {
+                _lock.EnterWriteLock();
 
-            LibpmemNativeMethods.PmemMemcpyNoDrain(destination, buffer, (ulong)buffer.Length);
-            InternalWrite(destination, buffer, offset, count);
-            _position += count;
+                var destination = _pmemPtr + (nint)_position;
+                Log.Verbose(
+                    "Writing on file={file}, size={size}, " +
+                    "buffer={buffer}, offset={offset}, count={count}, " +
+                    "destination={destination}",
+                    FilePath, Length,
+                    buffer, offset, count,
+                    destination);
+
+                InternalWrite(destination, buffer, offset, count);
+                _position += count;
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
         }
 
         protected abstract void InternalWrite(
@@ -156,33 +174,50 @@ namespace PM.Core
 
         public override void Resize(long size)
         {
-            base.Resize(size);
+            try
+            {
+                _lock.EnterWriteLock();
 
-            Close();
-            MapFile(FilePath, size);
+                base.Resize(size);
+                Close();
+                MapFile(FilePath, size);
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
         }
 
         public override void Close()
         {
-            base.Close();
-            IsClosed = true;
-
-            if (_pmemPtr != IntPtr.Zero)
+            try
             {
-                if (LibpmemNativeMethods.Unmap(_pmemPtr, Length) == 0)
+                _lock.EnterWriteLock();
+
+                base.Close();
+                IsClosed = true;
+
+                if (_pmemPtr != IntPtr.Zero)
                 {
-                    Log.Verbose("PM unmapped pointer={pointer}, filepath={filepath}, size={size}",
-                        _pmemPtr, FilePath, Length);
+                    if (LibpmemNativeMethods.Unmap(_pmemPtr, Length) == 0)
+                    {
+                        Log.Verbose("PM unmapped pointer={pointer}, filepath={filepath}, size={size}",
+                            _pmemPtr, FilePath, Length);
+                    }
+                    else
+                    {
+                        Log.Error("Error on Unmap memory area pointer={pointer}, size={size}",
+                            _pmemPtr, Length);
+                    }
                 }
                 else
                 {
-                    Log.Error("Error on Unmap memory area pointer={pointer}, size={size}",
-                        _pmemPtr, Length);
+                    Log.Verbose("Unable to close PM filepath={filepath}, size={size}. _pmPtr is Zero", FilePath, Length);
                 }
             }
-            else
+            finally
             {
-                Log.Verbose("Unable to close PM filepath={filepath}, size={size}. _pmPtr is Zero", FilePath, Length);
+                _lock.ExitWriteLock();
             }
         }
 
