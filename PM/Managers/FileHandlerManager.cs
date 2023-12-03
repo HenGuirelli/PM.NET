@@ -6,7 +6,7 @@ namespace PM.Managers
 {
     public class FileHandlerItem
     {
-        public FileBasedStream FileBasedStream { get; }
+        public MemoryMappedFileBasedStream FileBasedStream { get; }
         private ulong _filePointerReference;
         public ulong FilePointerReference
         {
@@ -19,7 +19,7 @@ namespace PM.Managers
             }
         }
 
-        public FileHandlerItem(FileBasedStream fileBasedStream)
+        public FileHandlerItem(MemoryMappedFileBasedStream fileBasedStream)
         {
             FileBasedStream = fileBasedStream;
         }
@@ -84,7 +84,7 @@ namespace PM.Managers
             }
         }
 
-        public static FileHandlerItem RegisterNewHandler(FileBasedStream fileBasedStream)
+        public static FileHandlerItem RegisterNewHandler(MemoryMappedFileBasedStream fileBasedStream)
         {
             var fileHandlerItem = new FileHandlerItem(fileBasedStream);
             try
@@ -139,7 +139,7 @@ namespace PM.Managers
         }
 #endif
 
-        public static bool CloseAndRemoveFile(FileBasedStream fileBasedStream)
+        public static bool CloseAndRemoveFile(MemoryMappedFileBasedStream fileBasedStream)
         {
             return CloseAndRemoveFile(fileBasedStream.FilePath);
         }

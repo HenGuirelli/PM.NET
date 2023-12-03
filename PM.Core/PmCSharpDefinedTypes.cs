@@ -5,12 +5,12 @@ namespace PM.Core
 {
     public class PmCSharpDefinedTypes : IDisposable
     {
-        private readonly FileBasedStream _pm;
+        private readonly MemoryMappedFileBasedStream _pm;
         const string ReadErrorExceptionMessage = "Error on read from Stream";
         public string FilePath => _pm.FilePath;
-        public FileBasedStream FileBasedStream => _pm;
+        public MemoryMappedFileBasedStream FileBasedStream => _pm;
 
-        public PmCSharpDefinedTypes(FileBasedStream pm)
+        public PmCSharpDefinedTypes(MemoryMappedFileBasedStream pm)
         {
             _pm = pm ?? throw new ArgumentNullException(nameof(pm));
         }

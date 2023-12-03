@@ -2,9 +2,17 @@
 
 namespace PM.Core
 {
-    public abstract class FileBasedStream : Stream
+    public abstract class MemoryMappedFileBasedStream : Stream
     {
         public virtual string FilePath { get; protected set; } = string.Empty;
+        public override bool CanRead => true;
+        public override bool CanSeek => true;
+        public override bool CanWrite => true;
+
+        protected long _length;
+        public override long Length => _length;
+
+
         private bool _isClosed = true;
         public virtual bool IsClosed
         {
@@ -28,6 +36,11 @@ namespace PM.Core
         public override void Flush()
         {
             Log.Verbose("Flushing file={file}, size={size}", FilePath, Length);
+        }
+
+        public virtual void Drain()
+        {
+            Log.Verbose("Drain PM");
         }
 
         protected void LogSeek(long offset, SeekOrigin origin)

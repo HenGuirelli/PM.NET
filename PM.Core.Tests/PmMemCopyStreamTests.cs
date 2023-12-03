@@ -1,17 +1,16 @@
 ﻿using PM.Tests.Common;
-using System.Security.Cryptography;
 using System.Text;
 using Xunit;
 
 namespace PM.Core.Tests
 {
-    public class PmStreamTests : UnitTest
+    public class PmMemCopyStreamTests : UnitTest
     {
         [Fact]
-        public void OnWriteAndReadOnStream()
+        public void OnWriteAndReadOnPmMemCopyStream()
         {
-            using var stream = new PmStream(
-                CreateFilePath(nameof(OnWriteAndReadOnStream)),
+            using var stream = new PmMemCopyStream(
+                CreateFilePath(nameof(OnWriteAndReadOnPmMemCopyStream)),
                 4096);
 
             var bytesToWrite = Encoding.UTF8.GetBytes("Hello PM!");
