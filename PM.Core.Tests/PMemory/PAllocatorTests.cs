@@ -1,6 +1,5 @@
 ﻿using PM.Core.PMemory;
 using PM.Tests.Common;
-using System.Linq;
 using Xunit;
 
 namespace PM.Core.Tests.PMemory
@@ -21,6 +20,7 @@ namespace PM.Core.Tests.PMemory
             persistentAllocatorHeader.AddBlock(new PersistentBlockLayout(regionSize: 32, regionQuantity: 2));
 
             var pAllocator = new PAllocator(persistentAllocatorHeader, new PmCSharpDefinedTypes(pmStream));
+            var startOffset = pAllocator.Alloc(8);
 
         }
     }

@@ -166,12 +166,12 @@
             return _persistentMemory.ReadByte() == 1;
         }
 
-        public void Alloc(long size)
+        public nint Alloc(long size)
         {
-
+            return default;
         }
 
-        public void Free(IntPtr pointer)
+        public void Free(nint pointer)
         {
 
         }
