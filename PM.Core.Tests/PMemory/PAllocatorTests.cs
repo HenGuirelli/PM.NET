@@ -1,5 +1,6 @@
 ﻿using PM.Core.PMemory;
 using PM.Tests.Common;
+using System.IO;
 using Xunit;
 
 namespace PM.Core.Tests.PMemory
@@ -11,7 +12,7 @@ namespace PM.Core.Tests.PMemory
         {
             DeleteFile(nameof(OnCtor_ShouldCreatePMemoryLayout));
 
-            var pmStream = CreatePmStream(nameof(OnCtor_ShouldCreatePMemoryLayout), 0);
+            var pmStream = CreatePmStream(nameof(OnCtor_ShouldCreatePMemoryLayout), 4096);
 
             var persistentAllocatorHeader = new PersistentAllocatorHeader();
 
@@ -20,8 +21,10 @@ namespace PM.Core.Tests.PMemory
             persistentAllocatorHeader.AddBlock(new PersistentBlockLayout(regionSize: 32, regionQuantity: 2));
 
             var pAllocator = new PAllocator(persistentAllocatorHeader, new PmCSharpDefinedTypes(pmStream));
-            var startOffset = pAllocator.Alloc(8);
+            var filepath = pAllocator.FilePath;
+            pAllocator.Dispose();
 
+            string content = File.ReadAllText(filepath);
         }
     }
 }

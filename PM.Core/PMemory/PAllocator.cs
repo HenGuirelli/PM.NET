@@ -20,17 +20,17 @@
     /// Represents a block of persistent memory allocated.
     /// Each block maybe have multiples regions of free or used memory.
     /// </summary>
-    public interface IPersistentBlockLayout
+    public class PersistentBlockLayout
     {
         /// <summary>
         /// Size of each region inside a block (always power of two).
         /// </summary>
-        int RegionsSize { get; }
+        public int RegionsSize { get; internal set; }
 
         /// <summary>
         /// Quantity of regions inside a block.
         /// </summary>
-        byte RegionsQuantity { get; }
+        public byte RegionsQuantity { get; internal set; }
 
         /// <summary>
         /// BitMap of free regions inside a block.
@@ -38,33 +38,23 @@
         /// For example, if only the last region is in use,
         /// then the bits will be ...00001 and the value 1.
         /// </summary>
-        ulong FreeBlocks { get; }
+        public ulong FreeBlocks { get; internal set; }
 
         /// <summary>
         /// Offset of next block of persistent memory.
         /// 
         /// If zero, this is the last block and more blocks need be created.
         /// </summary>
-        int NextBlockOffset { get; }
+        public int NextBlockOffset { get; internal set; }
 
         /// <summary>
         /// Get block total size.
         /// </summary>
-        int TotalSizeBytes { get; }
-    }
-
-    public class PersistentBlockLayout : IPersistentBlockLayout
-    {
-        public int RegionsSize { get; internal set; }
-
-        public byte RegionsQuantity { get; internal set; }
-
-        public ulong FreeBlocks { get; internal set; }
-
-        public int NextBlockOffset { get; internal set; }
-
         public int TotalSizeBytes => GetTotalBytes();
 
+        /// <summary>
+        /// Block offset
+        /// </summary>
         internal int BlockOffset { get; set; }
 
         public PersistentBlockLayout(int regionSize, byte regionQuantity)
@@ -99,27 +89,34 @@
     /// </summary>
     public interface IInitialPersistentRegionLayout
     {
-        IEnumerable<IPersistentBlockLayout> Blocks { get; }
+        IEnumerable<PersistentBlockLayout> Blocks { get; }
         int TotalSizeBytes { get; }
     }
 
     public class PersistentAllocatorHeader : IInitialPersistentRegionLayout
     {
-        private readonly List<IPersistentBlockLayout> _blocks = new();
-        public IEnumerable<IPersistentBlockLayout> Blocks => _blocks.AsReadOnly();
+        private readonly List<PersistentBlockLayout> _blocks = new();
+        public IEnumerable<PersistentBlockLayout> Blocks => _blocks.AsReadOnly();
 
         public int TotalSizeBytes => _blocks.Sum(x => x.TotalSizeBytes);
 
-        public void AddBlock(IPersistentBlockLayout persistentBlockLayout)
+        // Start with 1 to skip the commit byte
+        private int _blocksOffset = 1;
+
+        public void AddBlock(PersistentBlockLayout persistentBlockLayout)
         {
             _blocks.Add(persistentBlockLayout);
+
+            persistentBlockLayout.BlockOffset = _blocksOffset;
+            _blocksOffset += persistentBlockLayout.TotalSizeBytes;
         }
     }
 
-    public class PAllocator : IPersistentAllocator, IPersistentObject
+    public class PAllocator : IPersistentAllocator, IPersistentObject, IDisposable
     {
         private readonly PmCSharpDefinedTypes _persistentMemory;
         private readonly IInitialPersistentRegionLayout _initialPersistentBlocksLayout;
+        public string FilePath => _persistentMemory.FilePath;
 
         public PAllocator(
             IInitialPersistentRegionLayout initialPersistentRegionLayout,
@@ -159,6 +156,8 @@
                 _persistentMemory.WriteInt(block.NextBlockOffset, offset);
                 offset += sizeof(int);
             }
+
+            _persistentMemory.WriteByte(1, offset: 0);
         }
 
         private bool IsSetCommitByte()
@@ -179,6 +178,11 @@
         public void Load()
         {
             throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            _persistentMemory?.Dispose();
         }
     }
 }

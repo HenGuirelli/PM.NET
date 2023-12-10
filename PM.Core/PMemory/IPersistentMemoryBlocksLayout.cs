@@ -2,16 +2,16 @@
 {
     public interface IPersistentMemoryBlocksLayout
     {
-        IEnumerable<IPersistentBlockLayout> Blocks { get; }
+        IEnumerable<PersistentBlockLayout> Blocks { get; }
     }
 
     public class PersistentMemoryBlocksLayout : IPersistentMemoryBlocksLayout, IPersistentObject
     {
-        public IEnumerable<IPersistentBlockLayout> Blocks { get; }
+        public IEnumerable<PersistentBlockLayout> Blocks { get; }
 
         public PersistentMemoryBlocksLayout()
         {
-            Blocks = new List<IPersistentBlockLayout>();
+            Blocks = new List<PersistentBlockLayout>();
         }
 
         public void Load()
