@@ -25,6 +25,8 @@ namespace PM.Core.Tests.PMemory
             pAllocator.Dispose();
 
             string content = File.ReadAllText(filepath);
+            // Assert commit byte equals 1 
+            Assert.Equal(1, (byte)content[0]);
         }
     }
 }
