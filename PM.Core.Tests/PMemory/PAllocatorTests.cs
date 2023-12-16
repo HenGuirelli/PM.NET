@@ -14,7 +14,7 @@ namespace PM.Core.Tests.PMemory
 
             var pmStream = CreatePmStream(nameof(OnCtor_ShouldCreatePMemoryLayout), 4096);
 
-            var persistentAllocatorHeader = new PersistentAllocatorHeader();
+            var persistentAllocatorHeader = new PersistentAllocatorLayout();
 
             persistentAllocatorHeader.AddBlock(new PersistentBlockLayout(regionSize: 8, regionQuantity: 2));
             persistentAllocatorHeader.AddBlock(new PersistentBlockLayout(regionSize: 16, regionQuantity: 2));
@@ -27,6 +27,38 @@ namespace PM.Core.Tests.PMemory
             string content = File.ReadAllText(filepath);
             // Assert commit byte equals 1 
             Assert.Equal(1, (byte)content[0]);
+        }
+
+        [Fact]
+        public void OnRoundUpPow2_ShouldGetNextPowerOf2()
+        {
+            Assert.Equal(PAllocator.MinRegionSizeBytes, PAllocator.RoundUpPow2(1));
+            Assert.Equal(PAllocator.MinRegionSizeBytes, PAllocator.RoundUpPow2(PAllocator.MinRegionSizeBytes));
+            Assert.Equal(16, PAllocator.RoundUpPow2(9));
+            Assert.Equal(16, PAllocator.RoundUpPow2(10));
+            Assert.Equal(32, PAllocator.RoundUpPow2(17));
+        }
+
+        [Fact]
+        public void OnAllocate_ShouldAllocatePreDeterminateRegion()
+        {
+            DeleteFile(nameof(OnAllocate_ShouldAllocatePreDeterminateRegion));
+
+            var pmStream = CreatePmStream(nameof(OnAllocate_ShouldAllocatePreDeterminateRegion), 4096);
+
+            var persistentAllocatorLayout = new PersistentAllocatorLayout();
+
+            persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 8, regionQuantity: 2));
+            persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 16, regionQuantity: 2));
+            persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 32, regionQuantity: 2));
+
+            var pAllocator = new PAllocator(persistentAllocatorLayout, new PmCSharpDefinedTypes(pmStream));
+
+            
+            var region = pAllocator.Alloc(1); // Should alloc 8 bytes region
+            pAllocator.Alloc(8); // Should alloc 8 bytes region
+            pAllocator.Alloc(9); // Should alloc 16 bytes region
+            pAllocator.Alloc(16); // Should alloc 16 bytes region
         }
     }
 }

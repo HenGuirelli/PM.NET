@@ -1,19 +1,38 @@
-﻿namespace PM.Core.PMemory
+﻿using System.IO;
+
+namespace PM.Core.PMemory
 {
     /// <summary>
     /// Region of persistent memory.
     /// </summary>
-    internal interface IPersistentRegion
+    public class PersistentRegion
     {
         /// <summary>
         /// Define the region is free or in use.
         /// </summary>
-        bool IsFree { get; set; }
+        internal bool IsFree { get; set; }
+
+        /// <summary>
+        /// Start pointer to region
+        /// </summary>
+        public nint Pointer { get; set; }
+
+        /// <summary>
+        /// Region size in bytes
+        /// </summary>
+        public int Size { get; }
 
         /// <summary>
         /// Data of region
         /// </summary>
-        byte[] Data { get; }
+        public byte[] Data { get; }
+
+        private readonly PmCSharpDefinedTypes _persistentMemory;
+
+        public PersistentRegion(PmCSharpDefinedTypes persistentMemory)
+        {
+            _persistentMemory = persistentMemory;
+        }
     }
 
     /// <summary>
@@ -31,6 +50,11 @@
         /// Quantity of regions inside a block.
         /// </summary>
         public byte RegionsQuantity { get; internal set; }
+
+        /// <summary>
+        /// Regions inside a block
+        /// </summary>
+        public PersistentRegion[] Regions { get; }
 
         /// <summary>
         /// BitMap of free regions inside a block.
@@ -57,6 +81,8 @@
         /// </summary>
         internal int BlockOffset { get; set; }
 
+        internal PmCSharpDefinedTypes? PersistentMemory { get; set; }
+
         public PersistentBlockLayout(int regionSize, byte regionQuantity)
         {
             if (!IsPowerOfTwo(regionSize)) throw new ArgumentException($"{nameof(regionSize)} need be power of two");
@@ -64,6 +90,7 @@
 
             RegionsSize = regionSize;
             RegionsQuantity = regionQuantity;
+            Regions = new PersistentRegion[RegionsSize];
         }
 
         private static bool IsPowerOfTwo(int number)
@@ -80,59 +107,91 @@
             //  4 bytes (Next block layout start offset)
             return 17 + (RegionsQuantity * RegionsSize);
         }
+
+        /// <summary>
+        /// Get next free region
+        /// </summary>
+        /// <returns>Free region or null if all regions are in use</returns>
+        public PersistentRegion? GetFreeRegion()
+        {
+            foreach (var region in Regions)
+            {
+                if (region.IsFree)
+                {
+                    return region;
+                }
+            }
+            return null;
+        }
     }
 
-    /// <summary>
-    /// Initial layout of persistent memory pool.
-    /// 
-    /// TODO: Determine the best layout
-    /// </summary>
-    public interface IInitialPersistentRegionLayout
+    public class PersistentAllocatorLayout
     {
-        IEnumerable<PersistentBlockLayout> Blocks { get; }
-        int TotalSizeBytes { get; }
-    }
+        private readonly Dictionary<int, PersistentBlockLayout> _blocks = new();
+        public IEnumerable<PersistentBlockLayout> Blocks => _blocks.Values.ToList().AsReadOnly();
 
-    public class PersistentAllocatorHeader : IInitialPersistentRegionLayout
-    {
-        private readonly List<PersistentBlockLayout> _blocks = new();
-        public IEnumerable<PersistentBlockLayout> Blocks => _blocks.AsReadOnly();
+        private PmCSharpDefinedTypes? _pmCSharpDefinedTypes;
+        public PmCSharpDefinedTypes? PmCSharpDefinedTypes
+        {
+            get => _pmCSharpDefinedTypes;
+            set
+            {
+                _pmCSharpDefinedTypes = value;
+                foreach (PersistentBlockLayout block in _blocks.Values)
+                {
+                    block.PersistentMemory = value;
+                }
+            }
+        }
 
-        public int TotalSizeBytes => _blocks.Sum(x => x.TotalSizeBytes);
+        public int TotalSizeBytes => _blocks.Sum(x => x.Value.TotalSizeBytes);
 
         // Start with 1 to skip the commit byte
         private int _blocksOffset = 1;
 
         public void AddBlock(PersistentBlockLayout persistentBlockLayout)
         {
-            _blocks.Add(persistentBlockLayout);
+            _blocks.Add(persistentBlockLayout.RegionsSize, persistentBlockLayout);
 
             persistentBlockLayout.BlockOffset = _blocksOffset;
             _blocksOffset += persistentBlockLayout.TotalSizeBytes;
+        }
+
+        public PersistentBlockLayout GetBlockBySize(int size)
+        {
+            if (_blocks.TryGetValue(size, out var block))
+            {
+                return block;
+            }
+
+            // TODO: Create block with new sizes
+            throw new ApplicationException($"Block with size {size} not found");
         }
     }
 
     public class PAllocator : IPersistentAllocator, IPersistentObject, IDisposable
     {
         private readonly PmCSharpDefinedTypes _persistentMemory;
-        private readonly IInitialPersistentRegionLayout _initialPersistentBlocksLayout;
+        private readonly PersistentAllocatorLayout _persistentBlocksLayout;
         public string FilePath => _persistentMemory.FilePath;
+        public const int MinRegionSizeBytes = 8;
 
         public PAllocator(
-            IInitialPersistentRegionLayout initialPersistentRegionLayout,
+            PersistentAllocatorLayout persistentRegionLayout,
             PmCSharpDefinedTypes persistentMemory)
         {
             _persistentMemory = persistentMemory;
-            _initialPersistentBlocksLayout = initialPersistentRegionLayout;
+            _persistentBlocksLayout = persistentRegionLayout;
+            _persistentBlocksLayout.PmCSharpDefinedTypes = persistentMemory;
 
             CreateLayout();
         }
 
         private void CreateLayout()
         {
-            if (_persistentMemory.FileBasedStream.Length < _initialPersistentBlocksLayout.TotalSizeBytes)
+            if (_persistentMemory.FileBasedStream.Length < _persistentBlocksLayout.TotalSizeBytes)
             {
-                _persistentMemory.Resize(_initialPersistentBlocksLayout.TotalSizeBytes);
+                _persistentMemory.Resize(_persistentBlocksLayout.TotalSizeBytes);
             }
 
             if (IsSetCommitByte())
@@ -142,7 +201,7 @@
             }
 
             var offset = 1; // Skip first byte (commit byte)
-            foreach (var block in _initialPersistentBlocksLayout.Blocks)
+            foreach (var block in _persistentBlocksLayout.Blocks)
             {
                 _persistentMemory.WriteByte(block.RegionsQuantity, offset);
                 offset += sizeof(byte);
@@ -165,9 +224,44 @@
             return _persistentMemory.ReadByte() == 1;
         }
 
-        public nint Alloc(long size)
+        public PersistentRegion Alloc(int size)
         {
-            return default;
+            var regionSize = RoundUpPow2(size);
+            var region = GetFreeRegion(regionSize);
+            return region;
+        }
+
+        private PersistentRegion GetFreeRegion(int regionSize)
+        {
+            PersistentRegion? region;
+            do
+            {
+                var block = _persistentBlocksLayout.GetBlockBySize(regionSize);
+                region = block.GetFreeRegion();
+            } while (region is null);
+            return region;
+        }
+
+        public static int RoundUpPow2(int value)
+        {
+            if (value <= 0)
+            {
+                throw new ArgumentException($"{nameof(value)} must be greater than zero");
+            }
+
+            if (value <= MinRegionSizeBytes) return MinRegionSizeBytes;
+
+            // number already is power of 2
+            if ((value & (value - 1)) == 0) return value;
+
+            // Find the most significant bit and increment
+            int moreSignificantbit = 1;
+            while (moreSignificantbit < value)
+            {
+                moreSignificantbit <<= 1;
+            }
+
+            return moreSignificantbit;
         }
 
         public void Free(nint pointer)

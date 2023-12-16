@@ -2,7 +2,7 @@
 {
     public interface IPersistentAllocator
     {
-        nint Alloc(long size);
+        PersistentRegion Alloc(int size);
         void Free(nint pointer);
     }
 }
