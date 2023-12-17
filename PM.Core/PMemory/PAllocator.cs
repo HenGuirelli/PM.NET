@@ -58,9 +58,10 @@
 
         public PersistentRegion Alloc(int size)
         {
-            var regionSize = RoundUpPowerOfTwo(size);
-            var region = GetFreeRegion(regionSize);
-            return region;
+            var regionSize = size <= MinRegionSizeBytes ?
+                MinRegionSizeBytes :
+                BitwiseOperations.RoundUpPowerOfTwo(size);
+            return GetFreeRegion(regionSize);
         }
 
         private PersistentRegion GetFreeRegion(int regionSize)
@@ -72,28 +73,6 @@
                 region = block.GetFreeRegion();
             } while (region is null);
             return region;
-        }
-
-        public static int RoundUpPowerOfTwo(int value)
-        {
-            if (value <= 0)
-            {
-                throw new ArgumentException($"{nameof(value)} must be greater than zero");
-            }
-
-            if (value <= MinRegionSizeBytes) return MinRegionSizeBytes;
-
-            // number already is power of 2
-            if ((value & (value - 1)) == 0) return value;
-
-            // Find the most significant bit and increment
-            int moreSignificantbit = 1;
-            while (moreSignificantbit < value)
-            {
-                moreSignificantbit <<= 1;
-            }
-
-            return moreSignificantbit;
         }
 
         public void Free(nint pointer)

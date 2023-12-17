@@ -31,46 +31,6 @@ namespace PM.Core.Tests.PMemory
         }
 
         [Fact]
-        public void OnRoundUpPowerOfTwo_ShouldGetNextPowerOfTwo()
-        {
-            Assert.Equal(PAllocator.MinRegionSizeBytes, PAllocator.RoundUpPowerOfTwo(1));
-            Assert.Equal(PAllocator.MinRegionSizeBytes, PAllocator.RoundUpPowerOfTwo(PAllocator.MinRegionSizeBytes));
-            Assert.Equal(16, PAllocator.RoundUpPowerOfTwo(9));
-            Assert.Equal(16, PAllocator.RoundUpPowerOfTwo(10));
-            Assert.Equal(32, PAllocator.RoundUpPowerOfTwo(17));
-        }
-
-        [Fact]
-        public void TestVerifyBit_LittleEndian()
-        {
-            // Arrange
-            byte[] bitmap = { 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA };
-
-            // Act
-            bool result1 = PAllocator.VerifyBit(bitmap, 5);
-            bool result2 = PAllocator.VerifyBit(bitmap, 15);
-
-            // Assert
-            Assert.True(result1);
-            Assert.False(result2);
-        }
-
-        [Fact]
-        public void TestVerifyBit_BigEndian()
-        {
-            // Arrange
-            byte[] bitmap = { 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55 };
-
-            // Act
-            bool result1 = PAllocator.VerifyBit(bitmap, 5);
-            bool result2 = PAllocator.VerifyBit(bitmap, 15);
-
-            // Assert
-            Assert.False(result1);
-            Assert.True(result2);
-        }
-
-        [Fact]
         public void OnAllocate_ShouldAllocatePreDeterminateRegion()
         {
             DeleteFile(nameof(OnAllocate_ShouldAllocatePreDeterminateRegion));
