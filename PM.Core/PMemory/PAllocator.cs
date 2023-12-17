@@ -216,16 +216,18 @@
 
         public void CreateLayout(PersistentAllocatorLayout persistentBlocksLayout)
         {
+            if (IsLayoutCreated())
+            {
+                throw new PersistentLayoutAlreadyCreated(
+                    $"Persistent layout already created. " +
+                    $"Try call method {nameof(IsLayoutCreated)} " +
+                    $"to verify if layout already created.");
+            }
+
             persistentBlocksLayout.PmCSharpDefinedTypes = _persistentMemory;
             if (_persistentMemory.FileBasedStream.Length < persistentBlocksLayout.TotalSizeBytes)
             {
                 _persistentMemory.Resize(persistentBlocksLayout.TotalSizeBytes);
-            }
-
-            if (IsSetCommitByte())
-            {
-                // Layout already created.
-                return;
             }
 
             var offset = 1; // Skip first byte (commit byte)
@@ -249,8 +251,9 @@
             _persistentBlocksLayout = persistentBlocksLayout;
         }
 
-        private bool IsSetCommitByte()
+        public bool IsLayoutCreated()
         {
+            // Verify Commit byte
             return _persistentMemory.ReadByte() == 1;
         }
 
