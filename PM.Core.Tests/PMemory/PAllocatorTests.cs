@@ -32,11 +32,11 @@ namespace PM.Core.Tests.PMemory
         [Fact]
         public void OnRoundUpPow2_ShouldGetNextPowerOf2()
         {
-            Assert.Equal(PAllocator.MinRegionSizeBytes, PAllocator.RoundUpPow2(1));
-            Assert.Equal(PAllocator.MinRegionSizeBytes, PAllocator.RoundUpPow2(PAllocator.MinRegionSizeBytes));
-            Assert.Equal(16, PAllocator.RoundUpPow2(9));
-            Assert.Equal(16, PAllocator.RoundUpPow2(10));
-            Assert.Equal(32, PAllocator.RoundUpPow2(17));
+            Assert.Equal(PAllocator.MinRegionSizeBytes, PAllocator.RoundUpPowerOfTwo(1));
+            Assert.Equal(PAllocator.MinRegionSizeBytes, PAllocator.RoundUpPowerOfTwo(PAllocator.MinRegionSizeBytes));
+            Assert.Equal(16, PAllocator.RoundUpPowerOfTwo(9));
+            Assert.Equal(16, PAllocator.RoundUpPowerOfTwo(10));
+            Assert.Equal(32, PAllocator.RoundUpPowerOfTwo(17));
         }
 
         [Fact]

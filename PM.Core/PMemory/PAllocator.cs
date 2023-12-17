@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace PM.Core.PMemory
+﻿namespace PM.Core.PMemory
 {
     /// <summary>
     /// Region of persistent memory.
@@ -15,23 +13,20 @@ namespace PM.Core.PMemory
         /// <summary>
         /// Start pointer to region
         /// </summary>
-        public nint Pointer { get; set; }
+        public int Pointer { get; set; }
 
         /// <summary>
         /// Region size in bytes
         /// </summary>
         public int Size { get; }
 
-        /// <summary>
-        /// Data of region
-        /// </summary>
-        public byte[] Data { get; }
+        internal PmCSharpDefinedTypes? PersistentMemory { get; set; }
 
-        private readonly PmCSharpDefinedTypes _persistentMemory;
-
-        public PersistentRegion(PmCSharpDefinedTypes persistentMemory)
+        public byte[] GetData(int count, int offset)
         {
-            _persistentMemory = persistentMemory;
+            if (offset >= Size) throw new ArgumentOutOfRangeException($"{nameof(offset)} must be less than {Size}");
+
+            return PersistentMemory.ReadBytes(count, offset + (int)Pointer);
         }
     }
 
@@ -77,6 +72,15 @@ namespace PM.Core.PMemory
         public int TotalSizeBytes => GetTotalBytes();
 
         /// <summary>
+        /// 17 =
+        ///  1 byte (block region quantity) +
+        ///  4 bytes (Region size) +
+        ///  8 bytes (Free blocks) +
+        ///  4 bytes (Next block layout start offset)
+        /// </summary>
+        public const int BlockHeaderSizeBytes = 17;
+
+        /// <summary>
         /// Block offset
         /// </summary>
         internal int BlockOffset { get; set; }
@@ -85,12 +89,44 @@ namespace PM.Core.PMemory
 
         public PersistentBlockLayout(int regionSize, byte regionQuantity)
         {
-            if (!IsPowerOfTwo(regionSize)) throw new ArgumentException($"{nameof(regionSize)} need be power of two");
-            if (regionQuantity <= 0) throw new ArgumentException($"{nameof(regionQuantity)} need be greater than zero");
+            if (!IsPowerOfTwo(regionSize)) throw new ArgumentException($"{nameof(regionSize)} must be power of two");
+            if (regionQuantity <= 0) throw new ArgumentException($"{nameof(regionQuantity)} must be greater than zero");
 
             RegionsSize = regionSize;
             RegionsQuantity = regionQuantity;
             Regions = new PersistentRegion[RegionsSize];
+        }
+
+        public const int Header_RegionQuantityOffset = 0;
+        public const int Header_RegionSizeOffset = 1;
+        public const int Header_FreeBlockBitmapOffset = 5;
+        public const int Header_NextBlockOffset = 13;
+
+        internal void Configure()
+        {
+            var pm = PersistentMemory ?? throw new ApplicationException($"Property {nameof(PersistentMemory)} cannot be null.");
+
+            var regionsQuantity = pm.ReadByte(Header_RegionQuantityOffset);
+            var regionSize = pm.ReadUInt(Header_RegionSizeOffset);
+            var freeBlocks = pm.ReadULong(Header_FreeBlockBitmapOffset);
+            var nextBlockOffset = pm.ReadULong(Header_NextBlockOffset);
+
+
+            for (int i = 0; i < RegionsSize; i++)
+            {
+                Regions[i] = new PersistentRegion
+                {
+                    Pointer = BlockHeaderSizeBytes + (BlockOffset * (i + 1)),
+                    PersistentMemory = PersistentMemory,
+                    IsFree = VerifyBit(FreeBlocks, i),
+                };
+            }
+        }
+
+        static bool VerifyBit(ulong bitmap, int index)
+        {
+            ulong mask = (ulong)(1L << index);
+            return (bitmap & mask) != 0;
         }
 
         private static bool IsPowerOfTwo(int number)
@@ -100,12 +136,7 @@ namespace PM.Core.PMemory
 
         private int GetTotalBytes()
         {
-            // 17 =
-            //  1 byte (block region quantity) +
-            //  4 bytes (Region size) +
-            //  8 bytes (Free blocks) +
-            //  4 bytes (Next block layout start offset)
-            return 17 + (RegionsQuantity * RegionsSize);
+            return BlockHeaderSizeBytes + (RegionsQuantity * RegionsSize);
         }
 
         /// <summary>
@@ -154,6 +185,9 @@ namespace PM.Core.PMemory
             _blocks.Add(persistentBlockLayout.RegionsSize, persistentBlockLayout);
 
             persistentBlockLayout.BlockOffset = _blocksOffset;
+            persistentBlockLayout.PersistentMemory = _pmCSharpDefinedTypes;
+            persistentBlockLayout.Configure();
+
             _blocksOffset += persistentBlockLayout.TotalSizeBytes;
         }
 
@@ -183,11 +217,9 @@ namespace PM.Core.PMemory
             _persistentMemory = persistentMemory;
             _persistentBlocksLayout = persistentRegionLayout;
             _persistentBlocksLayout.PmCSharpDefinedTypes = persistentMemory;
-
-            CreateLayout();
         }
 
-        private void CreateLayout()
+        public void CreateLayout()
         {
             if (_persistentMemory.FileBasedStream.Length < _persistentBlocksLayout.TotalSizeBytes)
             {
@@ -226,7 +258,7 @@ namespace PM.Core.PMemory
 
         public PersistentRegion Alloc(int size)
         {
-            var regionSize = RoundUpPow2(size);
+            var regionSize = RoundUpPowerOfTwo(size);
             var region = GetFreeRegion(regionSize);
             return region;
         }
@@ -242,7 +274,7 @@ namespace PM.Core.PMemory
             return region;
         }
 
-        public static int RoundUpPow2(int value)
+        public static int RoundUpPowerOfTwo(int value)
         {
             if (value <= 0)
             {
