@@ -41,6 +41,36 @@ namespace PM.Core.Tests.PMemory
         }
 
         [Fact]
+        public void TestVerifyBit_LittleEndian()
+        {
+            // Arrange
+            byte[] bitmap = { 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA };
+
+            // Act
+            bool result1 = PAllocator.VerifyBit(bitmap, 5);
+            bool result2 = PAllocator.VerifyBit(bitmap, 15);
+
+            // Assert
+            Assert.True(result1);
+            Assert.False(result2);
+        }
+
+        [Fact]
+        public void TestVerifyBit_BigEndian()
+        {
+            // Arrange
+            byte[] bitmap = { 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55 };
+
+            // Act
+            bool result1 = PAllocator.VerifyBit(bitmap, 5);
+            bool result2 = PAllocator.VerifyBit(bitmap, 15);
+
+            // Assert
+            Assert.False(result1);
+            Assert.True(result2);
+        }
+
+        [Fact]
         public void OnAllocate_ShouldAllocatePreDeterminateRegion()
         {
             DeleteFile(nameof(OnAllocate_ShouldAllocatePreDeterminateRegion));
@@ -54,8 +84,8 @@ namespace PM.Core.Tests.PMemory
             persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 32, regionQuantity: 2));
 
             var pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
+            pAllocator.CreateLayout(persistentAllocatorLayout);
 
-            
             var region = pAllocator.Alloc(1); // Should alloc 8 bytes region
             pAllocator.Alloc(8); // Should alloc 8 bytes region
             pAllocator.Alloc(9); // Should alloc 16 bytes region
