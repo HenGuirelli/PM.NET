@@ -186,7 +186,6 @@
 
             persistentBlockLayout.BlockOffset = _blocksOffset;
             persistentBlockLayout.PersistentMemory = _pmCSharpDefinedTypes;
-            persistentBlockLayout.Configure();
 
             _blocksOffset += persistentBlockLayout.TotalSizeBytes;
         }
@@ -206,24 +205,21 @@
     public class PAllocator : IPersistentAllocator, IPersistentObject, IDisposable
     {
         private readonly PmCSharpDefinedTypes _persistentMemory;
-        private readonly PersistentAllocatorLayout _persistentBlocksLayout;
+        private PersistentAllocatorLayout? _persistentBlocksLayout;
         public string FilePath => _persistentMemory.FilePath;
         public const int MinRegionSizeBytes = 8;
 
-        public PAllocator(
-            PersistentAllocatorLayout persistentRegionLayout,
-            PmCSharpDefinedTypes persistentMemory)
+        public PAllocator(PmCSharpDefinedTypes persistentMemory)
         {
             _persistentMemory = persistentMemory;
-            _persistentBlocksLayout = persistentRegionLayout;
-            _persistentBlocksLayout.PmCSharpDefinedTypes = persistentMemory;
         }
 
-        public void CreateLayout()
+        public void CreateLayout(PersistentAllocatorLayout persistentBlocksLayout)
         {
-            if (_persistentMemory.FileBasedStream.Length < _persistentBlocksLayout.TotalSizeBytes)
+            persistentBlocksLayout.PmCSharpDefinedTypes = _persistentMemory;
+            if (_persistentMemory.FileBasedStream.Length < persistentBlocksLayout.TotalSizeBytes)
             {
-                _persistentMemory.Resize(_persistentBlocksLayout.TotalSizeBytes);
+                _persistentMemory.Resize(persistentBlocksLayout.TotalSizeBytes);
             }
 
             if (IsSetCommitByte())
@@ -233,7 +229,7 @@
             }
 
             var offset = 1; // Skip first byte (commit byte)
-            foreach (var block in _persistentBlocksLayout.Blocks)
+            foreach (var block in persistentBlocksLayout.Blocks)
             {
                 _persistentMemory.WriteByte(block.RegionsQuantity, offset);
                 offset += sizeof(byte);
@@ -248,7 +244,9 @@
                 offset += sizeof(int);
             }
 
-            _persistentMemory.WriteByte(1, offset: 0);
+            _persistentMemory.WriteByte(1, offset: 0); // Write commit byte
+
+            _persistentBlocksLayout = persistentBlocksLayout;
         }
 
         private bool IsSetCommitByte()

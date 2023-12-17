@@ -8,29 +8,30 @@ namespace PM.Core.Tests.PMemory
     public class PAllocatorTests : UnitTest
     {
         [Fact]
-        public void OnCtor_ShouldCreatePMemoryLayout()
+        public void OnCreateLayout_ShouldCreatePMemoryLayout()
         {
-            DeleteFile(nameof(OnCtor_ShouldCreatePMemoryLayout));
+            DeleteFile(nameof(OnCreateLayout_ShouldCreatePMemoryLayout));
 
-            var pmStream = CreatePmStream(nameof(OnCtor_ShouldCreatePMemoryLayout), 4096);
+            var pmStream = CreatePmStream(nameof(OnCreateLayout_ShouldCreatePMemoryLayout), 4096);
 
-            var persistentAllocatorHeader = new PersistentAllocatorLayout();
+            var persistentAllocatorLayout = new PersistentAllocatorLayout();
 
-            persistentAllocatorHeader.AddBlock(new PersistentBlockLayout(regionSize: 8, regionQuantity: 2));
-            persistentAllocatorHeader.AddBlock(new PersistentBlockLayout(regionSize: 16, regionQuantity: 2));
-            persistentAllocatorHeader.AddBlock(new PersistentBlockLayout(regionSize: 32, regionQuantity: 2));
+            persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 8, regionQuantity: 2));
+            persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 16, regionQuantity: 2));
+            persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 32, regionQuantity: 2));
 
-            var pAllocator = new PAllocator(persistentAllocatorHeader, new PmCSharpDefinedTypes(pmStream));
+            var pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
+            pAllocator.CreateLayout(persistentAllocatorLayout);
+
             var filepath = pAllocator.FilePath;
             pAllocator.Dispose();
-
             string content = File.ReadAllText(filepath);
             // Assert commit byte equals 1 
             Assert.Equal(1, (byte)content[0]);
         }
 
         [Fact]
-        public void OnRoundUpPow2_ShouldGetNextPowerOf2()
+        public void OnRoundUpPow2_ShouldGetNextPowerOfTwo()
         {
             Assert.Equal(PAllocator.MinRegionSizeBytes, PAllocator.RoundUpPowerOfTwo(1));
             Assert.Equal(PAllocator.MinRegionSizeBytes, PAllocator.RoundUpPowerOfTwo(PAllocator.MinRegionSizeBytes));
@@ -52,7 +53,7 @@ namespace PM.Core.Tests.PMemory
             persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 16, regionQuantity: 2));
             persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 32, regionQuantity: 2));
 
-            var pAllocator = new PAllocator(persistentAllocatorLayout, new PmCSharpDefinedTypes(pmStream));
+            var pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
 
             
             var region = pAllocator.Alloc(1); // Should alloc 8 bytes region
