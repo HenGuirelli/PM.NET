@@ -10,7 +10,6 @@ namespace PM.Core.Tests
         [Fact]
         public void OnRoundUpPowerOfTwo_ShouldGetNextPowerOfTwo()
         {
-            Assert.Equal(PAllocator.MinRegionSizeBytes, BitwiseOperations.RoundUpPowerOfTwo(PAllocator.MinRegionSizeBytes));
             Assert.Equal(1, BitwiseOperations.RoundUpPowerOfTwo(1));
             Assert.Equal(16, BitwiseOperations.RoundUpPowerOfTwo(9));
             Assert.Equal(16, BitwiseOperations.RoundUpPowerOfTwo(10));

@@ -1,5 +1,4 @@
 ﻿using Serilog;
-using System.Text;
 
 namespace PM.Core.PMemory
 {
@@ -8,7 +7,7 @@ namespace PM.Core.PMemory
         private readonly PmCSharpDefinedTypes _persistentMemory;
         private PersistentAllocatorLayout? _persistentBlocksLayout;
         public string FilePath => _persistentMemory.FilePath;
-        public const int MinRegionSizeBytes = 8;
+        public int MinRegionSizeBytes { get; set; } = 8;
 
         public PAllocator(PmCSharpDefinedTypes persistentMemory)
         {

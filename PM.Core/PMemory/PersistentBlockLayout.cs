@@ -82,10 +82,9 @@
 
             for (int i = 0; i < RegionsSize; i++)
             {
-                Regions[i] = new PersistentRegion(RegionsSize)
+                Regions[i] = new PersistentRegion(PersistentMemory, RegionsSize)
                 {
                     Pointer = BlockHeaderSizeBytes + (BlockOffset * (i + 1)),
-                    PersistentMemory = PersistentMemory,
                     IsFree = !BitwiseOperations.VerifyBit(FreeBlocks, i),
                     RegionIndex = i,
                 };
