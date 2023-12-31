@@ -1,4 +1,7 @@
-﻿namespace PM.Core.PMemory
+﻿using Serilog;
+using System.Text;
+
+namespace PM.Core.PMemory
 {
     public class PAllocator : IPersistentAllocator, IPersistentObject, IDisposable
     {
@@ -28,6 +31,7 @@
                 _persistentMemory.Resize(persistentBlocksLayout.TotalSizeBytes);
             }
 
+            Log.Verbose("Creating persistent memory layout");
             var offset = 1; // Skip first byte (commit byte)
             foreach (var block in persistentBlocksLayout.Blocks)
             {
@@ -42,9 +46,17 @@
 
                 _persistentMemory.WriteInt(block.NextBlockOffset, offset);
                 offset += sizeof(int);
+
+                Log.Verbose(
+                    "{RegionsQuantity}|{RegionsSize}|{FreeBlocks}|{NextBlockOffset}",
+                    block.RegionsQuantity,
+                    block.RegionsSize,
+                    block.FreeBlocks,
+                    block.NextBlockOffset);
             }
 
             _persistentMemory.WriteByte(1, offset: 0); // Write commit byte
+            Log.Verbose("Commit byte definido");
 
             _persistentBlocksLayout = persistentBlocksLayout;
             _persistentBlocksLayout.Configure();

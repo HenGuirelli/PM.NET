@@ -47,9 +47,16 @@ namespace PM.Core.Tests.PMemory
             pAllocator.CreateLayout(persistentAllocatorLayout);
 
             var region = pAllocator.Alloc(1); // Should alloc 8 bytes region
-            pAllocator.Alloc(8); // Should alloc 8 bytes region
-            pAllocator.Alloc(9); // Should alloc 16 bytes region
-            pAllocator.Alloc(16); // Should alloc 16 bytes region
+            Assert.Equal(8, region.Size);
+            
+            region = pAllocator.Alloc(8); // Should alloc 8 bytes region
+            Assert.Equal(8, region.Size);
+            
+            region = pAllocator.Alloc(9); // Should alloc 16 bytes region
+            Assert.Equal(16, region.Size);
+            
+            region = pAllocator.Alloc(16); // Should alloc 16 bytes region
+            Assert.Equal(16, region.Size);
         }
     }
 }

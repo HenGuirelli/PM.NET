@@ -82,7 +82,7 @@
 
             for (int i = 0; i < RegionsSize; i++)
             {
-                Regions[i] = new PersistentRegion
+                Regions[i] = new PersistentRegion(RegionsSize)
                 {
                     Pointer = BlockHeaderSizeBytes + (BlockOffset * (i + 1)),
                     PersistentMemory = PersistentMemory,

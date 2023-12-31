@@ -27,6 +27,11 @@
 
         internal PmCSharpDefinedTypes? PersistentMemory { get; set; }
 
+        public PersistentRegion(int size)
+        {
+            Size = size;
+        }
+
         public byte[] GetData(int count, int offset)
         {
             if (offset >= Size) throw new ArgumentOutOfRangeException($"{nameof(offset)} must be less than {Size}");
