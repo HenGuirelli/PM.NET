@@ -88,7 +88,7 @@ namespace PM.Core.PMemory
             for (int i = 0; i < RegionsQuantity; i++)
             {
                 var startPointerOffset = BlockHeaderSizeBytes + BlockOffset + (RegionsSize * i);
-                var region = Regions[i] = new PersistentRegion(PersistentMemory, RegionsSize)
+                var region = Regions[i] = new PersistentRegion(PersistentMemory, RegionsSize, this)
                 {
                     Pointer = startPointerOffset,
                     IsFree = !BitwiseOperations.VerifyBit(FreeBlocks, i),

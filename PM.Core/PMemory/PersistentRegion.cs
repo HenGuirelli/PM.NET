@@ -28,11 +28,13 @@ namespace PM.Core.PMemory
         internal int RegionIndex { get; set; }
 
         private readonly PmCSharpDefinedTypes _persistentMemory;
+        private readonly PersistentBlockLayout _persistentBlockLayout;
 
-        public PersistentRegion(PmCSharpDefinedTypes persistentMemory, int size)
+        public PersistentRegion(PmCSharpDefinedTypes persistentMemory, int size, PersistentBlockLayout persistentBlockLayout)
         {
             Size = size;
             _persistentMemory = persistentMemory;
+            _persistentBlockLayout = persistentBlockLayout;
         }
 
         public byte[] GetData(int count, int offset)
@@ -62,7 +64,9 @@ namespace PM.Core.PMemory
                 throw ex;
             }
 
-            Log.Verbose("Writing {bytes} bytes in address {address} (region offset {offset})", value, offset + Pointer, offset);
+            Log.Verbose(
+                "Writing {bytes} bytes in address {address} (region offset {offset} | Region {regionIndex} | Block {blockID})",
+                value, offset + Pointer, offset, RegionIndex, _persistentBlockLayout.ID);
             _persistentMemory.WriteBytes(value, offset + Pointer);
         }
     }
