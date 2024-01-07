@@ -1,4 +1,6 @@
-﻿namespace PM.Core.PMemory
+﻿using Serilog;
+
+namespace PM.Core.PMemory
 {
     /// <summary>
     /// Represents a block of persistent memory allocated.
@@ -78,12 +80,7 @@
 
         internal void Configure()
         {
-            //    var pm = PersistentMemory ?? throw new ApplicationException($"Property {nameof(PersistentMemory)} cannot be null.");
-
-            //    var regionsQuantity = pm.ReadByte(Header_RegionQuantityOffset);
-            //    var regionSize = pm.ReadUInt(Header_RegionSizeOffset);
-            //    var freeBlocks = pm.ReadULong(Header_FreeBlockBitmapOffset);
-            //    var nextBlockOffset = pm.ReadULong(Header_NextBlockOffset);
+            if (PersistentMemory is null) throw new ApplicationException($"Property {nameof(PersistentMemory)} cannot be null.");
 
 
             for (int i = 0; i < RegionsQuantity; i++)
@@ -111,18 +108,21 @@
         }
 
         /// <summary>
-        /// Get next free region
+        /// Get next free region and mark that in use
         /// </summary>
         /// <returns>Free region or null if all regions are in use</returns>
         public PersistentRegion? GetFreeRegion()
         {
-            for (uint i = (uint)Regions.Length -1; i >= 0; i--)
+            if (PersistentMemory is null) throw new ApplicationException($"Property {nameof(PersistentMemory)} cannot be null.");
+
+            for (uint i = 0; i < RegionsQuantity; i++)
             {
                 var region = Regions[i];
                 if (region.IsFree)
                 {
-                    FreeBlocks |= i;
+                    FreeBlocks |= i + 1;
                     PersistentMemory.WriteULong(FreeBlocks, Header_FreeBlockBitmapOffset);
+                    Log.Verbose("Update FreeBlocks value: {value}", FreeBlocks);
 
                     region.IsFree = false;
                     return region;
