@@ -1,4 +1,5 @@
 ﻿using Serilog;
+using Serilog.Events;
 
 namespace PM.Core.PMemory
 {
@@ -60,6 +61,8 @@ namespace PM.Core.PMemory
         /// </summary>
         internal int BlockOffset { get; set; }
 
+        internal Guid ID { get; set; } = Guid.NewGuid();
+
         internal PmCSharpDefinedTypes? PersistentMemory { get; set; }
 
         public const int Header_RegionQuantityOffset = 0;
@@ -82,15 +85,19 @@ namespace PM.Core.PMemory
         {
             if (PersistentMemory is null) throw new ApplicationException($"Property {nameof(PersistentMemory)} cannot be null.");
 
-
             for (int i = 0; i < RegionsQuantity; i++)
             {
-                Regions[i] = new PersistentRegion(PersistentMemory, RegionsSize)
+                var startPointerOffset = BlockHeaderSizeBytes + BlockOffset + (RegionsSize * i);
+                var region = Regions[i] = new PersistentRegion(PersistentMemory, RegionsSize)
                 {
-                    Pointer = BlockHeaderSizeBytes + (BlockOffset * (i + 1)),
+                    Pointer = startPointerOffset,
                     IsFree = !BitwiseOperations.VerifyBit(FreeBlocks, i),
                     RegionIndex = i,
                 };
+
+                Log.Verbose(
+                    "Region {regionID} StartPointer={startPointer} created inner block {blockID} (only in memory operation)",
+                    region.RegionIndex, region.Pointer, ID);
             }
         }
 
@@ -122,7 +129,7 @@ namespace PM.Core.PMemory
                 {
                     FreeBlocks |= i + 1;
                     PersistentMemory.WriteULong(FreeBlocks, Header_FreeBlockBitmapOffset);
-                    Log.Verbose("Update FreeBlocks value: {value}", FreeBlocks);
+                    Log.Verbose("Update FreeBlocks value: {value} for block {blockID}", FreeBlocks, ID);
 
                     region.IsFree = false;
                     return region;

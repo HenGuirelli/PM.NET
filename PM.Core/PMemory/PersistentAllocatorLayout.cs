@@ -47,8 +47,17 @@ namespace PM.Core.PMemory
 
             var newBlock = new PersistentBlockLayout(size, DefaultRegionQuantityPerBlock);
             AddBlock(newBlock);
+            Log.Verbose("Creating new pmemory block ID {id}", newBlock.ID);
             newBlock.Configure();
-            Log.Verbose($"Created new pmemory block (region size: {newBlock.RegionsSize}, region quantity: {newBlock.RegionsQuantity}, block offset: {newBlock.BlockOffset})");
+            Log.Verbose(
+                "Created new pmemory block with ID: {id} " +
+                "(region size: {regionsSize}, " +
+                "region quantity: {regionsQuantity}, " +
+                "block offset: {blockOffset})",
+                newBlock.ID,
+                newBlock.RegionsSize,
+                newBlock.RegionsQuantity,
+                newBlock.BlockOffset);
 
             return newBlock;
         }
