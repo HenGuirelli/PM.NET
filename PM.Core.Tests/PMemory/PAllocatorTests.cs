@@ -129,11 +129,11 @@ namespace PM.Core.Tests.PMemory
         }
 
         [Fact]
-        public void OnWriteRegion_WhenDontHaveAnyRegion_ShouldCreateRegion()
+        public void OnWriteRegion_WhenDontHaveAnyBlock_ShouldCreateBlocks()
         {
-            DeleteFile(nameof(OnWriteRegion_WhenDontHaveAnyRegion_ShouldCreateRegion));
+            DeleteFile(nameof(OnWriteRegion_WhenDontHaveAnyBlock_ShouldCreateBlocks));
 
-            var pmStream = CreatePmStream(nameof(OnWriteRegion_WhenDontHaveAnyRegion_ShouldCreateRegion), 4096 * 2);
+            var pmStream = CreatePmStream(nameof(OnWriteRegion_WhenDontHaveAnyBlock_ShouldCreateBlocks), 4096 * 2);
 
             var persistentAllocatorLayout = new PersistentAllocatorLayout();
             var pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
