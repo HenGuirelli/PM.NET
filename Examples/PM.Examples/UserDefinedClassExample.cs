@@ -3,12 +3,14 @@ using PM.Tests.Common;
 using System;
 using System.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PM.Examples
 {
     public class UserDefinedClassExample : UnitTest
     {
-        public UserDefinedClassExample()
+        public UserDefinedClassExample(ITestOutputHelper output)
+            : base(output)
         {
             ClearFolder();
         }

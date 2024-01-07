@@ -1,7 +1,8 @@
 ﻿using PM.Configs;
 using PM.Core;
-using System.IO;
+using Serilog;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PM.Tests.Common
 {
@@ -12,6 +13,14 @@ namespace PM.Tests.Common
         {
             PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
             PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
+        }
+
+        public UnitTest(ITestOutputHelper output)
+        {
+            Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Verbose()
+            .WriteTo.TestOutput(output, Serilog.Events.LogEventLevel.Verbose)
+            .CreateLogger();
         }
 
         protected static void ClearFolder()

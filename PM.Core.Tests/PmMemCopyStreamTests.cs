@@ -1,11 +1,17 @@
 ﻿using PM.Tests.Common;
 using System.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PM.Core.Tests
 {
     public class PmMemCopyStreamTests : UnitTest
     {
+        public PmMemCopyStreamTests(ITestOutputHelper output)
+            : base(output)
+        {
+        }
+
         [Fact]
         public void OnWriteAndReadOnPmMemCopyStream()
         {

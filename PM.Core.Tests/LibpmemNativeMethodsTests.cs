@@ -3,11 +3,17 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PM.Core.Tests
 {
     public class LibpmemNativeMethodsTests : UnitTest
     {
+        public LibpmemNativeMethodsTests(ITestOutputHelper output)
+            : base(output)
+        {
+        }
+
         [Fact]
         public void OnMapPm()
         {

@@ -55,7 +55,7 @@ namespace PM.Core.PMemory
             }
 
             _persistentMemory.WriteByte(1, offset: 0); // Write commit byte
-            Log.Verbose("Commit byte definido");
+            Log.Verbose("Layout commit byte write");
 
             _persistentBlocksLayout = persistentBlocksLayout;
             _persistentBlocksLayout.Configure();
@@ -80,7 +80,7 @@ namespace PM.Core.PMemory
             PersistentRegion? region;
             do
             {
-                var block = _persistentBlocksLayout.GetBlockBySize(regionSize);
+                var block = _persistentBlocksLayout.GetOrCreateBlockBySize(regionSize);
                 region = block.GetFreeRegion();
             } while (region is null);
             return region;

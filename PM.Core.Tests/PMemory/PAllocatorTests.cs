@@ -2,13 +2,18 @@
 using PM.Tests.Common;
 using System;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PM.Core.Tests.PMemory
 {
     public class PAllocatorTests : UnitTest
     {
+        public PAllocatorTests(ITestOutputHelper output) 
+            : base(output)
+        {
+        }
+
         [Fact]
         public void OnCreateLayout_ShouldCreatePMemoryLayout()
         {
@@ -121,6 +126,25 @@ namespace PM.Core.Tests.PMemory
 
             var region8bytes = pAllocator.Alloc(8);
             Assert.Throws<AccessViolationException>(() => region8bytes.Write(new byte[] { 0 }, offset: 8));
+        }
+
+        [Fact]
+        public void OnWriteRegion_WhenDontHaveAnyRegion_ShouldCreateRegion()
+        {
+            DeleteFile(nameof(OnWriteRegion_WhenDontHaveAnyRegion_ShouldCreateRegion));
+
+            var pmStream = CreatePmStream(nameof(OnWriteRegion_WhenDontHaveAnyRegion_ShouldCreateRegion), 4096 * 2);
+
+            var persistentAllocatorLayout = new PersistentAllocatorLayout();
+            var pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
+            pAllocator.CreateLayout(persistentAllocatorLayout);
+            
+            // Create new block and region
+            var region = pAllocator.Alloc(1);
+            region.Write(new byte[] { byte.MaxValue }, offset: 0);
+
+            var newRegion = pAllocator.Alloc(4096);
+            newRegion.Write(BitConverter.GetBytes(long.MaxValue), offset: 0);
         }
     }
 }

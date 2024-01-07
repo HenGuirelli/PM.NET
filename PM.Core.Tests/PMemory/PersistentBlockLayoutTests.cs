@@ -2,11 +2,17 @@
 using PM.Tests.Common;
 using System;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PM.Core.Tests.PMemory
 {
     public class PersistentBlockLayoutTests : UnitTest
     {
+        public PersistentBlockLayoutTests(ITestOutputHelper output)
+            : base(output)
+        {
+        }
+
         [Fact]
         public void OnCtor_ShouldValidateRegionSizePowerOfTwo()
         {

@@ -1,13 +1,18 @@
 ﻿using PM.Tests.Common;
 using System;
-using System.IO;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PM.Core.Tests
 {
     public class PmCSharpDefinedTypesTests : UnitTest
     {
         private static readonly Random _random = new();
+
+        public PmCSharpDefinedTypesTests(ITestOutputHelper output)
+            : base(output)
+        {
+        }
 
         [Fact]
         public void OnWriteAndReadChar_ShouldExecWithoutException()

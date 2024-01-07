@@ -31,7 +31,13 @@
         /// 
         /// If zero, this is the last block and more blocks need be created.
         /// </summary>
-        public int NextBlockOffset { get; internal set; }
+        public int NextBlockOffset
+        {
+            get => _nextBlockOffset;
+            set => SetNextBlockOffset(value);
+        }
+
+        private int _nextBlockOffset;
 
         /// <summary>
         /// Get block total size.
@@ -54,6 +60,11 @@
 
         internal PmCSharpDefinedTypes? PersistentMemory { get; set; }
 
+        public const int Header_RegionQuantityOffset = 0;
+        public const int Header_RegionSizeOffset = 1;
+        public const int Header_FreeBlockBitmapOffset = 6;
+        public const int Header_NextBlockOffset = 14;
+
         public PersistentBlockLayout(int regionSize, byte regionQuantity)
         {
             if (!BitwiseOperations.IsPowerOfTwo(regionSize)) throw new ArgumentException($"{nameof(regionSize)} must be power of two");
@@ -65,19 +76,14 @@
             Regions = new PersistentRegion[RegionsSize];
         }
 
-        public const int Header_RegionQuantityOffset = 0;
-        public const int Header_RegionSizeOffset = 1;
-        public const int Header_FreeBlockBitmapOffset = 5;
-        public const int Header_NextBlockOffset = 13;
-
         internal void Configure()
         {
-            var pm = PersistentMemory ?? throw new ApplicationException($"Property {nameof(PersistentMemory)} cannot be null.");
+        //    var pm = PersistentMemory ?? throw new ApplicationException($"Property {nameof(PersistentMemory)} cannot be null.");
 
-            var regionsQuantity = pm.ReadByte(Header_RegionQuantityOffset);
-            var regionSize = pm.ReadUInt(Header_RegionSizeOffset);
-            var freeBlocks = pm.ReadULong(Header_FreeBlockBitmapOffset);
-            var nextBlockOffset = pm.ReadULong(Header_NextBlockOffset);
+        //    var regionsQuantity = pm.ReadByte(Header_RegionQuantityOffset);
+        //    var regionSize = pm.ReadUInt(Header_RegionSizeOffset);
+        //    var freeBlocks = pm.ReadULong(Header_FreeBlockBitmapOffset);
+        //    var nextBlockOffset = pm.ReadULong(Header_NextBlockOffset);
 
 
             for (int i = 0; i < RegionsSize; i++)
@@ -89,6 +95,14 @@
                     RegionIndex = i,
                 };
             }
+        }
+
+        private void SetNextBlockOffset(int value)
+        {
+            if (PersistentMemory is null) throw new ApplicationException($"Property {nameof(PersistentMemory)} cannot be null.");
+
+            PersistentMemory.WriteInt(value, offset: BlockOffset + Header_NextBlockOffset);
+            _nextBlockOffset = value;
         }
 
         private int GetTotalBytes()

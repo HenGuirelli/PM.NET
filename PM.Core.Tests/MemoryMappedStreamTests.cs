@@ -1,11 +1,17 @@
 ﻿using PM.Tests.Common;
 using System.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PM.Core.Tests
 {
     public class MemoryMappedStreamTests : UnitTest
     {
+        public MemoryMappedStreamTests(ITestOutputHelper output)
+            : base(output)
+        {
+        }
+
         [Fact]
         public void OnMemoryMappedStreamTests()
         {

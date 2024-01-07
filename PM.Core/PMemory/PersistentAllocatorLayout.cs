@@ -1,4 +1,6 @@
-﻿namespace PM.Core.PMemory
+﻿using Serilog;
+
+namespace PM.Core.PMemory
 {
     public class PersistentAllocatorLayout
     {
@@ -21,6 +23,8 @@
 
         public int TotalSizeBytes => _blocks.Sum(x => x.Value.TotalSizeBytes);
 
+        public byte DefaultRegionQuantityPerBlock { get; set; } = 8;
+
         // Start with 1 to skip the commit byte
         private int _blocksOffset = 1;
 
@@ -34,15 +38,18 @@
             _blocksOffset += persistentBlockLayout.TotalSizeBytes;
         }
 
-        public PersistentBlockLayout GetBlockBySize(int size)
+        public PersistentBlockLayout GetOrCreateBlockBySize(int size)
         {
             if (_blocks.TryGetValue(size, out var block))
             {
                 return block;
             }
 
-            // TODO: Create block with new sizes
-            throw new ApplicationException($"Block with size {size} not found");
+            var newBlock = _blocks[size] = new PersistentBlockLayout(size, DefaultRegionQuantityPerBlock);
+            newBlock.Configure();
+            Log.Verbose($"Created new pmemory block (region size: {size}, region quantity: {DefaultRegionQuantityPerBlock}");
+
+            return newBlock;
         }
 
         internal void Configure()
