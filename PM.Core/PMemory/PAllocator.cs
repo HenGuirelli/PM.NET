@@ -40,7 +40,7 @@ namespace PM.Core.PMemory
                 _persistentMemory.WriteInt(block.RegionsSize, offset);
                 offset += sizeof(int);
 
-                _persistentMemory.WriteBytes(block.FreeBlocks, offset);
+                _persistentMemory.WriteULong(block.FreeBlocks, offset);
                 offset += sizeof(ulong);
 
                 _persistentMemory.WriteInt(block.NextBlockOffset, offset);
@@ -55,7 +55,7 @@ namespace PM.Core.PMemory
             }
 
             _persistentMemory.WriteByte(1, offset: 0); // Write commit byte
-            Log.Verbose("Layout commit byte write");
+            Log.Verbose("Layout commit byte write. Total blocks created: {blocks}", persistentBlocksLayout.Blocks.Count());
 
             _persistentBlocksLayout = persistentBlocksLayout;
             _persistentBlocksLayout.Configure();

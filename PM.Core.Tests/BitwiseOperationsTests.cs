@@ -18,26 +18,22 @@ namespace PM.Core.Tests
 
         [Theory]
         [InlineData(
-            new byte[] { 0b00000000 },
+            0b00000000,
             new int[] { },
             new int[] { 0, 1, 2, 3, 4, 5, 6, 7 })]
         [InlineData(
-            new byte[] { 0b00001111 },
+            0b00001111,
             new int[] { 4, 5, 6, 7 },
             new int[] { 0, 1, 2, 3 })]
         [InlineData(
-            new byte[] { 0b11110000 },
+            0b11110000,
             new int[] { 0, 1, 2, 3 },
             new int[] { 4, 5, 6, 7 })]
         [InlineData(
-            new byte[] { 0b10101010 },
+            0b10101010,
             new int[] { 0, 2, 4, 6 },
             new int[] { 1, 3, 5, 7 })]
-        [InlineData(
-            new byte[] { 0b11001100, 0b00110011 },
-            new int[] { 0, 1, 10, 15 },
-            new int[] { 2, 8, 9, 12, 13 })]
-        public void OnVerifyBit_LittleEndian(byte[] bitmap, int[] indexBitOn, int[] indexBitOff)
+        public void OnVerifyBit_LittleEndian(ulong bitmap, int[] indexBitOn, int[] indexBitOff)
         {
             foreach (var bitIndex in indexBitOn)
             {

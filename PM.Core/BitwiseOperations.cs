@@ -2,14 +2,13 @@
 {
     public class BitwiseOperations
     {
-        public static bool VerifyBit(byte[] bitmap, int index)
+        public static bool VerifyBit(ulong bitmap, int index)
         {
-            int byteIndex = index / 8;
             int bitOffset = 7 - (index % 8);
 
             byte mask = (byte)(1 << bitOffset);
 
-            return (bitmap[byteIndex] & mask) != 0;
+            return (bitmap & mask) != 0;
         }
 
         public static bool IsPowerOfTwo(int number)

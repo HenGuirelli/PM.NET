@@ -24,7 +24,7 @@
         /// <summary>
         /// BitMap of free regions inside a block.
         /// </summary>
-        public byte[] FreeBlocks { get; internal set; }
+        public ulong FreeBlocks { get; internal set; }
 
         /// <summary>
         /// Offset of next block of persistent memory.
@@ -72,21 +72,21 @@
 
             RegionsSize = regionSize;
             RegionsQuantity = regionQuantity;
-            FreeBlocks = new byte[(RegionsSize * RegionsQuantity) / 8];
-            Regions = new PersistentRegion[RegionsSize];
+            FreeBlocks = 0;
+            Regions = new PersistentRegion[RegionsQuantity];
         }
 
         internal void Configure()
         {
-        //    var pm = PersistentMemory ?? throw new ApplicationException($"Property {nameof(PersistentMemory)} cannot be null.");
+            //    var pm = PersistentMemory ?? throw new ApplicationException($"Property {nameof(PersistentMemory)} cannot be null.");
 
-        //    var regionsQuantity = pm.ReadByte(Header_RegionQuantityOffset);
-        //    var regionSize = pm.ReadUInt(Header_RegionSizeOffset);
-        //    var freeBlocks = pm.ReadULong(Header_FreeBlockBitmapOffset);
-        //    var nextBlockOffset = pm.ReadULong(Header_NextBlockOffset);
+            //    var regionsQuantity = pm.ReadByte(Header_RegionQuantityOffset);
+            //    var regionSize = pm.ReadUInt(Header_RegionSizeOffset);
+            //    var freeBlocks = pm.ReadULong(Header_FreeBlockBitmapOffset);
+            //    var nextBlockOffset = pm.ReadULong(Header_NextBlockOffset);
 
 
-            for (int i = 0; i < RegionsSize; i++)
+            for (int i = 0; i < RegionsQuantity; i++)
             {
                 Regions[i] = new PersistentRegion(PersistentMemory, RegionsSize)
                 {
@@ -116,10 +116,14 @@
         /// <returns>Free region or null if all regions are in use</returns>
         public PersistentRegion? GetFreeRegion()
         {
-            foreach (var region in Regions)
+            for (uint i = (uint)Regions.Length -1; i >= 0; i--)
             {
+                var region = Regions[i];
                 if (region.IsFree)
                 {
+                    FreeBlocks |= i;
+                    PersistentMemory.WriteULong(FreeBlocks, Header_FreeBlockBitmapOffset);
+
                     region.IsFree = false;
                     return region;
                 }

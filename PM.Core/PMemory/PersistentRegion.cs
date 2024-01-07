@@ -62,7 +62,7 @@ namespace PM.Core.PMemory
                 throw ex;
             }
 
-            Log.Verbose("Writing @bytes bytes in address @address (region offset @offset)", value, offset + Pointer, offset);
+            Log.Verbose("Writing {bytes} bytes in address {address} (region offset {offset})", value, offset + Pointer, offset);
             _persistentMemory.WriteBytes(value, offset + Pointer);
         }
     }

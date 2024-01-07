@@ -2,16 +2,18 @@
 using PM.Managers;
 using PM.Tests.Common;
 using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PM.Tests.Managers
 {
     public class PointersToPersistentObjectsTests : UnitTest
     {
+        public PointersToPersistentObjectsTests(ITestOutputHelper output)
+            : base(output)
+        {
+        }
+
         [Fact]
         public void OnGetNext_ShouldGetNextPointer()
         {

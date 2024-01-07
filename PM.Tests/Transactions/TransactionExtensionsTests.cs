@@ -7,12 +7,18 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Collections.Concurrent;
 using PM.Core;
+using Xunit.Abstractions;
 
 namespace PM.Transactions.Tests
 {
     public class TransactionExtensionsTests : UnitTest
     {
         static TransactionExtensionsTests() { ClearFolder(); }
+
+        public TransactionExtensionsTests(ITestOutputHelper output)
+            : base(output)
+        {
+        }
 
         [Fact]
         public void OnRunTransaction_ShouldCommitValues()

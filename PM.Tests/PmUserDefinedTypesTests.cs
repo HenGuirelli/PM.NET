@@ -1,14 +1,19 @@
-using PM.Core;
 using PM.Factories;
 using PM.PmContent;
 using PM.Tests.Common;
 using System;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PM.Tests
 {
     public class PmUserDefinedTypesTests : UnitTest
     {
+        public PmUserDefinedTypesTests(ITestOutputHelper output)
+            : base(output)
+        {
+        }
+
         [Fact]
         public void OnUpdateAndGetIntPropertyValue_ShouldExecWithoutException()
         {

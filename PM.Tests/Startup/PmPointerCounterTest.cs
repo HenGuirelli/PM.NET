@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PM.Tests.Startup
 {
@@ -21,6 +22,11 @@ namespace PM.Tests.Startup
 
     public class PmPointerCounterTest : UnitTest
     {
+        public PmPointerCounterTest(ITestOutputHelper output)
+            : base(output)
+        {
+        }
+
         [Fact]
         public void OnCollect_ShouldDeleteUnusedFile()
         {

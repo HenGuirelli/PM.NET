@@ -1,12 +1,11 @@
 ﻿using PM.Collections;
 using PM.Configs;
-using PM.Startup;
 using PM.Tests.Common;
 using System;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PM.Tests.Collections
 {
@@ -17,6 +16,11 @@ namespace PM.Tests.Collections
 
     public class PmListTests : UnitTest
     {
+        public PmListTests(ITestOutputHelper output)
+            : base(output)
+        {
+        }
+
         [Fact]
         public void OnAddPersistent_WhenEmpyList()
         {

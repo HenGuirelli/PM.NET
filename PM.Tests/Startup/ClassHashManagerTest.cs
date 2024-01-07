@@ -3,12 +3,18 @@ using PM.Startup;
 using PM.Tests.Common;
 using System;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PM.Tests.Startup
 {
     public class ClassHashManagerTest : UnitTest
     {
         private static readonly Random _random = new();
+
+        public ClassHashManagerTest(ITestOutputHelper output)
+            : base(output)
+        {
+        }
 
         [Fact]
         public void OnAddHashFile_ShouldCreateAndWriteFile()
