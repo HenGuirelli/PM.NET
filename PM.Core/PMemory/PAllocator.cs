@@ -77,6 +77,9 @@ namespace PM.Core.PMemory
 
         private PersistentRegion GetFreeRegion(int regionSize)
         {
+            if (_persistentBlocksLayout is null) 
+                throw new ApplicationException($"Persistent memory not configured. Please call {nameof(CreateLayout)}() method");
+            
             PersistentRegion? region;
             do
             {
