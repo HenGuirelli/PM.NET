@@ -30,7 +30,7 @@ namespace PM.Core.PMemory
                 _persistentMemory.Resize(persistentBlocksLayout.TotalSizeBytes);
             }
 
-            Log.Verbose("Creating persistent memory layout");
+            Log.Debug("Creating persistent memory layout (next lines layout 'RegionsQuantity|RegionsSize|FreeBlocks|NextBlockOffset')");
             var offset = 1; // Skip first byte (commit byte)
             foreach (var block in persistentBlocksLayout.Blocks)
             {
@@ -46,7 +46,7 @@ namespace PM.Core.PMemory
                 _persistentMemory.WriteInt(block.NextBlockOffset, offset);
                 offset += sizeof(int);
 
-                Log.Verbose(
+                Log.Debug(
                     "{RegionsQuantity}|{RegionsSize}|{FreeBlocks}|{NextBlockOffset}",
                     block.RegionsQuantity,
                     block.RegionsSize,
@@ -55,7 +55,7 @@ namespace PM.Core.PMemory
             }
 
             _persistentMemory.WriteByte(1, offset: 0); // Write commit byte
-            Log.Verbose("Layout commit byte write. Total blocks created: {blocks}", persistentBlocksLayout.Blocks.Count());
+            Log.Debug("Layout commit byte write. Total blocks created: {blocks}", persistentBlocksLayout.Blocks.Count());
 
             _persistentBlocksLayout = persistentBlocksLayout;
             _persistentBlocksLayout.Configure();
