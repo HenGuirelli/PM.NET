@@ -81,7 +81,7 @@ namespace PM.Core.Tests.PMemory
             var pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
             pAllocator.CreateLayout(persistentAllocatorLayout);
 
-            // Write/Read First region 8 bytes
+            // Write/Read first region with 8 bytes
             var region8Bytes = pAllocator.Alloc(sizeof(int) * 2);
             region8Bytes.Write(BitConverter.GetBytes(int.MaxValue), offset: 0);
             region8Bytes.Write(BitConverter.GetBytes(int.MinValue), offset: sizeof(int));
@@ -93,7 +93,7 @@ namespace PM.Core.Tests.PMemory
             Assert.Equal(int.MinValue, number2);
 
 
-            // Write/Read First region 16 bytes
+            // Write/Read second region with 16 bytes
             var region16Bytes = pAllocator.Alloc(sizeof(long) * 2);
             region16Bytes.Write(BitConverter.GetBytes(long.MaxValue), offset: 0);
             region16Bytes.Write(BitConverter.GetBytes(long.MinValue), offset: sizeof(long));
