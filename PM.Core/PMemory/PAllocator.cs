@@ -103,5 +103,11 @@ namespace PM.Core.PMemory
         {
             _persistentMemory?.Dispose();
         }
+
+        public PersistentRegion GetRegion(int blockID, int regionIndex)
+        {
+            var block = _persistentBlocksLayout.GetBlockByID(blockID);
+            return block.GetRegion(regionIndex);
+        }
     }
 }

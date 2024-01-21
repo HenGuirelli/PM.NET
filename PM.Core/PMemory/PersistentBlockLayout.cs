@@ -1,5 +1,4 @@
 ﻿using Serilog;
-using Serilog.Events;
 
 namespace PM.Core.PMemory
 {
@@ -57,11 +56,11 @@ namespace PM.Core.PMemory
         public const int BlockHeaderSizeBytes = 17;
 
         /// <summary>
-        /// Block offset
+        /// Block offset.
+        /// 
+        /// Also used as a index.
         /// </summary>
         internal int BlockOffset { get; set; }
-
-        internal Guid ID { get; set; } = Guid.NewGuid();
 
         internal PmCSharpDefinedTypes? PersistentMemory { get; set; }
 
@@ -96,8 +95,8 @@ namespace PM.Core.PMemory
                 };
 
                 Log.Verbose(
-                    "Region {regionID} StartPointer={startPointer} created inner block {blockID} (only in memory operation)",
-                    region.RegionIndex, region.Pointer, ID);
+                    "Region={regionID} StartPointer={startPointer} created inner block={blockID} (only in memory operation)",
+                    region.RegionIndex, region.Pointer, BlockOffset);
             }
         }
 
@@ -129,13 +128,18 @@ namespace PM.Core.PMemory
                 {
                     FreeBlocks |= i + 1;
                     PersistentMemory.WriteULong(FreeBlocks, Header_FreeBlockBitmapOffset);
-                    Log.Verbose("Update FreeBlocks value: {value} for block {blockID}", FreeBlocks, ID);
+                    Log.Verbose("Update FreeBlocks value={value} for block={blockID}", FreeBlocks, BlockOffset);
 
                     region.IsFree = false;
                     return region;
                 }
             }
             return null;
+        }
+
+        internal PersistentRegion GetRegion(int regionIndex)
+        {
+            return Regions[regionIndex];
         }
     }
 }

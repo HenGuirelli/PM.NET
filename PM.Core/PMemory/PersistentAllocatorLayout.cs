@@ -1,11 +1,13 @@
 ﻿using Serilog;
+using System.Drawing;
 
 namespace PM.Core.PMemory
 {
     public class PersistentAllocatorLayout
     {
-        private readonly Dictionary<int, PersistentBlockLayout> _blocks = new();
-        public IEnumerable<PersistentBlockLayout> Blocks => _blocks.Values.ToList().AsReadOnly();
+        private readonly Dictionary<int, PersistentBlockLayout> _blocksBySize = new();
+        private readonly Dictionary<int, PersistentBlockLayout> _blocksByOffset = new();
+        public IEnumerable<PersistentBlockLayout> Blocks => _blocksBySize.Values.ToList().AsReadOnly();
 
         private PmCSharpDefinedTypes? _pmCSharpDefinedTypes;
         public PmCSharpDefinedTypes? PmCSharpDefinedTypes
@@ -14,14 +16,14 @@ namespace PM.Core.PMemory
             set
             {
                 _pmCSharpDefinedTypes = value;
-                foreach (PersistentBlockLayout block in _blocks.Values)
+                foreach (PersistentBlockLayout block in _blocksBySize.Values)
                 {
                     block.PersistentMemory = value;
                 }
             }
         }
 
-        public int TotalSizeBytes => _blocks.Sum(x => x.Value.TotalSizeBytes);
+        public int TotalSizeBytes => _blocksBySize.Sum(x => x.Value.TotalSizeBytes);
 
         public byte DefaultRegionQuantityPerBlock { get; set; } = 8;
 
@@ -30,7 +32,8 @@ namespace PM.Core.PMemory
 
         public void AddBlock(PersistentBlockLayout persistentBlockLayout)
         {
-            _blocks.Add(persistentBlockLayout.RegionsSize, persistentBlockLayout);
+            _blocksBySize.Add(persistentBlockLayout.RegionsSize, persistentBlockLayout);
+            _blocksByOffset.Add(_blocksOffset, persistentBlockLayout);
 
             persistentBlockLayout.BlockOffset = _blocksOffset;
             persistentBlockLayout.PersistentMemory = _pmCSharpDefinedTypes;
@@ -40,32 +43,38 @@ namespace PM.Core.PMemory
 
         public PersistentBlockLayout GetOrCreateBlockBySize(int size)
         {
-            if (_blocks.TryGetValue(size, out var block))
+            if (_blocksBySize.TryGetValue(size, out var block))
             {
                 return block;
             }
 
             var newBlock = new PersistentBlockLayout(size, DefaultRegionQuantityPerBlock);
-            AddBlock(newBlock);
-            Log.Verbose("Creating new pmemory block ID {id}", newBlock.ID);
             newBlock.Configure();
-            Log.Verbose(
-                "Created new pmemory block with ID: {id} " +
+            AddBlock(newBlock);
+            Log.Debug(
+                "Created new pmemory block in offset: {blockOffset} " +
                 "(region size: {regionsSize}, " +
-                "region quantity: {regionsQuantity}, " +
-                "block offset: {blockOffset})",
-                newBlock.ID,
+                "region quantity: {regionsQuantity})",
+                newBlock.BlockOffset,
                 newBlock.RegionsSize,
-                newBlock.RegionsQuantity,
-                newBlock.BlockOffset);
+                newBlock.RegionsQuantity);
 
             return newBlock;
         }
 
         internal void Configure()
         {
-            foreach (PersistentBlockLayout block in _blocks.Values)
+            foreach (PersistentBlockLayout block in _blocksBySize.Values)
                 block.Configure();
+        }
+
+        internal PersistentBlockLayout GetBlockByID(int blockID)
+        {
+            if (_blocksByOffset.TryGetValue(blockID, out var block))
+            {
+                return block;
+            }
+            throw new InvalidOperationException($"blockId={blockID} dont exist");
         }
     }
 }
