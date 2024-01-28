@@ -36,7 +36,7 @@ namespace PM.Core.PMemory
             _blocksByOffset.Add(_blocksOffset, persistentBlockLayout);
 
             persistentBlockLayout.BlockOffset = _blocksOffset;
-            persistentBlockLayout.PersistentMemory = _pmCSharpDefinedTypes;
+            persistentBlockLayout.PersistentMemory = PmCSharpDefinedTypes;
 
             _blocksOffset += persistentBlockLayout.TotalSizeBytes;
         }
@@ -49,8 +49,8 @@ namespace PM.Core.PMemory
             }
 
             var newBlock = new PersistentBlockLayout(size, DefaultRegionQuantityPerBlock);
-            newBlock.Configure();
             AddBlock(newBlock);
+            newBlock.Configure();
             Log.Debug(
                 "Created new pmemory block in offset: {blockOffset} " +
                 "(region size: {regionsSize}, " +
