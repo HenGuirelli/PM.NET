@@ -1,4 +1,5 @@
-﻿using PM.Core.PMemory;
+﻿using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
+using PM.Core.PMemory;
 using PM.Tests.Common;
 using System;
 using System.IO;
@@ -9,7 +10,7 @@ namespace PM.Core.Tests.PMemory
 {
     public class PAllocatorTests : UnitTest
     {
-        public PAllocatorTests(ITestOutputHelper output) 
+        public PAllocatorTests(ITestOutputHelper output)
             : base(output)
         {
         }
@@ -55,13 +56,13 @@ namespace PM.Core.Tests.PMemory
 
             var region = pAllocator.Alloc(1); // Should alloc 8 bytes region
             Assert.Equal(8, region.Size);
-            
+
             region = pAllocator.Alloc(8); // Should alloc 8 bytes region
             Assert.Equal(8, region.Size);
-            
+
             region = pAllocator.Alloc(9); // Should alloc 16 bytes region
             Assert.Equal(16, region.Size);
-            
+
             region = pAllocator.Alloc(16); // Should alloc 16 bytes region
             Assert.Equal(16, region.Size);
         }
@@ -103,8 +104,8 @@ namespace PM.Core.Tests.PMemory
 
             Assert.Equal(long.MaxValue, number1_16bytes);
             Assert.Equal(long.MinValue, number2_16bytes);
-        } 
-        
+        }
+
         [Fact]
         public void OnWriteRegion_ShouldThrowAccessViolationExcpetion()
         {
@@ -138,7 +139,7 @@ namespace PM.Core.Tests.PMemory
             var persistentAllocatorLayout = new PersistentAllocatorLayout();
             var pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
             pAllocator.CreateLayout(persistentAllocatorLayout);
-            
+
             // Create new block and region
             var region = pAllocator.Alloc(1);
             region.Write(new byte[] { byte.MaxValue }, offset: 0);
@@ -148,10 +149,21 @@ namespace PM.Core.Tests.PMemory
         }
 
         [Fact]
+        public void OnLoad_WhenDontHaveAnyFile_ShouldCreateEmptyLayout()
+        {
+            var pmStream = CreatePmStream(nameof(OnLoad_WhenDontHaveAnyFile_ShouldCreateEmptyLayout), 4096 * 2);
+            var pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
+            Assert.False(pAllocator.IsLayoutCreated());
+            // Should create a empty layout
+            pAllocator.Load();
+            Assert.True(pAllocator.IsLayoutCreated());
+        }
+
+        [Fact]
         public void OnLoad_ShouldLoadPMemory()
         {
             DeleteFile(nameof(OnLoad_ShouldLoadPMemory));
-            
+
             // Create pmemory file
             var pmStream = CreatePmStream(nameof(OnLoad_ShouldLoadPMemory), 4096 * 2);
             var persistentAllocatorLayout = new PersistentAllocatorLayout();
