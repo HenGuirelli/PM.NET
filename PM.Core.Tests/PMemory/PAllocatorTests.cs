@@ -151,6 +151,7 @@ namespace PM.Core.Tests.PMemory
         [Fact]
         public void OnLoad_WhenDontHaveAnyFile_ShouldCreateEmptyLayout()
         {
+            DeleteFile(nameof(OnLoad_WhenDontHaveAnyFile_ShouldCreateEmptyLayout));
             var pmStream = CreatePmStream(nameof(OnLoad_WhenDontHaveAnyFile_ShouldCreateEmptyLayout), 4096 * 2);
             var pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
             Assert.False(pAllocator.IsLayoutCreated());
