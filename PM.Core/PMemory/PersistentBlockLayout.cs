@@ -39,7 +39,7 @@ namespace PM.Core.PMemory
             set => SetNextBlockOffset(value);
         }
 
-        private int _nextBlockOffset;
+        internal int _nextBlockOffset;
 
         /// <summary>
         /// Get block total size.
@@ -64,10 +64,12 @@ namespace PM.Core.PMemory
 
         internal PmCSharpDefinedTypes? PersistentMemory { get; set; }
 
+        internal PersistentBlockLayout? NextBlock { get; set; }
+
         public const int Header_RegionQuantityOffset = 0;
-        public const int Header_RegionSizeOffset = 1;
-        public const int Header_FreeBlockBitmapOffset = 6;
-        public const int Header_NextBlockOffset = 14;
+        public const int Header_RegionSizeOffset = 0;
+        public const int Header_FreeBlockBitmapOffset = 5;
+        public const int Header_NextBlockOffset = 13;
 
         public PersistentBlockLayout(int regionSize, byte regionQuantity)
         {
@@ -98,6 +100,8 @@ namespace PM.Core.PMemory
                     "Region={regionID} StartPointer={startPointer} created inner block={blockID} (only in memory operation)",
                     region.RegionIndex, region.Pointer, BlockOffset);
             }
+
+            if (NextBlock != null) NextBlockOffset = NextBlock.BlockOffset;
         }
 
         private void SetNextBlockOffset(int value)
@@ -127,7 +131,7 @@ namespace PM.Core.PMemory
                 if (region.IsFree)
                 {
                     FreeBlocks |= i + 1;
-                    PersistentMemory.WriteULong(FreeBlocks, Header_FreeBlockBitmapOffset);
+                    PersistentMemory.WriteULong(FreeBlocks, BlockOffset + Header_FreeBlockBitmapOffset);
                     Log.Verbose("Update FreeBlocks value={value} for block={blockID}", FreeBlocks, BlockOffset);
 
                     region.IsFree = false;

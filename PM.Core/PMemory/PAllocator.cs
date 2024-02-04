@@ -6,6 +6,7 @@ namespace PM.Core.PMemory
     {
         private readonly PmCSharpDefinedTypes _persistentMemory;
         private PersistentAllocatorLayout? _persistentAllocatorLayout;
+        internal PersistentAllocatorLayout? PersistentAllocatorLayout => _persistentAllocatorLayout;
         public string FilePath => _persistentMemory.FilePath;
         public int MinRegionSizeBytes { get; set; } = 8;
 
@@ -30,6 +31,9 @@ namespace PM.Core.PMemory
                 _persistentMemory.Resize(persistentBlocksLayout.TotalSizeBytes);
             }
 
+            _persistentAllocatorLayout = persistentBlocksLayout;
+            _persistentAllocatorLayout.Configure();
+
             Log.Debug("Creating persistent memory layout (next lines layout 'RegionsQuantity|RegionsSize|FreeBlocks|NextBlockOffset')");
             var offset = 1; // Skip first byte (commit byte)
             foreach (var block in persistentBlocksLayout.Blocks)
@@ -44,7 +48,7 @@ namespace PM.Core.PMemory
                 offset += sizeof(ulong);
 
                 _persistentMemory.WriteInt(block.NextBlockOffset, offset);
-                offset += sizeof(int);
+                offset = block.NextBlockOffset;
 
                 Log.Debug(
                     "{RegionsQuantity}|{RegionsSize}|{FreeBlocks}|{NextBlockOffset}",
@@ -56,9 +60,6 @@ namespace PM.Core.PMemory
 
             _persistentMemory.WriteByte(1, offset: 0); // Write commit byte
             Log.Debug("Layout commit byte write. Total blocks created: {blocks}", persistentBlocksLayout.Blocks.Count());
-
-            _persistentAllocatorLayout = persistentBlocksLayout;
-            _persistentAllocatorLayout.Configure();
         }
 
         public bool IsLayoutCreated()
@@ -106,7 +107,10 @@ namespace PM.Core.PMemory
 
             // Skip first byte (commit byte)
             var offset = 1;
-            _persistentAllocatorLayout = new PersistentAllocatorLayout();
+            _persistentAllocatorLayout = new PersistentAllocatorLayout
+            {
+                PmCSharpDefinedTypes = _persistentMemory
+            };
             bool lastBlock;
             do
             {
@@ -124,15 +128,16 @@ namespace PM.Core.PMemory
                 {
                     PersistentMemory = _persistentMemory,
                     FreeBlocks = freeBlocksBitmap,
-                    NextBlockOffset = nextBlockOffset,
-                    BlockOffset = blockOffset
+                    BlockOffset = blockOffset,
+                    _nextBlockOffset = nextBlockOffset,
                 };
-
-                block.Configure();
                 _persistentAllocatorLayout.AddLoadedBlock(block, offset);
 
+                offset = nextBlockOffset;
                 lastBlock = nextBlockOffset == 0;
             } while (!lastBlock);
+
+            _persistentAllocatorLayout.Configure();
         }
 
         public void Dispose()

@@ -3,6 +3,7 @@ using PM.Core.PMemory;
 using PM.Tests.Common;
 using System;
 using System.IO;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -161,12 +162,12 @@ namespace PM.Core.Tests.PMemory
         }
 
         [Fact]
-        public void OnLoad_ShouldLoadPMemory()
+        public void OnLoad_WhenHaveOneBlock_ShouldLoadPMemory()
         {
-            DeleteFile(nameof(OnLoad_ShouldLoadPMemory));
+            DeleteFile(nameof(OnLoad_WhenHaveOneBlock_ShouldLoadPMemory));
 
             // Create pmemory file
-            var pmStream = CreatePmStream(nameof(OnLoad_ShouldLoadPMemory), 4096 * 2);
+            var pmStream = CreatePmStream(nameof(OnLoad_WhenHaveOneBlock_ShouldLoadPMemory), 4096 * 2);
             var persistentAllocatorLayout = new PersistentAllocatorLayout();
             persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 16, regionQuantity: 10));
             var pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
@@ -181,7 +182,7 @@ namespace PM.Core.Tests.PMemory
             // Create new PAllocator object.
             // This object should load the previous
             // layout.
-            pmStream = CreatePmStream(nameof(OnLoad_ShouldLoadPMemory), 4096 * 2);
+            pmStream = CreatePmStream(nameof(OnLoad_WhenHaveOneBlock_ShouldLoadPMemory), 4096 * 2);
             pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
             Assert.True(pAllocator.IsLayoutCreated());
             // Load previous layout
@@ -189,7 +190,53 @@ namespace PM.Core.Tests.PMemory
 
             // Get the previous region
             region = pAllocator.GetRegion(1, region.RegionIndex);
-            Assert.Equal(long.MaxValue, BitConverter.ToInt64(region.GetData(16, offset: 0)));
+            Assert.Equal(long.MaxValue, BitConverter.ToInt64(region.GetData(8, offset: 0)));
+        } 
+        
+        [Fact]
+        public void OnLoad_WhenHaveMultipleBlocks_ShouldLoadPMemory()
+        {
+            DeleteFile(nameof(OnLoad_WhenHaveMultipleBlocks_ShouldLoadPMemory));
+
+            // Create pmemory file
+            var pmStream = CreatePmStream(nameof(OnLoad_WhenHaveMultipleBlocks_ShouldLoadPMemory), 4096 * 2);
+            var persistentAllocatorLayout = new PersistentAllocatorLayout();
+            persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 16, regionQuantity: 10));
+            persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 32, regionQuantity: 100));
+            persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 64, regionQuantity: 255));
+            var pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
+            pAllocator.CreateLayout(persistentAllocatorLayout);
+            // Write some data in block 1 to recovery later
+            var region1 = pAllocator.Alloc(16);
+            region1.Write(BitConverter.GetBytes(long.MaxValue), offset: 0);
+            // Write some data in block 2 to recovery later
+            var region2 = pAllocator.Alloc(32);
+            region2.Write(BitConverter.GetBytes(long.MinValue), offset: 1);
+            // Write some data in block 3 to recovery later
+            var region3 = pAllocator.Alloc(64);
+            region3.Write(BitConverter.GetBytes(long.MinValue / 2), offset: 2);
+
+            // Unload allocator and release all file handlers
+            pAllocator.Dispose();
+
+            // Create new PAllocator object.
+            // This object should load the previous
+            // layout.
+            pmStream = CreatePmStream(nameof(OnLoad_WhenHaveMultipleBlocks_ShouldLoadPMemory), 4096 * 2);
+            pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
+            Assert.True(pAllocator.IsLayoutCreated());
+            // Load previous layout
+            pAllocator.Load();
+
+            var blockIds = pAllocator.PersistentAllocatorLayout?.Blocks.Select(x => x.BlockOffset).ToList();
+
+            // Get the previous region
+            region1 = pAllocator.GetRegion(blockIds[0], region1.RegionIndex);
+            Assert.Equal(long.MaxValue, BitConverter.ToInt64(region1.GetData(8, offset: 0)));
+            region2 = pAllocator.GetRegion(blockIds[1], region2.RegionIndex);
+            Assert.Equal(long.MinValue, BitConverter.ToInt64(region2.GetData(8, offset: 1)));
+            region3 = pAllocator.GetRegion(blockIds[2], region3.RegionIndex);
+            Assert.Equal(long.MinValue / 2, BitConverter.ToInt64(region3.GetData(8, offset: 2)));
         }
     }
 }

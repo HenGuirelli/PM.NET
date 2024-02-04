@@ -27,8 +27,12 @@ namespace PM.Core.PMemory
 
         public byte DefaultRegionQuantityPerBlock { get; set; } = 8;
 
-        // Start with 1 to skip the commit byte
+        // Start with 1 to skip the commit byte.
+        // This field is used to set block offset.
         private int _blocksOffset = 1;
+
+        // Used to set NextBlock property when next block is added.
+        private PersistentBlockLayout? _lastBlock;
 
         public void AddBlock(PersistentBlockLayout persistentBlockLayout)
         {
@@ -39,12 +43,18 @@ namespace PM.Core.PMemory
             persistentBlockLayout.PersistentMemory = PmCSharpDefinedTypes;
 
             _blocksOffset += persistentBlockLayout.TotalSizeBytes;
+
+            if (_lastBlock != null)
+            {
+                _lastBlock.NextBlock = persistentBlockLayout;
+            }
+            _lastBlock = persistentBlockLayout;
         } 
         
         internal void AddLoadedBlock(PersistentBlockLayout persistentBlockLayout, int offset)
         {
             _blocksBySize.Add(persistentBlockLayout.RegionsSize, persistentBlockLayout);
-            _blocksByOffset.Add(_blocksOffset, persistentBlockLayout);
+            _blocksByOffset.Add(persistentBlockLayout.BlockOffset, persistentBlockLayout);
 
             persistentBlockLayout.PersistentMemory = PmCSharpDefinedTypes;
 
@@ -75,7 +85,9 @@ namespace PM.Core.PMemory
         internal void Configure()
         {
             foreach (PersistentBlockLayout block in _blocksBySize.Values)
+            {
                 block.Configure();
+            }
         }
 
         internal PersistentBlockLayout GetBlockByID(int blockID)
