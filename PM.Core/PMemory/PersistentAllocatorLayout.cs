@@ -39,6 +39,16 @@ namespace PM.Core.PMemory
             persistentBlockLayout.PersistentMemory = PmCSharpDefinedTypes;
 
             _blocksOffset += persistentBlockLayout.TotalSizeBytes;
+        } 
+        
+        internal void AddLoadedBlock(PersistentBlockLayout persistentBlockLayout, int offset)
+        {
+            _blocksBySize.Add(persistentBlockLayout.RegionsSize, persistentBlockLayout);
+            _blocksByOffset.Add(_blocksOffset, persistentBlockLayout);
+
+            persistentBlockLayout.PersistentMemory = PmCSharpDefinedTypes;
+
+            _blocksOffset = offset;
         }
 
         public PersistentBlockLayout GetOrCreateBlockBySize(int size)

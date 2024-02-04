@@ -5,7 +5,7 @@ namespace PM.Core.PMemory
     public class PAllocator : IPersistentAllocator, IPersistentObject, IDisposable
     {
         private readonly PmCSharpDefinedTypes _persistentMemory;
-        private PersistentAllocatorLayout? _persistentBlocksLayout;
+        private PersistentAllocatorLayout? _persistentAllocatorLayout;
         public string FilePath => _persistentMemory.FilePath;
         public int MinRegionSizeBytes { get; set; } = 8;
 
@@ -57,8 +57,8 @@ namespace PM.Core.PMemory
             _persistentMemory.WriteByte(1, offset: 0); // Write commit byte
             Log.Debug("Layout commit byte write. Total blocks created: {blocks}", persistentBlocksLayout.Blocks.Count());
 
-            _persistentBlocksLayout = persistentBlocksLayout;
-            _persistentBlocksLayout.Configure();
+            _persistentAllocatorLayout = persistentBlocksLayout;
+            _persistentAllocatorLayout.Configure();
         }
 
         public bool IsLayoutCreated()
@@ -77,13 +77,13 @@ namespace PM.Core.PMemory
 
         private PersistentRegion GetFreeRegion(int regionSize)
         {
-            if (_persistentBlocksLayout is null)
+            if (_persistentAllocatorLayout is null)
                 throw new ApplicationException($"Persistent memory not configured. Please call {nameof(CreateLayout)}() method");
 
             PersistentRegion? region;
             do
             {
-                var block = _persistentBlocksLayout.GetOrCreateBlockBySize(regionSize);
+                var block = _persistentAllocatorLayout.GetOrCreateBlockBySize(regionSize);
                 region = block.GetFreeRegion();
             } while (region is null);
             return region;
@@ -104,8 +104,35 @@ namespace PM.Core.PMemory
                 return;
             }
 
+            // Skip first byte (commit byte)
+            var offset = 1;
+            _persistentAllocatorLayout = new PersistentAllocatorLayout();
+            bool lastBlock;
+            do
+            {
+                var blockOffset = offset;
+                var regionQuantity = _persistentMemory.ReadByte(offset);
+                offset += 1;
+                var regionSize = _persistentMemory.ReadInt(offset);
+                offset += 4;
+                var freeBlocksBitmap = _persistentMemory.ReadULong(offset);
+                offset += 8;
+                var nextBlockOffset = _persistentMemory.ReadInt(offset);
+                offset += 4;
 
-            throw new NotImplementedException();
+                var block = new PersistentBlockLayout(regionSize, regionQuantity)
+                {
+                    PersistentMemory = _persistentMemory,
+                    FreeBlocks = freeBlocksBitmap,
+                    NextBlockOffset = nextBlockOffset,
+                    BlockOffset = blockOffset
+                };
+
+                block.Configure();
+                _persistentAllocatorLayout.AddLoadedBlock(block, offset);
+
+                lastBlock = nextBlockOffset == 0;
+            } while (!lastBlock);
         }
 
         public void Dispose()
@@ -115,7 +142,7 @@ namespace PM.Core.PMemory
 
         public PersistentRegion GetRegion(int blockID, int regionIndex)
         {
-            var block = _persistentBlocksLayout.GetBlockByID(blockID);
+            var block = _persistentAllocatorLayout.GetBlockByID(blockID);
             return block.GetRegion(regionIndex);
         }
     }

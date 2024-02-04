@@ -188,7 +188,7 @@ namespace PM.Core.Tests.PMemory
             pAllocator.Load();
 
             // Get the previous region
-            region = pAllocator.GetRegion(0, region.RegionIndex);
+            region = pAllocator.GetRegion(1, region.RegionIndex);
             Assert.Equal(long.MaxValue, BitConverter.ToInt64(region.GetData(16, offset: 0)));
         }
     }
