@@ -194,6 +194,38 @@ namespace PM.Core.Tests.PMemory
         } 
         
         [Fact]
+        public void OnLoad_WhenBlocksAreCreatedDynamically_ShouldLoadPMemory()
+        {
+            DeleteFile(nameof(OnLoad_WhenBlocksAreCreatedDynamically_ShouldLoadPMemory));
+
+            // Create pmemory file
+            var pmStream = CreatePmStream(nameof(OnLoad_WhenBlocksAreCreatedDynamically_ShouldLoadPMemory), 4096 * 2);
+            var persistentAllocatorLayout = new PersistentAllocatorLayout();
+            var pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
+            pAllocator.CreateLayout(persistentAllocatorLayout);
+            // Alloc a region dinamically
+            var region = pAllocator.Alloc(16);
+            // Write some data to recovery later
+            region.Write(BitConverter.GetBytes(long.MaxValue), offset: 0);
+
+            // Unload allocator and release all file handlers
+            pAllocator.Dispose();
+
+            // Create new PAllocator object.
+            // This object should load the previous
+            // layout.
+            pmStream = CreatePmStream(nameof(OnLoad_WhenBlocksAreCreatedDynamically_ShouldLoadPMemory), 4096 * 2);
+            pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
+            Assert.True(pAllocator.IsLayoutCreated());
+            // Load previous layout
+            pAllocator.Load();
+
+            // Get the previous region
+            region = pAllocator.GetRegion(1, region.RegionIndex);
+            Assert.Equal(long.MaxValue, BitConverter.ToInt64(region.GetData(8, offset: 0)));
+        } 
+        
+        [Fact]
         public void OnLoad_WhenHaveMultipleBlocks_ShouldLoadPMemory()
         {
             DeleteFile(nameof(OnLoad_WhenHaveMultipleBlocks_ShouldLoadPMemory));

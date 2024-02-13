@@ -35,31 +35,43 @@ namespace PM.Core.PMemory
             _persistentAllocatorLayout.Configure();
 
             Log.Debug("Creating persistent memory layout (next lines layout 'RegionsQuantity|RegionsSize|FreeBlocks|NextBlockOffset')");
-            var offset = 1; // Skip first byte (commit byte)
+            if (!persistentBlocksLayout.Blocks.Any())
+            {
+                Log.Debug("No layout created.");
+            }
             foreach (var block in persistentBlocksLayout.Blocks)
             {
-                _persistentMemory.WriteByte(block.RegionsQuantity, offset);
-                offset += sizeof(byte);
-
-                _persistentMemory.WriteInt(block.RegionsSize, offset);
-                offset += sizeof(int);
-
-                _persistentMemory.WriteULong(block.FreeBlocks, offset);
-                offset += sizeof(ulong);
-
-                _persistentMemory.WriteInt(block.NextBlockOffset, offset);
-                offset = block.NextBlockOffset;
-
-                Log.Debug(
-                    "{RegionsQuantity}|{RegionsSize}|{FreeBlocks}|{NextBlockOffset}",
-                    block.RegionsQuantity,
-                    block.RegionsSize,
-                    block.FreeBlocks,
-                    block.NextBlockOffset);
+                WriteBlockLayout(block.BlockOffset, block);
             }
 
             _persistentMemory.WriteByte(1, offset: 0); // Write commit byte
             Log.Debug("Layout commit byte write. Total blocks created: {blocks}", persistentBlocksLayout.Blocks.Count());
+        }
+
+        /// <summary>
+        /// Write a new block layout on PMemory.
+        /// </summary>
+        /// <param name="offset">Block offset</param>
+        /// <param name="block">Block layout</param>
+        internal void WriteBlockLayout(int offset, PersistentBlockLayout block)
+        {
+            _persistentMemory.WriteByte(block.RegionsQuantity, offset);
+            offset += sizeof(byte);
+
+            _persistentMemory.WriteInt(block.RegionsSize, offset);
+            offset += sizeof(int);
+
+            _persistentMemory.WriteULong(block.FreeBlocks, offset);
+            offset += sizeof(ulong);
+
+            _persistentMemory.WriteInt(block.NextBlockOffset, offset);
+
+            Log.Debug(
+                "{RegionsQuantity}|{RegionsSize}|{FreeBlocks}|{NextBlockOffset}",
+                block.RegionsQuantity,
+                block.RegionsSize,
+                block.FreeBlocks,
+                block.NextBlockOffset);
         }
 
         public bool IsLayoutCreated()
@@ -85,6 +97,7 @@ namespace PM.Core.PMemory
             do
             {
                 var block = _persistentAllocatorLayout.GetOrCreateBlockBySize(regionSize);
+                WriteBlockLayout(block.BlockOffset, block);
                 region = block.GetFreeRegion();
             } while (region is null);
             return region;

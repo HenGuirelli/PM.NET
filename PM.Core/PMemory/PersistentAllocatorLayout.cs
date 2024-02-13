@@ -68,6 +68,7 @@ namespace PM.Core.PMemory
                 return block;
             }
 
+            Log.Debug("Block of size {size} no found. Creating a new one...", size);
             var newBlock = new PersistentBlockLayout(size, DefaultRegionQuantityPerBlock);
             AddBlock(newBlock);
             newBlock.Configure();
