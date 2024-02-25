@@ -1,6 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions.Interfaces;
 using PM.Core.PMemory;
 using PM.Tests.Common;
+using Serilog;
+using Serilog.Events;
 using System;
 using System.IO;
 using System.Linq;
@@ -234,8 +236,8 @@ namespace PM.Core.Tests.PMemory
             var pmStream = CreatePmStream(nameof(OnLoad_WhenHaveMultipleBlocks_ShouldLoadPMemory), 4096 * 2);
             var persistentAllocatorLayout = new PersistentAllocatorLayout();
             persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 16, regionQuantity: 10));
-            persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 32, regionQuantity: 100));
-            persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 64, regionQuantity: 255));
+            persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 32, regionQuantity: 1));
+            persistentAllocatorLayout.AddBlock(new PersistentBlockLayout(regionSize: 64, regionQuantity: 64));
             var pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
             pAllocator.CreateLayout(persistentAllocatorLayout);
             // Write some data in block 1 to recovery later
@@ -269,6 +271,55 @@ namespace PM.Core.Tests.PMemory
             Assert.Equal(long.MinValue, BitConverter.ToInt64(region2.GetData(8, offset: 1)));
             region3 = pAllocator.GetRegion(blockIds[2], region3.RegionIndex);
             Assert.Equal(long.MinValue / 2, BitConverter.ToInt64(region3.GetData(8, offset: 2)));
+        }
+
+        private static readonly Random _random = new();
+        [Fact]
+        public void RandomTest()
+        {
+            Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Is(LogEventLevel.Fatal) // Disable log
+            .WriteTo.Console()
+            .CreateLogger();
+
+            DeleteFile(nameof(RandomTest));
+            var pmStream = CreatePmStream(nameof(RandomTest), 4096);
+            var persistentAllocatorLayout = new PersistentAllocatorLayout();
+            var pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
+            pAllocator.CreateLayout(persistentAllocatorLayout);
+
+            var allocQty = _random.Next(1000, 100_000);
+            for (var i = 0; i < allocQty; i++)
+            {
+                var regionSize = _random.Next(100_000);
+                var region = pAllocator.Alloc(regionSize);
+                var value = new byte[] { 1, 1, 1 };
+                region.Write(value, _random.Next(regionSize - value.Length));
+            }
+        } 
+        
+        [Fact]
+        public void OnAlloc_AllocSameSizeALotOfTimes()
+        {
+            Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Is(LogEventLevel.Fatal) // Disable log
+            .WriteTo.Console()
+            .CreateLogger();
+
+            DeleteFile(nameof(OnAlloc_AllocSameSizeALotOfTimes));
+            var pmStream = CreatePmStream(nameof(OnAlloc_AllocSameSizeALotOfTimes), 4096);
+            var persistentAllocatorLayout = new PersistentAllocatorLayout();
+            var pAllocator = new PAllocator(new PmCSharpDefinedTypes(pmStream));
+            pAllocator.CreateLayout(persistentAllocatorLayout);
+
+            var allocQty = _random.Next(1000, 100_000);
+            for (var i = 0; i < allocQty; i++)
+            {
+                var regionSize = 4096;
+                var region = pAllocator.Alloc(regionSize);
+                var value = new byte[] { 1, 1, 1 };
+                region.Write(value, _random.Next(regionSize - value.Length));
+            }
         }
     }
 }

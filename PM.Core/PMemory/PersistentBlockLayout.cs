@@ -66,6 +66,10 @@ namespace PM.Core.PMemory
 
         internal PersistentBlockLayout? NextBlock { get; set; }
 
+        private int _totalRegionsInUse;
+        internal bool IsFull => _totalRegionsInUse == RegionsQuantity;
+
+
         public const int Header_RegionQuantityOffset = 0;
         public const int Header_RegionSizeOffset = 0;
         public const int Header_FreeBlockBitmapOffset = 5;
@@ -75,9 +79,13 @@ namespace PM.Core.PMemory
         {
             if (!BitwiseOperations.IsPowerOfTwo(regionSize)) throw new ArgumentException($"{nameof(regionSize)} must be power of two");
             if (regionQuantity <= 0) throw new ArgumentException($"{nameof(regionQuantity)} must be greater than zero");
+            // Max region count inside a block must be 64
+            // because freeBlocks bitmap is a ulong (64 bits, one bit represent one region inside a block)
+            if (regionQuantity > 64) throw new ArgumentException($"{nameof(regionQuantity)} must be smaller than 64");
 
             RegionsSize = regionSize;
             RegionsQuantity = regionQuantity;
+            _totalRegionsInUse = 0;
             FreeBlocks = 0;
             Regions = new PersistentRegion[RegionsQuantity];
         }
@@ -95,6 +103,7 @@ namespace PM.Core.PMemory
                     IsFree = !BitwiseOperations.VerifyBit(FreeBlocks, i),
                     RegionIndex = i,
                 };
+                if (!region.IsFree) _totalRegionsInUse++;
 
                 Log.Verbose(
                     "Region={regionID} StartPointer={startPointer} created inner block={blockID} (only in memory operation)",
@@ -130,11 +139,12 @@ namespace PM.Core.PMemory
                 var region = Regions[i];
                 if (region.IsFree)
                 {
-                    FreeBlocks |= i + 1;
+                    FreeBlocks = (FreeBlocks << 1) + 1;
                     PersistentMemory.WriteULong(FreeBlocks, BlockOffset + Header_FreeBlockBitmapOffset);
                     Log.Verbose("Update FreeBlocks value={value} for block={blockID}", FreeBlocks, BlockOffset);
 
                     region.IsFree = false;
+                    _totalRegionsInUse++;
                     return region;
                 }
             }
@@ -144,6 +154,37 @@ namespace PM.Core.PMemory
         internal PersistentRegion GetRegion(int regionIndex)
         {
             return Regions[regionIndex];
+        }
+
+
+        /// <summary>
+        /// Write a new block layout on PMemory.
+        /// </summary>
+        /// <param name="offset">Block offset</param>
+        /// <param name="block">Block layout</param>
+        internal void WriteBlockLayoutOnPm()
+        {
+            if (PersistentMemory is null) throw new ApplicationException($"{nameof(PersistentMemory)} cannot be null");
+
+            var offset = BlockOffset;
+
+            PersistentMemory.WriteByte(RegionsQuantity, offset);
+            offset += sizeof(byte);
+
+            PersistentMemory.WriteInt(RegionsSize, offset);
+            offset += sizeof(int);
+
+            PersistentMemory.WriteULong(FreeBlocks, offset);
+            offset += sizeof(ulong);
+
+            PersistentMemory.WriteInt(NextBlockOffset, offset);
+
+            Log.Debug(
+                "{RegionsQuantity}|{RegionsSize}|{FreeBlocks}|{NextBlockOffset}",
+                RegionsQuantity,
+                RegionsSize,
+                FreeBlocks,
+                NextBlockOffset);
         }
     }
 }

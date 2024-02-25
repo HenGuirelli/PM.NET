@@ -1,13 +1,12 @@
 ﻿using Serilog;
-using System.Drawing;
 
 namespace PM.Core.PMemory
 {
     public class PersistentAllocatorLayout
     {
-        private readonly Dictionary<int, PersistentBlockLayout> _blocksBySize = new();
+        private readonly Dictionary<int, List<PersistentBlockLayout>> _blocksBySize = new();
         private readonly Dictionary<int, PersistentBlockLayout> _blocksByOffset = new();
-        public IEnumerable<PersistentBlockLayout> Blocks => _blocksBySize.Values.ToList().AsReadOnly();
+        public IEnumerable<PersistentBlockLayout> Blocks => _blocksBySize.Values.SelectMany(x => x).ToList().AsReadOnly();
 
         private PmCSharpDefinedTypes? _pmCSharpDefinedTypes;
         public PmCSharpDefinedTypes? PmCSharpDefinedTypes
@@ -16,14 +15,14 @@ namespace PM.Core.PMemory
             set
             {
                 _pmCSharpDefinedTypes = value;
-                foreach (PersistentBlockLayout block in _blocksBySize.Values)
+                foreach (PersistentBlockLayout block in _blocksBySize.Values.SelectMany(x => x))
                 {
                     block.PersistentMemory = value;
                 }
             }
         }
 
-        public int TotalSizeBytes => _blocksBySize.Sum(x => x.Value.TotalSizeBytes);
+        public int TotalSizeBytes => _blocksBySize.Values.SelectMany(x => x).Sum(x => x.TotalSizeBytes);
 
         public byte DefaultRegionQuantityPerBlock { get; set; } = 8;
 
@@ -36,7 +35,13 @@ namespace PM.Core.PMemory
 
         public void AddBlock(PersistentBlockLayout persistentBlockLayout)
         {
-            _blocksBySize.Add(persistentBlockLayout.RegionsSize, persistentBlockLayout);
+            if (!_blocksBySize.TryGetValue(persistentBlockLayout.RegionsSize, out var blocksBySizeList))
+            {
+                blocksBySizeList = new List<PersistentBlockLayout>();
+                _blocksBySize.Add(persistentBlockLayout.RegionsSize, blocksBySizeList);
+            }
+            blocksBySizeList.Add(persistentBlockLayout);
+
             _blocksByOffset.Add(_blocksOffset, persistentBlockLayout);
 
             persistentBlockLayout.BlockOffset = _blocksOffset;
@@ -53,7 +58,13 @@ namespace PM.Core.PMemory
         
         internal void AddLoadedBlock(PersistentBlockLayout persistentBlockLayout, int offset)
         {
-            _blocksBySize.Add(persistentBlockLayout.RegionsSize, persistentBlockLayout);
+            if (!_blocksBySize.TryGetValue(persistentBlockLayout.RegionsSize, out var blocksBySizeList))
+            {
+                blocksBySizeList = new List<PersistentBlockLayout>();
+                _blocksBySize.Add(persistentBlockLayout.RegionsSize, blocksBySizeList);
+            }
+            blocksBySizeList.Add(persistentBlockLayout);
+
             _blocksByOffset.Add(persistentBlockLayout.BlockOffset, persistentBlockLayout);
 
             persistentBlockLayout.PersistentMemory = PmCSharpDefinedTypes;
@@ -63,15 +74,22 @@ namespace PM.Core.PMemory
 
         public PersistentBlockLayout GetOrCreateBlockBySize(int size)
         {
-            if (_blocksBySize.TryGetValue(size, out var block))
+            if (_blocksBySize.TryGetValue(size, out var blocks))
             {
-                return block;
+                foreach(var block in blocks)
+                {
+                    if (!block.IsFull)
+                    {
+                        return block;
+                    }
+                }
             }
 
             Log.Debug("Block of size {size} no found. Creating a new one...", size);
             var newBlock = new PersistentBlockLayout(size, DefaultRegionQuantityPerBlock);
             AddBlock(newBlock);
             newBlock.Configure();
+            newBlock.WriteBlockLayoutOnPm();
             Log.Debug(
                 "Created new pmemory block in offset: {blockOffset} " +
                 "(region size: {regionsSize}, " +
@@ -85,7 +103,7 @@ namespace PM.Core.PMemory
 
         internal void Configure()
         {
-            foreach (PersistentBlockLayout block in _blocksBySize.Values)
+            foreach (PersistentBlockLayout block in _blocksBySize.Values.SelectMany(x => x))
             {
                 block.Configure();
             }

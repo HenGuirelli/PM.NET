@@ -41,7 +41,7 @@ namespace PM.Core.PMemory
             }
             foreach (var block in persistentBlocksLayout.Blocks)
             {
-                WriteBlockLayout(block.BlockOffset, block);
+                block.WriteBlockLayoutOnPm();
             }
 
             _persistentMemory.WriteByte(1, offset: 0); // Write commit byte
@@ -97,7 +97,6 @@ namespace PM.Core.PMemory
             do
             {
                 var block = _persistentAllocatorLayout.GetOrCreateBlockBySize(regionSize);
-                WriteBlockLayout(block.BlockOffset, block);
                 region = block.GetFreeRegion();
             } while (region is null);
             return region;
