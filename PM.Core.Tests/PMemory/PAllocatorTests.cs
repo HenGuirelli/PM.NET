@@ -277,11 +277,6 @@ namespace PM.Core.Tests.PMemory
         [Fact]
         public void RandomTest()
         {
-            Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Is(LogEventLevel.Fatal) // Disable log
-            .WriteTo.Console()
-            .CreateLogger();
-
             DeleteFile(nameof(RandomTest));
             var pmStream = CreatePmStream(nameof(RandomTest), 4096);
             var persistentAllocatorLayout = new PersistentAllocatorLayout();
@@ -291,7 +286,7 @@ namespace PM.Core.Tests.PMemory
             var allocQty = _random.Next(1000, 100_000);
             for (var i = 0; i < allocQty; i++)
             {
-                var regionSize = _random.Next(100_000);
+                var regionSize = _random.Next(5, 100_000);
                 var region = pAllocator.Alloc(regionSize);
                 var value = new byte[] { 1, 1, 1 };
                 region.Write(value, _random.Next(regionSize - value.Length));

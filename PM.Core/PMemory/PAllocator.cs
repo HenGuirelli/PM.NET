@@ -64,7 +64,7 @@ namespace PM.Core.PMemory
             _persistentMemory.WriteULong(block.FreeBlocks, offset);
             offset += sizeof(ulong);
 
-            _persistentMemory.WriteInt(block.NextBlockOffset, offset);
+            _persistentMemory.WriteUInt(block.NextBlockOffset, offset);
 
             Log.Debug(
                 "{RegionsQuantity}|{RegionsSize}|{FreeBlocks}|{NextBlockOffset}",
@@ -118,7 +118,7 @@ namespace PM.Core.PMemory
             }
 
             // Skip first byte (commit byte)
-            var offset = 1;
+            var offset = 1u;
             _persistentAllocatorLayout = new PersistentAllocatorLayout
             {
                 PmCSharpDefinedTypes = _persistentMemory
@@ -133,7 +133,7 @@ namespace PM.Core.PMemory
                 offset += 4;
                 var freeBlocksBitmap = _persistentMemory.ReadULong(offset);
                 offset += 8;
-                var nextBlockOffset = _persistentMemory.ReadInt(offset);
+                var nextBlockOffset = _persistentMemory.ReadUInt(offset);
                 offset += 4;
 
                 var block = new PersistentBlockLayout(regionSize, regionQuantity)
@@ -157,7 +157,7 @@ namespace PM.Core.PMemory
             _persistentMemory?.Dispose();
         }
 
-        public PersistentRegion GetRegion(int blockID, int regionIndex)
+        public PersistentRegion GetRegion(uint blockID, int regionIndex)
         {
             var block = _persistentAllocatorLayout.GetBlockByID(blockID);
             return block.GetRegion(regionIndex);

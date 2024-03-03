@@ -33,18 +33,18 @@ namespace PM.Core.PMemory
         /// 
         /// If zero, this is the last block and more blocks need be created.
         /// </summary>
-        public int NextBlockOffset
+        public uint NextBlockOffset
         {
             get => _nextBlockOffset;
             set => SetNextBlockOffset(value);
         }
 
-        internal int _nextBlockOffset;
+        internal uint _nextBlockOffset;
 
         /// <summary>
         /// Get block total size.
         /// </summary>
-        public int TotalSizeBytes => GetTotalBytes();
+        public uint TotalSizeBytes => GetTotalBytes();
 
         /// <summary>
         /// 17 =
@@ -60,7 +60,7 @@ namespace PM.Core.PMemory
         /// 
         /// Also used as a index.
         /// </summary>
-        internal int BlockOffset { get; set; }
+        internal uint BlockOffset { get; set; }
 
         internal PmCSharpDefinedTypes? PersistentMemory { get; set; }
 
@@ -96,7 +96,8 @@ namespace PM.Core.PMemory
 
             for (int i = 0; i < RegionsQuantity; i++)
             {
-                var startPointerOffset = BlockHeaderSizeBytes + BlockOffset + (RegionsSize * i);
+                var startPointerOffset = (uint)(BlockHeaderSizeBytes + BlockOffset + (RegionsSize * i));
+
                 var region = Regions[i] = new PersistentRegion(PersistentMemory, RegionsSize, this)
                 {
                     Pointer = startPointerOffset,
@@ -113,17 +114,17 @@ namespace PM.Core.PMemory
             if (NextBlock != null) NextBlockOffset = NextBlock.BlockOffset;
         }
 
-        private void SetNextBlockOffset(int value)
+        private void SetNextBlockOffset(uint value)
         {
             if (PersistentMemory is null) throw new ApplicationException($"Property {nameof(PersistentMemory)} cannot be null.");
 
-            PersistentMemory.WriteInt(value, offset: BlockOffset + Header_NextBlockOffset);
+            PersistentMemory.WriteUInt(value, offset: BlockOffset + Header_NextBlockOffset);
             _nextBlockOffset = value;
         }
 
-        private int GetTotalBytes()
+        private uint GetTotalBytes()
         {
-            return BlockHeaderSizeBytes + (RegionsQuantity * RegionsSize);
+            return (uint)(BlockHeaderSizeBytes + (RegionsQuantity * RegionsSize));
         }
 
         /// <summary>
@@ -177,7 +178,7 @@ namespace PM.Core.PMemory
             PersistentMemory.WriteULong(FreeBlocks, offset);
             offset += sizeof(ulong);
 
-            PersistentMemory.WriteInt(NextBlockOffset, offset);
+            PersistentMemory.WriteUInt(NextBlockOffset, offset);
 
             Log.Debug(
                 "{RegionsQuantity}|{RegionsSize}|{FreeBlocks}|{NextBlockOffset}",

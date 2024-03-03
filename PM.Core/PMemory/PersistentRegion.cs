@@ -15,7 +15,7 @@ namespace PM.Core.PMemory
         /// <summary>
         /// Start pointer to region
         /// </summary>
-        public int Pointer { get; set; }
+        public uint Pointer { get; set; }
 
         /// <summary>
         /// Region size in bytes

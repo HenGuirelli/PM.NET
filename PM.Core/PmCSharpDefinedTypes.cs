@@ -21,7 +21,7 @@ namespace PM.Core
         }
 
         #region Char
-        public char ReadChar(int offset = 0)
+        public char ReadChar(long offset = 0)
         {
             var array = new byte[sizeof(char)];
             _pm.Seek(offset, SeekOrigin.Begin);
@@ -32,7 +32,7 @@ namespace PM.Core
             return (char)BinaryPrimitives.ReadInt16BigEndian(array);
         }
 
-        public void WriteChar(char value, int offset = 0)
+        public void WriteChar(char value, long offset = 0)
         {
             var array = new byte[sizeof(char)];
             BinaryPrimitives.WriteInt16BigEndian(array, (short)value);
@@ -42,7 +42,7 @@ namespace PM.Core
         #endregion
 
         #region Decimal
-        public decimal ReadDecimal(int offset = 0)
+        public decimal ReadDecimal(long offset = 0)
         {
             var array = new byte[sizeof(decimal)];
             _pm.Seek(offset, SeekOrigin.Begin);
@@ -57,7 +57,7 @@ namespace PM.Core
             return new decimal(new int[] { i1, i2, i3, i4 });
         }
 
-        public void WriteDecimal(decimal value, int offset = 0)
+        public void WriteDecimal(decimal value, long offset = 0)
         {
             _pm.Seek(offset, SeekOrigin.Begin);
             var bits = decimal.GetBits(value);
@@ -76,7 +76,7 @@ namespace PM.Core
         #endregion
 
         #region Double
-        public double ReadDouble(int offset = 0)
+        public double ReadDouble(long offset = 0)
         {
             var array = new byte[sizeof(double)];
             _pm.Seek(offset, SeekOrigin.Begin);
@@ -87,7 +87,7 @@ namespace PM.Core
             return BinaryPrimitives.ReadDoubleBigEndian(array);
         }
 
-        public void WriteDouble(double value, int offset = 0)
+        public void WriteDouble(double value, long offset = 0)
         {
             var array = new byte[sizeof(double)];
             BinaryPrimitives.WriteDoubleBigEndian(array, value);
@@ -97,7 +97,7 @@ namespace PM.Core
         #endregion
 
         #region Float
-        public float ReadFloat(int offset = 0)
+        public float ReadFloat(long offset = 0)
         {
             var array = new byte[sizeof(float)];
             _pm.Seek(offset, SeekOrigin.Begin);
@@ -108,7 +108,7 @@ namespace PM.Core
             return BinaryPrimitives.ReadSingleBigEndian(array);
         }
 
-        public void WriteFloat(float value, int offset = 0)
+        public void WriteFloat(float value, long offset = 0)
         {
             var array = new byte[sizeof(float)];
             BinaryPrimitives.WriteSingleBigEndian(array, value);
@@ -118,7 +118,7 @@ namespace PM.Core
         #endregion
 
         #region Long
-        public ulong ReadULong(int offset = 0)
+        public ulong ReadULong(long offset = 0)
         {
             var array = new byte[sizeof(ulong)];
             _pm.Seek(offset, SeekOrigin.Begin);
@@ -129,7 +129,7 @@ namespace PM.Core
             return BinaryPrimitives.ReadUInt64BigEndian(array);
         }
 
-        public void WriteULong(ulong value, int offset = 0)
+        public void WriteULong(ulong value, long offset = 0)
         {
             var array = new byte[sizeof(ulong)];
             BinaryPrimitives.WriteUInt64BigEndian(array, value);
@@ -139,7 +139,7 @@ namespace PM.Core
         #endregion
 
         #region Long
-        public long ReadLong(int offset = 0)
+        public long ReadLong(long offset = 0)
         {
             var array = new byte[sizeof(long)];
             _pm.Seek(offset, SeekOrigin.Begin);
@@ -150,7 +150,7 @@ namespace PM.Core
             return BinaryPrimitives.ReadInt64BigEndian(array);
         }
 
-        public void WriteLong(long value, int offset = 0)
+        public void WriteLong(long value, long offset = 0)
         {
             var array = new byte[sizeof(long)];
             BinaryPrimitives.WriteInt64BigEndian(array, value);
@@ -160,7 +160,7 @@ namespace PM.Core
         #endregion
 
         #region UInt
-        public uint ReadUInt(int offset = 0)
+        public uint ReadUInt(long offset = 0)
         {
             var array = new byte[sizeof(uint)];
             _pm.Seek(offset, SeekOrigin.Begin);
@@ -171,7 +171,7 @@ namespace PM.Core
             return BinaryPrimitives.ReadUInt32BigEndian(array);
         }
 
-        public void WriteUInt(uint value, int offset = 0)
+        public void WriteUInt(uint value, long offset = 0)
         {
             var array = new byte[sizeof(uint)];
             BinaryPrimitives.WriteUInt32BigEndian(array, value);
@@ -181,7 +181,7 @@ namespace PM.Core
         #endregion
 
         #region UShort
-        public ushort ReadUShort(int offset = 0)
+        public ushort ReadUShort(long offset = 0)
         {
             var array = new byte[sizeof(ushort)];
             _pm.Seek(offset, SeekOrigin.Begin);
@@ -192,7 +192,7 @@ namespace PM.Core
             return BinaryPrimitives.ReadUInt16BigEndian(array);
         }
 
-        public void WriteUShort(ushort value, int offset = 0)
+        public void WriteUShort(ushort value, long offset = 0)
         {
             var array = new byte[sizeof(ushort)];
             BinaryPrimitives.WriteUInt16LittleEndian(array, value);
@@ -202,7 +202,7 @@ namespace PM.Core
         #endregion
 
         #region Short
-        public short ReadShort(int offset = 0)
+        public short ReadShort(long offset = 0)
         {
             var array = new byte[sizeof(short)];
             _pm.Seek(offset, SeekOrigin.Begin);
@@ -213,7 +213,7 @@ namespace PM.Core
             return BinaryPrimitives.ReadInt16BigEndian(array);
         }
 
-        public void WriteShort(short value, int offset = 0)
+        public void WriteShort(short value, long offset = 0)
         {
             var array = new byte[sizeof(short)];
             BinaryPrimitives.WriteInt16BigEndian(array, value);
@@ -223,13 +223,13 @@ namespace PM.Core
         #endregion
 
         #region SByte
-        public sbyte ReadSByte(int offset = 0)
+        public sbyte ReadSByte(long offset = 0)
         {
             _pm.Seek(offset, SeekOrigin.Begin);
             return (sbyte)_pm.ReadByte();
         }
 
-        public void WriteSByte(sbyte value, int offset = 0)
+        public void WriteSByte(sbyte value, long offset = 0)
         {
             _pm.Seek(offset, SeekOrigin.Begin);
             _pm.WriteByte((byte)value);
@@ -237,19 +237,19 @@ namespace PM.Core
         #endregion 
 
         #region Byte
-        public byte ReadByte(int offset = 0)
+        public byte ReadByte(long offset = 0)
         {
             _pm.Seek(offset, SeekOrigin.Begin);
             return (byte)_pm.ReadByte();
         }
 
-        public void WriteByte(byte value, int offset = 0)
+        public void WriteByte(byte value, long offset = 0)
         {
             _pm.Seek(offset, SeekOrigin.Begin);
             _pm.WriteByte(value);
         }
 
-        public byte[] ReadBytes(int count, int offset = 0)
+        public byte[] ReadBytes(int count, long offset = 0)
         {
             var array = new byte[count];
             _pm.Seek(offset, SeekOrigin.Begin);
@@ -260,7 +260,7 @@ namespace PM.Core
             return array;
         }
 
-        public void WriteBytes(byte[] value, int offset = 0)
+        public void WriteBytes(byte[] value, long offset = 0)
         {
             _pm.Seek(offset, SeekOrigin.Begin);
             _pm.Write(value);
@@ -269,7 +269,7 @@ namespace PM.Core
 
         #region Bool
         // We use the BitConverter class while BinaryPrimitives does not support this type.
-        public bool ReadBool(int offset = 0)
+        public bool ReadBool(long offset = 0)
         {
             var array = new byte[sizeof(bool)];
             _pm.Seek(offset, SeekOrigin.Begin);
@@ -281,7 +281,7 @@ namespace PM.Core
         }
 
         // We use the BitConverter class while BinaryPrimitives does not support this type.
-        public void WriteBool(bool value, int offset = 0)
+        public void WriteBool(bool value, long offset = 0)
         {
             _pm.Seek(offset, SeekOrigin.Begin);
             _pm.Write(BitConverter.GetBytes(value));
@@ -289,7 +289,7 @@ namespace PM.Core
         #endregion 
 
         #region Int32
-        public int ReadInt(int offset = 0)
+        public int ReadInt(long offset = 0)
         {
             var array = new byte[sizeof(int)];
             _pm.Seek(offset, SeekOrigin.Begin);
@@ -300,7 +300,7 @@ namespace PM.Core
             return BinaryPrimitives.ReadInt32BigEndian(array);
         }
 
-        public void WriteInt(int value, int offset = 0)
+        public void WriteInt(int value, long offset = 0)
         {
             var array = new byte[sizeof(int)];
             BinaryPrimitives.WriteInt32BigEndian(array, value);
@@ -310,7 +310,7 @@ namespace PM.Core
         #endregion
 
         #region String
-        public string ReadString(int offset = 0)
+        public string ReadString(long offset = 0)
         {
             var stringBuilder = new StringBuilder();
 
@@ -324,7 +324,7 @@ namespace PM.Core
             return stringBuilder.ToString();
         }
 
-        public void WriteString(string value, int offset = 0)
+        public void WriteString(string value, long offset = 0)
         {
             for (int i = 0; i < value.Length; i++)
             {

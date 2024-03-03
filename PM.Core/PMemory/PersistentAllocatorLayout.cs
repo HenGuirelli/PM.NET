@@ -5,7 +5,7 @@ namespace PM.Core.PMemory
     public class PersistentAllocatorLayout
     {
         private readonly Dictionary<int, List<PersistentBlockLayout>> _blocksBySize = new();
-        private readonly Dictionary<int, PersistentBlockLayout> _blocksByOffset = new();
+        private readonly Dictionary<uint, PersistentBlockLayout> _blocksByOffset = new();
         public IEnumerable<PersistentBlockLayout> Blocks => _blocksBySize.Values.SelectMany(x => x).ToList().AsReadOnly();
 
         private PmCSharpDefinedTypes? _pmCSharpDefinedTypes;
@@ -22,13 +22,13 @@ namespace PM.Core.PMemory
             }
         }
 
-        public int TotalSizeBytes => _blocksBySize.Values.SelectMany(x => x).Sum(x => x.TotalSizeBytes);
+        public uint TotalSizeBytes => (uint)(_blocksBySize.Values.SelectMany(x => x).Sum(x => x.TotalSizeBytes));
 
         public byte DefaultRegionQuantityPerBlock { get; set; } = 8;
 
         // Start with 1 to skip the commit byte.
         // This field is used to set block offset.
-        private int _blocksOffset = 1;
+        private uint _blocksOffset = 1;
 
         // Used to set NextBlock property when next block is added.
         private PersistentBlockLayout? _lastBlock;
@@ -56,7 +56,7 @@ namespace PM.Core.PMemory
             _lastBlock = persistentBlockLayout;
         } 
         
-        internal void AddLoadedBlock(PersistentBlockLayout persistentBlockLayout, int offset)
+        internal void AddLoadedBlock(PersistentBlockLayout persistentBlockLayout, uint offset)
         {
             if (!_blocksBySize.TryGetValue(persistentBlockLayout.RegionsSize, out var blocksBySizeList))
             {
@@ -109,7 +109,7 @@ namespace PM.Core.PMemory
             }
         }
 
-        internal PersistentBlockLayout GetBlockByID(int blockID)
+        internal PersistentBlockLayout GetBlockByID(uint blockID)
         {
             if (_blocksByOffset.TryGetValue(blockID, out var block))
             {
