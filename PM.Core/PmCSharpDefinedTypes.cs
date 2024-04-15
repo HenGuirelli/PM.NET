@@ -3,6 +3,43 @@ using System.Text;
 
 namespace PM.Core
 {
+    public interface IIncreaseFileSizeStrategy
+    {
+        long GetNewIncreasedSize(long actualSize, long? minSize = null);
+    }
+
+    public class DefaultIncreaseFileSizeStrategy : IIncreaseFileSizeStrategy
+    {
+        private static DefaultIncreaseFileSizeStrategy? _instance;
+        public static DefaultIncreaseFileSizeStrategy Instance
+        {
+            get
+            {
+                _instance ??= new DefaultIncreaseFileSizeStrategy();
+                return _instance;
+            }
+        }
+
+        public const int _5MiB = 1048576 * 5;
+
+        public long GetNewIncreasedSize(long actualSize, long? minSize = null)
+        {
+            var newSizeCalculated = 0;
+            if (actualSize < _5MiB)
+            {
+                newSizeCalculated *= 2;
+            }
+            else
+            {
+                newSizeCalculated = (int)(newSizeCalculated * 1.2f);
+            }
+
+            if (minSize == null) return newSizeCalculated;
+
+            return newSizeCalculated < minSize.Value ? minSize.Value : newSizeCalculated;
+        }
+    }
+
     public class PmCSharpDefinedTypes : IDisposable
     {
         private readonly MemoryMappedFileBasedStream _pm;
@@ -342,6 +379,17 @@ namespace PM.Core
         public void Delete()
         {
             _pm.Delete();
+        }
+
+        /// <summary>
+        /// Increase the PM file size given a specific strategy
+        /// </summary>
+        /// <param name="minSize"></param>
+        internal void IncreaseSize(long? minSize = null, IIncreaseFileSizeStrategy? increaseFileSizeStrategy = null)
+        {
+            increaseFileSizeStrategy ??= DefaultIncreaseFileSizeStrategy.Instance;
+            var newSize = increaseFileSizeStrategy.GetNewIncreasedSize(FileBasedStream.Length, minSize);
+            Resize(newSize);
         }
 
         internal void Resize(long size)

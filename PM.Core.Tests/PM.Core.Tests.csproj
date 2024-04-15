@@ -28,6 +28,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\FileFormatExplain\FileFormatExplain.csproj" />
     <ProjectReference Include="..\PM.Core\PM.Core.csproj" />
     <ProjectReference Include="..\PM.Tests.Common\PM.Tests.Common.csproj" />
   </ItemGroup>
