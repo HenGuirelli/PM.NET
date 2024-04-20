@@ -9,6 +9,7 @@ namespace PM.Core.PMemory.FileFields
 
     public abstract class ByteFiled : IField<byte>
     {
+        public const int Size = 1;
         public virtual int Offset { get; internal set; }
         public virtual byte Value { get; internal set; }
     }

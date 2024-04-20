@@ -66,13 +66,13 @@ namespace PM.Core
             {
                 throw new ApplicationException(ReadErrorExceptionMessage);
             }
-            return (char)BinaryPrimitives.ReadInt16BigEndian(array);
+            return (char)BinaryPrimitives.ReadInt16LittleEndian(array);
         }
 
         public void WriteChar(char value, long offset = 0)
         {
             var array = new byte[sizeof(char)];
-            BinaryPrimitives.WriteInt16BigEndian(array, (short)value);
+            BinaryPrimitives.WriteInt16LittleEndian(array, (short)value);
             _pm.Seek(offset, SeekOrigin.Begin);
             _pm.Write(array, 0, sizeof(char));
         }
@@ -121,13 +121,13 @@ namespace PM.Core
             {
                 throw new ApplicationException(ReadErrorExceptionMessage);
             }
-            return BinaryPrimitives.ReadDoubleBigEndian(array);
+            return BinaryPrimitives.ReadDoubleLittleEndian(array);
         }
 
         public void WriteDouble(double value, long offset = 0)
         {
             var array = new byte[sizeof(double)];
-            BinaryPrimitives.WriteDoubleBigEndian(array, value);
+            BinaryPrimitives.WriteDoubleLittleEndian(array, value);
             _pm.Seek(offset, SeekOrigin.Begin);
             _pm.Write(array, 0, sizeof(double));
         }
@@ -142,13 +142,13 @@ namespace PM.Core
             {
                 throw new ApplicationException(ReadErrorExceptionMessage);
             }
-            return BinaryPrimitives.ReadSingleBigEndian(array);
+            return BinaryPrimitives.ReadSingleLittleEndian(array);
         }
 
         public void WriteFloat(float value, long offset = 0)
         {
             var array = new byte[sizeof(float)];
-            BinaryPrimitives.WriteSingleBigEndian(array, value);
+            BinaryPrimitives.WriteSingleLittleEndian(array, value);
             _pm.Seek(offset, SeekOrigin.Begin);
             _pm.Write(array, 0, sizeof(float));
         }
@@ -163,13 +163,13 @@ namespace PM.Core
             {
                 throw new ApplicationException(ReadErrorExceptionMessage);
             }
-            return BinaryPrimitives.ReadUInt64BigEndian(array);
+            return BinaryPrimitives.ReadUInt64LittleEndian(array);
         }
 
         public void WriteULong(ulong value, long offset = 0)
         {
             var array = new byte[sizeof(ulong)];
-            BinaryPrimitives.WriteUInt64BigEndian(array, value);
+            BinaryPrimitives.WriteUInt64LittleEndian(array, value);
             _pm.Seek(offset, SeekOrigin.Begin);
             _pm.Write(array, 0, sizeof(ulong));
         }
@@ -184,13 +184,13 @@ namespace PM.Core
             {
                 throw new ApplicationException(ReadErrorExceptionMessage);
             }
-            return BinaryPrimitives.ReadInt64BigEndian(array);
+            return BinaryPrimitives.ReadInt64LittleEndian(array);
         }
 
         public void WriteLong(long value, long offset = 0)
         {
             var array = new byte[sizeof(long)];
-            BinaryPrimitives.WriteInt64BigEndian(array, value);
+            BinaryPrimitives.WriteInt64LittleEndian(array, value);
             _pm.Seek(offset, SeekOrigin.Begin);
             _pm.Write(array, 0, sizeof(long));
         }
@@ -205,13 +205,13 @@ namespace PM.Core
             {
                 throw new ApplicationException(ReadErrorExceptionMessage);
             }
-            return BinaryPrimitives.ReadUInt32BigEndian(array);
+            return BinaryPrimitives.ReadUInt32LittleEndian(array);
         }
 
         public void WriteUInt(uint value, long offset = 0)
         {
             var array = new byte[sizeof(uint)];
-            BinaryPrimitives.WriteUInt32BigEndian(array, value);
+            BinaryPrimitives.WriteUInt32LittleEndian(array, value);
             _pm.Seek(offset, SeekOrigin.Begin);
             _pm.Write(array, 0, sizeof(uint));
         }
@@ -226,7 +226,7 @@ namespace PM.Core
             {
                 throw new ApplicationException(ReadErrorExceptionMessage);
             }
-            return BinaryPrimitives.ReadUInt16BigEndian(array);
+            return BinaryPrimitives.ReadUInt16LittleEndian(array);
         }
 
         public void WriteUShort(ushort value, long offset = 0)
@@ -247,13 +247,13 @@ namespace PM.Core
             {
                 throw new ApplicationException(ReadErrorExceptionMessage);
             }
-            return BinaryPrimitives.ReadInt16BigEndian(array);
+            return BinaryPrimitives.ReadInt16LittleEndian(array);
         }
 
         public void WriteShort(short value, long offset = 0)
         {
             var array = new byte[sizeof(short)];
-            BinaryPrimitives.WriteInt16BigEndian(array, value);
+            BinaryPrimitives.WriteInt16LittleEndian(array, value);
             _pm.Seek(offset, SeekOrigin.Begin);
             _pm.Write(array, 0, sizeof(short));
         }
@@ -334,13 +334,13 @@ namespace PM.Core
             {
                 throw new ApplicationException(ReadErrorExceptionMessage);
             }
-            return BinaryPrimitives.ReadInt32BigEndian(array);
+            return BinaryPrimitives.ReadInt32LittleEndian(array);
         }
 
         public void WriteInt(int value, long offset = 0)
         {
             var array = new byte[sizeof(int)];
-            BinaryPrimitives.WriteInt32BigEndian(array, value);
+            BinaryPrimitives.WriteInt32LittleEndian(array, value);
             _pm.Seek(offset, SeekOrigin.Begin);
             _pm.Write(array, 0, sizeof(int));
         }

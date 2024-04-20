@@ -33,12 +33,15 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
         }
 
         private uint _addBlockOffset;
+        private ushort _addBlockQtty;
         private uint _initialAddBlockOffset;
 
         private uint _removeBlockOffset;
+        private ushort _removeBlockQtty;
         private uint _initialRemoveBlockOffset;
 
         private uint _updateContentBlockOffset;
+        private ushort _updateContentQtty;
         private uint _initialUpdateContentBlockOffset;
 
         public MemoryLayoutTransaction(PmCSharpDefinedTypes pmCSharpDefinedTypes)
@@ -61,21 +64,21 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
 
         private void LoadData()
         {
-            var addBlocksQtty = _pmCSharpDefinedTypes.ReadUShort(offset: ConstDefinitions.AddBlocksQttyOffset);
-            for (int i = 0; i < addBlocksQtty; i++)
+            _addBlockQtty = _pmCSharpDefinedTypes.ReadUShort(offset: ConstDefinitions.AddBlocksQttyOffset);
+            for (int i = 0; i < _addBlockQtty; i++)
             {
                 _queueAddBlockLayouts.Enqueue(LoadAddBlock(_addBlockOffset + (ConstDefinitions.AddBlockSize * i)));
             }
 
-            var removeBlocksQtty = _pmCSharpDefinedTypes.ReadUShort(offset: ConstDefinitions.RemoveBlocksQttyOffset);
-            for (int i = 0; i < removeBlocksQtty; i++)
+            _removeBlockQtty = _pmCSharpDefinedTypes.ReadUShort(offset: ConstDefinitions.RemoveBlocksQttyOffset);
+            for (int i = 0; i < _removeBlockQtty; i++)
             {
                 _queueRemoveBlockLayouts.Enqueue(LoadRemoveBlock(_removeBlockOffset + (ConstDefinitions.RemoveBlockSize * i)));
             }
 
-            var updateContentQtty = _pmCSharpDefinedTypes.ReadUShort(offset: ConstDefinitions.UpdateContentQttyOffset);
+            _updateContentQtty = _pmCSharpDefinedTypes.ReadUShort(offset: ConstDefinitions.UpdateContentQttyOffset);
             uint lastUpdateContetSize = 0;
-            for (int i = 0; i < updateContentQtty; i++)
+            for (int i = 0; i < _updateContentQtty; i++)
             {
                 var updateContent = LoadUpdateContent(_updateContentBlockOffset + (lastUpdateContetSize * i));
                 lastUpdateContetSize = updateContent.UpdateContentLayoutSize;
@@ -152,12 +155,20 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
             addBlock.CommitByte.UnCommit();
             _pmCSharpDefinedTypes.WriteByte(addBlock.CommitByte.Value, offset: _addBlockOffset);
 
-            _pmCSharpDefinedTypes.WriteUInt(addBlock.BlockOffset, offset: _addBlockOffset + 1);
-            _pmCSharpDefinedTypes.WriteByte(addBlock.RegionsQtty, offset: _addBlockOffset + 5);
-            _pmCSharpDefinedTypes.WriteUInt(addBlock.RegionSize, offset: _addBlockOffset + 6);
+            var internalOffset = _addBlockOffset + 1;
+            _pmCSharpDefinedTypes.WriteUInt(addBlock.Order.Value, offset: internalOffset);
+            internalOffset += 2;
+            _pmCSharpDefinedTypes.WriteUInt(addBlock.BlockOffset, offset: internalOffset);
+            internalOffset += 4;
+            _pmCSharpDefinedTypes.WriteByte(addBlock.RegionsQtty, offset: internalOffset);
+            internalOffset += 1;
+            _pmCSharpDefinedTypes.WriteUInt(addBlock.RegionSize, offset: internalOffset);
 
             addBlock.CommitByte.Commit();
             _pmCSharpDefinedTypes.WriteByte(addBlock.CommitByte.Value, offset: _addBlockOffset);
+
+            _addBlockQtty++;
+            _pmCSharpDefinedTypes.WriteUShort(_addBlockQtty, ConstDefinitions.AddBlocksQttyOffset);
 
             _addBlockOffset += AddBlockLayout.Size;
         }

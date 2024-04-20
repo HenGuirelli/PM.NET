@@ -13,12 +13,12 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
             public const int RegionSize = 8;
         }
 
-        public const int Size = 10;
+        public const int Size = 12;
 
         public CommitByteField CommitByte
         {
             get => _commitByte;
-            set
+            internal set
             {
                 value.Offset = Offset.CommitByte;
                 _commitByte = value;
@@ -29,7 +29,7 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
         public OrderField Order
         {
             get => _order;
-            set
+            internal set
             {
                 value.Offset = Offset.Order;
                 _order = value;
