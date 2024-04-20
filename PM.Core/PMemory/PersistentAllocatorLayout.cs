@@ -33,7 +33,7 @@ namespace PM.Core.PMemory
         // Used to set NextBlock property when next block is added.
         private PersistentBlockLayout? _lastBlock;
 
-        public void AddBlock(PersistentBlockLayout persistentBlockLayout)
+        public void AddBlock(PersistentBlockLayout persistentBlockLayout, bool automaticDefineOffset = true)
         {
             if (!_blocksBySize.TryGetValue(persistentBlockLayout.RegionsSize, out var blocksBySizeList))
             {
@@ -42,12 +42,19 @@ namespace PM.Core.PMemory
             }
             blocksBySizeList.Add(persistentBlockLayout);
 
-            _blocksByOffset.Add(_blocksOffset, persistentBlockLayout);
 
-            persistentBlockLayout.BlockOffset = _blocksOffset;
             persistentBlockLayout.PersistentMemory = PmCSharpDefinedTypes;
 
-            _blocksOffset += persistentBlockLayout.TotalSizeBytes;
+            if (automaticDefineOffset)
+            {
+                _blocksByOffset.Add(_blocksOffset, persistentBlockLayout);
+                persistentBlockLayout.BlockOffset = _blocksOffset;
+                _blocksOffset += persistentBlockLayout.TotalSizeBytes;
+            }
+            else
+            {
+                _blocksByOffset.Add(persistentBlockLayout.BlockOffset, persistentBlockLayout);
+            }
 
             if (_lastBlock != null)
             {

@@ -15,6 +15,8 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
 
         public const int Size = 12;
 
+        public long TransactionOffset { get; set; }
+
         public CommitByteField CommitByte
         {
             get => _commitByte;
@@ -26,16 +28,19 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
         }
         private CommitByteField _commitByte = new(Offset.CommitByte);
 
-        public OrderField Order
+        internal OrderField Order
         {
-            get => _order;
-            internal set
+            get => _order ??= new OrderField(Offset.Order, instance: 1);
+            set
             {
-                value.Offset = Offset.Order;
-                _order = value;
+                if (value != null)
+                {
+                    value.Offset = Offset.Order;
+                    _order = value;
+                }
             }
         }
-        private OrderField _order = new(Offset.Order);
+        private OrderField? _order;
 
         public UInt32 BlockOffset { get; set; }
         public byte RegionsQtty { get; set; }

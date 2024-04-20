@@ -53,7 +53,6 @@ namespace PM.Core.Tests.PMemory.MemoryLayoutTransactions
             Assert.StartsWith("010d000000f5030000e9050000", content);
         }
 
-
         [Fact]
         public void OnAdd_ShouldCreateAddBlocks()
         {
@@ -67,11 +66,122 @@ namespace PM.Core.Tests.PMemory.MemoryLayoutTransactions
                 RegionSize = 12,
                 RegionsQtty = 13
             });
+            string content;
+            byte[] buffer;
+            ReadFile(pm.FilePath, out content, out buffer);
+
+            var memoryLayoutTransactionDecoder = new MemoryLayoutTransactionDecoder();
+            _output.WriteLine(memoryLayoutTransactionDecoder.ExplainHex(buffer));
+            // 010d000100f5030000e9050000010100ffffffff0d0c
+            // CommitByte=01
+            // AddBlockOffset=000D
+            // AddBlocksQtty=0001
+            // RemoveBlockOffset=03F5
+            // RemoveBlocksQtty=0000
+            // UpdateContentOffset=05E9
+            // UpdateContentQtty=0000
+            // ===========Addblock===========
+            // CommitByte=01
+            // Order=0001
+            // StartBlockOffset=FFFFFFFF
+            // RegionsQtty=0D
+            // RegionsSize=000C
+            Assert.StartsWith("010d000100f5030000e9050000010100ffffffff0d0c", content);
+
+            memoryLayoutTransaction.AddBlock(new AddBlockLayout
+            {
+                BlockOffset = uint.MinValue,
+                RegionSize = uint.MaxValue,
+                RegionsQtty = byte.MaxValue
+            });
+
+            ReadFile(pm.FilePath, out content, out buffer);
+            // 010d000200f5030000e9050000010100ffffffff0d0c00000001020000000000ffffffffff...
+            // CommitByte=01
+            // AddBlockOffset=000D
+            // AddBlocksQtty=0002
+            // RemoveBlockOffset=03F5
+            // RemoveBlocksQtty=0000
+            // UpdateContentOffset=05E9
+            // UpdateContentQtty=0000
+            // ===========Addblock===========
+            // CommitByte=01
+            // Order=0001
+            // StartBlockOffset=FFFFFFFF
+            // RegionsQtty=0D
+            // RegionsSize=000C
+            // ===========Addblock===========
+            // CommitByte=01
+            // Order=0002
+            // StartBlockOffset=00000000
+            // RegionsQtty=FF
+            // RegionsSize=FFFF
+            _output.WriteLine(memoryLayoutTransactionDecoder.ExplainHex(buffer));
+            Assert.StartsWith("010d000200f5030000e9050000010100ffffffff0d0c00000001020000000000ffffffffff", content);
+        }
+
+        [Fact]
+        public void OnAdd_WhenHaveOneInvalidBlock_ShouldRecycleRegion()
+        {
+            DeleteFile(nameof(OnAdd_WhenHaveOneInvalidBlock_ShouldRecycleRegion));
+            var pm = CreatePmStream(nameof(OnAdd_WhenHaveOneInvalidBlock_ShouldRecycleRegion), 4096);
+            var simulateOriginal = CreatePmStream("simulateOriginal", 4096);
+            var memoryLayoutTransaction = new MemoryLayoutTransaction(new PmCSharpDefinedTypes(pm), new Core.PMemory.PersistentAllocatorLayout
+            {
+                PmCSharpDefinedTypes = new PmCSharpDefinedTypes(simulateOriginal)
+            });
+
+            // Insert two blocks layouts
+            memoryLayoutTransaction.AddBlock(new AddBlockLayout
+            {
+                BlockOffset = uint.MaxValue,
+                RegionSize = 12,
+                RegionsQtty = 13
+            });
+            memoryLayoutTransaction.AddBlock(new AddBlockLayout
+            {
+                BlockOffset = uint.MinValue,
+                RegionSize = uint.MaxValue,
+                RegionsQtty = byte.MaxValue
+            });
+
+            memoryLayoutTransaction.CommitOneAddBlockLayout();
+
 
             string content;
-            var buffer = new byte[4096];
+            byte[] buffer;
+            ReadFile(pm.FilePath, out content, out buffer);
+
+            // 010d000200f5030000e9050000020100ffffffff0d0c00000001020000000000ffffffffff...
+            // CommitByte=01
+            // AddBlockOffset=000D
+            // AddBlocksQtty=0002
+            // RemoveBlockOffset=03F5
+            // RemoveBlocksQtty=0000
+            // UpdateContentOffset=05E9
+            // UpdateContentQtty=0000
+            // ===========Addblock===========
+            // CommitByte=02
+            // Order=0001
+            // StartBlockOffset=FFFFFFFF
+            // RegionsQtty=0D
+            // RegionsSize=000C
+            // ===========Addblock===========
+            // CommitByte=01
+            // Order=0002
+            // StartBlockOffset=00000000
+            // RegionsQtty=FF
+            // RegionsSize=FFFF
+            var memoryLayoutTransactionDecoder = new MemoryLayoutTransactionDecoder();
+            _output.WriteLine(memoryLayoutTransactionDecoder.ExplainHex(buffer));
+            Assert.StartsWith("010d000200f5030000e9050000020100ffffffff0d0c00000001020000000000ffffffffff", content);
+        }
+
+        private static void ReadFile(string filePath, out string content, out byte[] buffer)
+        {
+            buffer = new byte[4096];
             using (FileStream fileStream = new(
-                pm.FilePath,
+                filePath,
                 FileMode.Open,
                 FileAccess.Read,
                 FileShare.ReadWrite))
@@ -79,24 +189,6 @@ namespace PM.Core.Tests.PMemory.MemoryLayoutTransactions
                 fileStream.Read(buffer);
                 content = ByteArrayToString(buffer);
             }
-
-            var memoryLayoutTransactionDecoder = new MemoryLayoutTransactionDecoder();
-            _output.WriteLine(memoryLayoutTransactionDecoder.ExplainHex(buffer));
-            // 010d000100f5030000e9050000010000ffffffff0d0c0000000000000...
-            // CommitByte=01
-            // AddBlockOffset=0D
-            // AddBlocksQtty=01
-            // RemoveBlockOffset=3F5
-            // RemoveBlocksQtty=00
-            // UpdateContentOffset=5E9
-            // UpdateContentQtty=00
-            // ===========Addblock===========
-            // CommitByte=01
-            // Order=00
-            // StartBlockOffset=FFFFFFFF
-            // RegionsQtty=0D
-            // RegionsSize=0C
-            Assert.StartsWith("010d000100f5030000e9050000010000ffffffff0d0c", content);
         }
 
         public static string ByteArrayToString(byte[] ba)

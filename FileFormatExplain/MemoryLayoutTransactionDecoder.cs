@@ -28,12 +28,12 @@ namespace FileFormatExplain
             var stringBuilder = new StringBuilder();
             stringBuilder.AppendLine(ByteArrayToHexStringConverter.ByteArrayToString(buffer));
             stringBuilder.AppendLine($"CommitByte={buffer[0].ToString("X2")}");
-            stringBuilder.AppendLine($"AddBlockOffset={BitConverter.ToUInt16(buffer, 1).ToString("X2")}");
-            stringBuilder.AppendLine($"AddBlocksQtty={BitConverter.ToUInt16(buffer, 3).ToString("X2")}");
-            stringBuilder.AppendLine($"RemoveBlockOffset={BitConverter.ToUInt16(buffer, 5).ToString("X2")}");
-            stringBuilder.AppendLine($"RemoveBlocksQtty={BitConverter.ToUInt16(buffer, 7).ToString("X2")}");
-            stringBuilder.AppendLine($"UpdateContentOffset={BitConverter.ToUInt16(buffer, 9).ToString("X2")}");
-            stringBuilder.AppendLine($"UpdateContentQtty={BitConverter.ToUInt16(buffer, 11).ToString("X2")}");
+            stringBuilder.AppendLine($"AddBlockOffset={BitConverter.ToUInt16(buffer, 1).ToString("X4")}");
+            stringBuilder.AppendLine($"AddBlocksQtty={BitConverter.ToUInt16(buffer, 3).ToString("X4")}");
+            stringBuilder.AppendLine($"RemoveBlockOffset={BitConverter.ToUInt16(buffer, 5).ToString("X4")}");
+            stringBuilder.AppendLine($"RemoveBlocksQtty={BitConverter.ToUInt16(buffer, 7).ToString("X4")}");
+            stringBuilder.AppendLine($"UpdateContentOffset={BitConverter.ToUInt16(buffer, 9).ToString("X4")}");
+            stringBuilder.AppendLine($"UpdateContentQtty={BitConverter.ToUInt16(buffer, 11).ToString("X4")}");
             stringBuilder.Append(DecodeAddBlocksHex(buffer));
             return stringBuilder.ToString();
         }
@@ -48,13 +48,13 @@ namespace FileFormatExplain
                 stringBuilder.AppendLine($"===========Addblock===========");
                 stringBuilder.AppendLine($"CommitByte={buffer[addBlockOffset].ToString("X2")}");
                 addBlockOffset += CommitByteField.Size;
-                stringBuilder.AppendLine($"Order={BitConverter.ToUInt16(buffer, addBlockOffset).ToString("X2")}");
+                stringBuilder.AppendLine($"Order={BitConverter.ToUInt16(buffer, addBlockOffset).ToString("X4")}");
                 addBlockOffset += 2;
-                stringBuilder.AppendLine($"StartBlockOffset={BitConverter.ToUInt32(buffer, addBlockOffset).ToString("X2")}");
+                stringBuilder.AppendLine($"StartBlockOffset={BitConverter.ToUInt32(buffer, addBlockOffset).ToString("X8")}");
                 addBlockOffset += 4;
                 stringBuilder.AppendLine($"RegionsQtty={buffer[addBlockOffset].ToString("X2")}");
                 addBlockOffset += 1;
-                stringBuilder.AppendLine($"RegionsSize={BitConverter.ToUInt16(buffer, addBlockOffset).ToString("X2")}");
+                stringBuilder.AppendLine($"RegionsSize={BitConverter.ToUInt16(buffer, addBlockOffset).ToString("X4")}");
                 addBlockOffset += 4;
             }
             return stringBuilder.ToString();

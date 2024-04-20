@@ -5,10 +5,17 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
     public class MemoryLayoutTransaction
     {
         private readonly PmCSharpDefinedTypes _pmCSharpDefinedTypes;
+        private readonly PersistentAllocatorLayout _pmOriginalFile;
+        private readonly Queue<AddBlockLayout> _queueAddBlockLayouts = new();
+        private readonly Queue<RemoveBlockLayout> _queueRemoveBlockLayouts = new();
+        private readonly Queue<UpdateContentLayout> _queueUpdateContentLayouts = new();
 
-        private Queue<AddBlockLayout> _queueAddBlockLayouts = new();
-        private Queue<RemoveBlockLayout> _queueRemoveBlockLayouts = new();
-        private Queue<UpdateContentLayout> _queueUpdateContentLayouts = new();
+        // Queue represents a set of "free" offsets.
+        // Example: A addblocklayout on file with commit byte is 2 (already written into original file)
+        // so, that space can be recycled.
+        //
+        // Same for corrupted block (commit byte equals 0).
+        private readonly Queue<long> _queueAddBlocksFreeOffsets = new();
 
         class ConstDefinitions
         {
@@ -44,9 +51,10 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
         private ushort _updateContentQtty;
         private uint _initialUpdateContentBlockOffset;
 
-        public MemoryLayoutTransaction(PmCSharpDefinedTypes pmCSharpDefinedTypes)
+        public MemoryLayoutTransaction(PmCSharpDefinedTypes pmTransactionFile, PersistentAllocatorLayout pmOriginalFile = null)
         {
-            _pmCSharpDefinedTypes = pmCSharpDefinedTypes;
+            _pmCSharpDefinedTypes = pmTransactionFile;
+            _pmOriginalFile = pmOriginalFile;
 
             if (_pmCSharpDefinedTypes.FileBasedStream.Length < ConstDefinitions.InitialFileSizeInBytes)
             {
@@ -67,7 +75,14 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
             _addBlockQtty = _pmCSharpDefinedTypes.ReadUShort(offset: ConstDefinitions.AddBlocksQttyOffset);
             for (int i = 0; i < _addBlockQtty; i++)
             {
-                _queueAddBlockLayouts.Enqueue(LoadAddBlock(_addBlockOffset + (ConstDefinitions.AddBlockSize * i)));
+                var offset = _addBlockOffset + (ConstDefinitions.AddBlockSize * i);
+                var addBlockData = LoadAddBlock(offset);
+                if (addBlockData.CommitByte.State == CommitState.CommitedAndWriteOnOriginalFileFinished ||
+                    addBlockData.CommitByte.State == CommitState.NotCommited)
+                {
+                    _queueAddBlocksFreeOffsets.Enqueue(offset);
+                }
+                _queueAddBlockLayouts.Enqueue(addBlockData);
             }
 
             _removeBlockQtty = _pmCSharpDefinedTypes.ReadUShort(offset: ConstDefinitions.RemoveBlocksQttyOffset);
@@ -92,7 +107,7 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
             return new UpdateContentLayout
             {
                 CommitByte = new CommitByteField(UpdateContentLayout.Offset.CommitByte, (CommitState)_pmCSharpDefinedTypes.ReadByte(offset)),
-                Order = new OrderField(UpdateContentLayout.Offset.Order) { Value = _pmCSharpDefinedTypes.ReadUShort(offset + 1) },
+                Order = new OrderField(UpdateContentLayout.Offset.Order, instance: 1, setValue: _pmCSharpDefinedTypes.ReadUShort(offset + 1)),
                 BlockOffset = _pmCSharpDefinedTypes.ReadUShort(offset + 1),
                 ContentSize = contentSize,
                 Content = _pmCSharpDefinedTypes.ReadBytes(contentSize, offset + 9)
@@ -104,7 +119,7 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
             return new RemoveBlockLayout
             {
                 CommitByte = new CommitByteField(RemoveBlockLayout.Offset.CommitByte, (CommitState)_pmCSharpDefinedTypes.ReadByte(offset)),
-                Order = new OrderField(UpdateContentLayout.Offset.Order) { Value = _pmCSharpDefinedTypes.ReadUShort(offset + 1) },
+                Order = new OrderField(RemoveBlockLayout.Offset.Order, instance: 1, setValue: _pmCSharpDefinedTypes.ReadUShort(offset + 1)),
                 BlockOffset = _pmCSharpDefinedTypes.ReadUShort(offset + 3),
             };
         }
@@ -114,7 +129,7 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
             return new AddBlockLayout
             {
                 CommitByte = new CommitByteField(AddBlockLayout.Offset.CommitByte, (CommitState)_pmCSharpDefinedTypes.ReadByte(offset)),
-                Order = new OrderField(UpdateContentLayout.Offset.Order) { Value = _pmCSharpDefinedTypes.ReadUShort(offset + 1) },
+                Order = new OrderField(AddBlockLayout.Offset.Order, instance: 1, setValue: _pmCSharpDefinedTypes.ReadUShort(offset + 1)),
                 BlockOffset = _pmCSharpDefinedTypes.ReadUShort(offset + 3),
                 RegionsQtty = _pmCSharpDefinedTypes.ReadByte(offset + 7),
                 RegionSize = _pmCSharpDefinedTypes.ReadUShort(offset + 8)
@@ -152,10 +167,19 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
                 throw new ApplicationException("Not enough space for a new block (add) on trasaction file");
             }
 
-            addBlock.CommitByte.UnCommit();
-            _pmCSharpDefinedTypes.WriteByte(addBlock.CommitByte.Value, offset: _addBlockOffset);
+            // Try get a free offset to recycle.
+            if (!_queueAddBlocksFreeOffsets.TryDequeue(out long internalOffset))
+            {
+                // If not have any free blocks to recycle then add next block into a file.
+                internalOffset = _addBlockOffset;
+            }
 
-            var internalOffset = _addBlockOffset + 1;
+            addBlock.TransactionOffset = internalOffset;
+
+            addBlock.CommitByte.UnCommit();
+            _pmCSharpDefinedTypes.WriteByte(addBlock.CommitByte.Value, offset: internalOffset);
+
+            internalOffset += 1;
             _pmCSharpDefinedTypes.WriteUInt(addBlock.Order.Value, offset: internalOffset);
             internalOffset += 2;
             _pmCSharpDefinedTypes.WriteUInt(addBlock.BlockOffset, offset: internalOffset);
@@ -171,6 +195,20 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
             _pmCSharpDefinedTypes.WriteUShort(_addBlockQtty, ConstDefinitions.AddBlocksQttyOffset);
 
             _addBlockOffset += AddBlockLayout.Size;
+        }
+
+        public void CommitOneAddBlockLayout()
+        {
+            if (_queueAddBlockLayouts.TryDequeue(out var addBlockLayout))
+            {
+                _pmOriginalFile.AddBlock(new PersistentBlockLayout((int)addBlockLayout.RegionSize, addBlockLayout.RegionsQtty)
+                {
+                    BlockOffset = addBlockLayout.BlockOffset
+                });
+
+                addBlockLayout.CommitByte.State = CommitState.CommitedAndWriteOnOriginalFileFinished;
+                _pmCSharpDefinedTypes.WriteByte(addBlockLayout.CommitByte.Value, offset: addBlockLayout.TransactionOffset);
+            }
         }
 
         public void RemoveBlock(RemoveBlockLayout removeBlock)
