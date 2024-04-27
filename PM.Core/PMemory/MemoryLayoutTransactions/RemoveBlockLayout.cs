@@ -2,7 +2,7 @@
 
 namespace PM.Core.PMemory.MemoryLayoutTransactions
 {
-    public class RemoveBlockLayout
+    public class RemoveBlockLayout : IBlockLayout
     {
         public const int Size = 5;
 
@@ -23,10 +23,10 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
         }
         private CommitByteField _commitByte = new(Offset.CommitByte);
 
-        internal OrderField Order
+        public OrderField Order
         {
             get => _order ??= new OrderField(Offset.Order, instance: 1);
-            set
+            internal set
             {
                 if (value != null)
                 {

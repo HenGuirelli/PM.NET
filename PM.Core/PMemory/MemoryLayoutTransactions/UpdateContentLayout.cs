@@ -2,7 +2,7 @@
 
 namespace PM.Core.PMemory.MemoryLayoutTransactions
 {
-    public class UpdateContentLayout
+    public class UpdateContentLayout : IBlockLayout
     {
         public class Offset
         {
@@ -24,7 +24,7 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
         public OrderField Order
         {
             get => _order ??= new OrderField(Offset.Order, instance: 1);
-            set
+            internal set
             {
                 if (value != null)
                 {

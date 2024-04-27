@@ -64,7 +64,8 @@ namespace PM.Core.Tests.PMemory.MemoryLayoutTransactions
             {
                 BlockOffset = uint.MaxValue,
                 RegionSize = 12,
-                RegionsQtty = 13
+                RegionsQtty = 13,
+                Order = new Core.PMemory.FileFields.OrderField(AddBlockLayout.Offset.Order, instance: 1)
             });
             string content;
             byte[] buffer;
@@ -92,11 +93,13 @@ namespace PM.Core.Tests.PMemory.MemoryLayoutTransactions
             {
                 BlockOffset = uint.MinValue,
                 RegionSize = uint.MaxValue,
-                RegionsQtty = byte.MaxValue
+                RegionsQtty = byte.MaxValue,
+                Order = new Core.PMemory.FileFields.OrderField(AddBlockLayout.Offset.Order, instance: 1)
             });
 
             ReadFile(pm.FilePath, out content, out buffer);
-            // 010d000200f5030000e9050000010100ffffffff0d0c00000001020000000000ffffffffff...
+
+            // 010d000200f5030000e9050000010100ffffffff0d0c00000001020000000000ffffffffff00000000
             // CommitByte=01
             // AddBlockOffset=000D
             // AddBlocksQtty=0002
@@ -117,42 +120,44 @@ namespace PM.Core.Tests.PMemory.MemoryLayoutTransactions
             // RegionsQtty=FF
             // RegionsSize=FFFF
             _output.WriteLine(memoryLayoutTransactionDecoder.ExplainHex(buffer));
-            Assert.StartsWith("010d000200f5030000e9050000010100ffffffff0d0c00000001020000000000ffffffffff", content);
+            Assert.StartsWith("010d000200f5030000e9050000010100ffffffff0d0c00000001020000000000ffffffffff00000000", content);
         }
 
         [Fact]
         public void OnAdd_WhenHaveOneInvalidBlock_ShouldRecycleRegion()
         {
             DeleteFile(nameof(OnAdd_WhenHaveOneInvalidBlock_ShouldRecycleRegion));
-            var pm = CreatePmStream(nameof(OnAdd_WhenHaveOneInvalidBlock_ShouldRecycleRegion), 4096);
-            var simulateOriginal = CreatePmStream("simulateOriginal", 4096);
-            var memoryLayoutTransaction = new MemoryLayoutTransaction(new PmCSharpDefinedTypes(pm), new Core.PMemory.PersistentAllocatorLayout
+            var transactionFilePm = CreatePmStream(nameof(OnAdd_WhenHaveOneInvalidBlock_ShouldRecycleRegion), 4096);
+            var originalFilePm = CreatePmStream("simulateOriginal", 4096);
+            var memoryLayoutTransaction = new MemoryLayoutTransaction(new PmCSharpDefinedTypes(transactionFilePm), new Core.PMemory.PersistentAllocatorLayout
             {
-                PmCSharpDefinedTypes = new PmCSharpDefinedTypes(simulateOriginal)
+                PmCSharpDefinedTypes = new PmCSharpDefinedTypes(originalFilePm)
             });
 
             // Insert two blocks layouts
             memoryLayoutTransaction.AddBlock(new AddBlockLayout
             {
                 BlockOffset = uint.MaxValue,
-                RegionSize = 12,
-                RegionsQtty = 13
+                RegionSize = 16,
+                RegionsQtty = 13,
+                Order = new Core.PMemory.FileFields.OrderField(AddBlockLayout.Offset.Order, instance: 2)
             });
             memoryLayoutTransaction.AddBlock(new AddBlockLayout
             {
                 BlockOffset = uint.MinValue,
-                RegionSize = uint.MaxValue,
-                RegionsQtty = byte.MaxValue
+                RegionSize = 8,
+                RegionsQtty = 64,
+                Order = new Core.PMemory.FileFields.OrderField(AddBlockLayout.Offset.Order, instance: 2)
             });
 
-            memoryLayoutTransaction.CommitOneAddBlockLayout();
+            memoryLayoutTransaction.CommitBlockLayouts(qtty: 1);
 
 
             string content;
             byte[] buffer;
-            ReadFile(pm.FilePath, out content, out buffer);
+            ReadFile(transactionFilePm.FilePath, out content, out buffer);
 
-            // 010d000200f5030000e9050000020100ffffffff0d0c00000001020000000000ffffffffff...
+            // 010d000200f5030000e9050000020100ffffffff0d1000000001020000000000400800000000
             // CommitByte=01
             // AddBlockOffset=000D
             // AddBlocksQtty=0002
@@ -165,16 +170,16 @@ namespace PM.Core.Tests.PMemory.MemoryLayoutTransactions
             // Order=0001
             // StartBlockOffset=FFFFFFFF
             // RegionsQtty=0D
-            // RegionsSize=000C
+            // RegionsSize=0010
             // ===========Addblock===========
             // CommitByte=01
             // Order=0002
             // StartBlockOffset=00000000
-            // RegionsQtty=FF
-            // RegionsSize=FFFF
+            // RegionsQtty=40
+            // RegionsSize=0008
             var memoryLayoutTransactionDecoder = new MemoryLayoutTransactionDecoder();
             _output.WriteLine(memoryLayoutTransactionDecoder.ExplainHex(buffer));
-            Assert.StartsWith("010d000200f5030000e9050000020100ffffffff0d0c00000001020000000000ffffffffff", content);
+            Assert.StartsWith("010d000200f5030000e9050000020100ffffffff0d1000000001020000000000400800000000", content);
         }
 
         private static void ReadFile(string filePath, out string content, out byte[] buffer)

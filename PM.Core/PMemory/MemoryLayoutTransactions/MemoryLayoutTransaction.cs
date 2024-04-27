@@ -6,9 +6,7 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
     {
         private readonly PmCSharpDefinedTypes _pmCSharpDefinedTypes;
         private readonly PersistentAllocatorLayout _pmOriginalFile;
-        private readonly Queue<AddBlockLayout> _queueAddBlockLayouts = new();
-        private readonly Queue<RemoveBlockLayout> _queueRemoveBlockLayouts = new();
-        private readonly Queue<UpdateContentLayout> _queueUpdateContentLayouts = new();
+        private readonly SortedSet<WrapperBlockLayouts> _blocksLayoutOrdened = new();
 
         // Queue represents a set of "free" offsets.
         // Example: A addblocklayout on file with commit byte is 2 (already written into original file)
@@ -68,6 +66,17 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
             LoadPointers();
 
             LoadData();
+
+            CommitAllPendingTransactionsAndDefragTransactionFile();
+        }
+
+        private void CommitAllPendingTransactionsAndDefragTransactionFile()
+        {
+            // Lock all methods
+
+            // Commit all pending transactions
+
+            // Defrag
         }
 
         private void LoadData()
@@ -82,13 +91,13 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
                 {
                     _queueAddBlocksFreeOffsets.Enqueue(offset);
                 }
-                _queueAddBlockLayouts.Enqueue(addBlockData);
+                _blocksLayoutOrdened.Add(new WrapperBlockLayouts(addBlockData));
             }
 
             _removeBlockQtty = _pmCSharpDefinedTypes.ReadUShort(offset: ConstDefinitions.RemoveBlocksQttyOffset);
             for (int i = 0; i < _removeBlockQtty; i++)
             {
-                _queueRemoveBlockLayouts.Enqueue(LoadRemoveBlock(_removeBlockOffset + (ConstDefinitions.RemoveBlockSize * i)));
+                _blocksLayoutOrdened.Add(new WrapperBlockLayouts(LoadRemoveBlock(_removeBlockOffset + (ConstDefinitions.RemoveBlockSize * i))));
             }
 
             _updateContentQtty = _pmCSharpDefinedTypes.ReadUShort(offset: ConstDefinitions.UpdateContentQttyOffset);
@@ -97,7 +106,7 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
             {
                 var updateContent = LoadUpdateContent(_updateContentBlockOffset + (lastUpdateContetSize * i));
                 lastUpdateContetSize = updateContent.UpdateContentLayoutSize;
-                _queueUpdateContentLayouts.Enqueue(updateContent);
+                _blocksLayoutOrdened.Add(new WrapperBlockLayouts(updateContent));
             }
         }
 
@@ -195,12 +204,37 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
             _pmCSharpDefinedTypes.WriteUShort(_addBlockQtty, ConstDefinitions.AddBlocksQttyOffset);
 
             _addBlockOffset += AddBlockLayout.Size;
+
+            _blocksLayoutOrdened.Add(new WrapperBlockLayouts(addBlock));
         }
 
-        public void CommitOneAddBlockLayout()
+        public void CommitBlockLayouts(int? qtty = null)
         {
-            if (_queueAddBlockLayouts.TryDequeue(out var addBlockLayout))
+            if (qtty == null)
             {
+                foreach (var item in _blocksLayoutOrdened)
+                {
+                    CommitBlockLayout(item);
+                }
+            }
+            else
+            {
+                int count = 0;
+                foreach (var item in _blocksLayoutOrdened)
+                {
+                    if (count >= qtty) return;
+
+                    CommitBlockLayout(item);
+                    count++;
+                }
+            }
+        }
+
+        private void CommitBlockLayout(WrapperBlockLayouts item)
+        {
+            if (item.BlockLayoutType == BlockLayoutType.AddBlock)
+            {
+                var addBlockLayout = (AddBlockLayout)item.Object;
                 _pmOriginalFile.AddBlock(new PersistentBlockLayout((int)addBlockLayout.RegionSize, addBlockLayout.RegionsQtty)
                 {
                     BlockOffset = addBlockLayout.BlockOffset
