@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="PMemory\MemoryLayoutTransactions %28Obsolete%29\MemoryLayoutTransaction.cs" />
+    <Compile Remove="PMemory\MemoryLayoutTransactions\MemoryLayoutTransaction.cs" />
   </ItemGroup>
 
   <ItemGroup>

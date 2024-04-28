@@ -5,20 +5,6 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
 {
     public class AddBlockLayout : IBlockLayout
     {
-        [Obsolete]
-        public class Offset
-        {
-            public const int CommitByte = 0;
-            public const int Order = 1;
-            public const int BlockOffset = 3;
-            public const int RegionsQtty = 7;
-            public const int RegionSize = 8;
-        }
-
-        public const int Size = 12;
-
-        public long TransactionOffset { get; set; }
-
         public CommitByteField CommitByte
         {
             get => _commitByte;

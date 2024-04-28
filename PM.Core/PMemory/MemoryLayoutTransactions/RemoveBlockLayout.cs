@@ -5,15 +5,6 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
 {
     public class RemoveBlockLayout : IBlockLayout
     {
-        public const int Size = 5;
-
-        [Obsolete]
-        public class Offset
-        {
-            public const int CommitByte = 0;
-            public const int Order = 1;
-        }
-
         public CommitByteField CommitByte
         {
             get => _commitByte;
