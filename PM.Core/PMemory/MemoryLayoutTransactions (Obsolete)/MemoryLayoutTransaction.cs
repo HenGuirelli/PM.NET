@@ -110,39 +110,42 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
             }
         }
 
-        private UpdateContentLayout LoadUpdateContent(long offset)
+        private UpdateContentBlockLayout LoadUpdateContent(long offset)
         {
-            var contentSize = _pmCSharpDefinedTypes.ReadUShort(offset + 5);
-            return new UpdateContentLayout
-            {
-                CommitByte = new CommitByteField(UpdateContentLayout.Offset.CommitByte, (CommitState)_pmCSharpDefinedTypes.ReadByte(offset)),
-                Order = new OrderField(UpdateContentLayout.Offset.Order, instance: 1, setValue: _pmCSharpDefinedTypes.ReadUShort(offset + 1)),
-                BlockOffset = _pmCSharpDefinedTypes.ReadUShort(offset + 1),
-                ContentSize = contentSize,
-                Content = _pmCSharpDefinedTypes.ReadBytes(contentSize, offset + 9)
-            };
+            return null;
+            //var contentSize = _pmCSharpDefinedTypes.ReadUShort(offset + 5);
+            //return new UpdateContentBlockLayout
+            //{
+            //    CommitByte = new CommitByteField(UpdateContentBlockLayout.Offset.CommitByte, (CommitState)_pmCSharpDefinedTypes.ReadByte(offset)),
+            //    Order = new OrderField(UpdateContentBlockLayout.Offset.Order, instance: 1, setValue: _pmCSharpDefinedTypes.ReadUShort(offset + 1)),
+            //    BlockOffset = _pmCSharpDefinedTypes.ReadUShort(offset + 1),
+            //    ContentSize = contentSize,
+            //    Content = _pmCSharpDefinedTypes.ReadBytes(contentSize, offset + 9)
+            //};
         }
 
         private RemoveBlockLayout LoadRemoveBlock(long offset)
         {
-            return new RemoveBlockLayout
-            {
-                CommitByte = new CommitByteField(RemoveBlockLayout.Offset.CommitByte, (CommitState)_pmCSharpDefinedTypes.ReadByte(offset)),
-                Order = new OrderField(RemoveBlockLayout.Offset.Order, instance: 1, setValue: _pmCSharpDefinedTypes.ReadUShort(offset + 1)),
-                BlockOffset = _pmCSharpDefinedTypes.ReadUShort(offset + 3),
-            };
+            return null;
+            //return new RemoveBlockLayout
+            //{
+            //    CommitByte = new CommitByteField(RemoveBlockLayout.Offset.CommitByte, (CommitState)_pmCSharpDefinedTypes.ReadByte(offset)),
+            //    Order = new OrderField(RemoveBlockLayout.Offset.Order, instance: 1, setValue: _pmCSharpDefinedTypes.ReadUShort(offset + 1)),
+            //    StartBlockOffset = _pmCSharpDefinedTypes.ReadUShort(offset + 3),
+            //};
         }
 
         private AddBlockLayout LoadAddBlock(long offset)
         {
-            return new AddBlockLayout
-            {
-                CommitByte = new CommitByteField(AddBlockLayout.Offset.CommitByte, (CommitState)_pmCSharpDefinedTypes.ReadByte(offset)),
-                Order = new OrderField(AddBlockLayout.Offset.Order, instance: 1, setValue: _pmCSharpDefinedTypes.ReadUShort(offset + 1)),
-                BlockOffset = _pmCSharpDefinedTypes.ReadUShort(offset + 3),
-                RegionsQtty = _pmCSharpDefinedTypes.ReadByte(offset + 7),
-                RegionSize = _pmCSharpDefinedTypes.ReadUShort(offset + 8)
-            };
+            return null;
+            //return new AddBlockLayout
+            //{
+            //    CommitByte = new CommitByteField(AddBlockLayout.Offset.CommitByte, (CommitState)_pmCSharpDefinedTypes.ReadByte(offset)),
+            //    Order = new OrderField(AddBlockLayout.Offset.Order, instance: 1, setValue: _pmCSharpDefinedTypes.ReadUShort(offset + 1)),
+            //    StartBlockOffset = _pmCSharpDefinedTypes.ReadUShort(offset + 3),
+            //    RegionsQtty = _pmCSharpDefinedTypes.ReadByte(offset + 7),
+            //    RegionSize = _pmCSharpDefinedTypes.ReadUShort(offset + 8)
+            //};
         }
 
         private void LoadPointers()
@@ -171,41 +174,41 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
 
         public void AddBlock(AddBlockLayout addBlock)
         {
-            if (_addBlockOffset + AddBlockLayout.Size >= _initialRemoveBlockOffset)
-            {
-                throw new ApplicationException("Not enough space for a new block (add) on trasaction file");
-            }
+            //if (_addBlockOffset + AddBlockLayout.Size >= _initialRemoveBlockOffset)
+            //{
+            //    throw new ApplicationException("Not enough space for a new block (add) on trasaction file");
+            //}
 
-            // Try get a free offset to recycle.
-            if (!_queueAddBlocksFreeOffsets.TryDequeue(out long internalOffset))
-            {
-                // If not have any free blocks to recycle then add next block into a file.
-                internalOffset = _addBlockOffset;
-            }
+            //// Try get a free offset to recycle.
+            //if (!_queueAddBlocksFreeOffsets.TryDequeue(out long internalOffset))
+            //{
+            //    // If not have any free blocks to recycle then add next block into a file.
+            //    internalOffset = _addBlockOffset;
+            //}
 
-            addBlock.TransactionOffset = internalOffset;
+            //addBlock.TransactionOffset = internalOffset;
 
-            addBlock.CommitByte.UnCommit();
-            _pmCSharpDefinedTypes.WriteByte(addBlock.CommitByte.Value, offset: internalOffset);
+            //addBlock.CommitByte.UnCommit();
+            //_pmCSharpDefinedTypes.WriteByte(addBlock.CommitByte.Value, offset: internalOffset);
 
-            internalOffset += 1;
-            _pmCSharpDefinedTypes.WriteUInt(addBlock.Order.Value, offset: internalOffset);
-            internalOffset += 2;
-            _pmCSharpDefinedTypes.WriteUInt(addBlock.BlockOffset, offset: internalOffset);
-            internalOffset += 4;
-            _pmCSharpDefinedTypes.WriteByte(addBlock.RegionsQtty, offset: internalOffset);
-            internalOffset += 1;
-            _pmCSharpDefinedTypes.WriteUInt(addBlock.RegionSize, offset: internalOffset);
+            //internalOffset += 1;
+            //_pmCSharpDefinedTypes.WriteUInt(addBlock.Order.Value, offset: internalOffset);
+            //internalOffset += 2;
+            //_pmCSharpDefinedTypes.WriteUInt(addBlock.StartBlockOffset, offset: internalOffset);
+            //internalOffset += 4;
+            //_pmCSharpDefinedTypes.WriteByte(addBlock.RegionsQtty, offset: internalOffset);
+            //internalOffset += 1;
+            //_pmCSharpDefinedTypes.WriteUInt(addBlock.RegionSize, offset: internalOffset);
 
-            addBlock.CommitByte.Commit();
-            _pmCSharpDefinedTypes.WriteByte(addBlock.CommitByte.Value, offset: _addBlockOffset);
+            //addBlock.CommitByte.Commit();
+            //_pmCSharpDefinedTypes.WriteByte(addBlock.CommitByte.Value, offset: _addBlockOffset);
 
-            _addBlockQtty++;
-            _pmCSharpDefinedTypes.WriteUShort(_addBlockQtty, ConstDefinitions.AddBlocksQttyOffset);
+            //_addBlockQtty++;
+            //_pmCSharpDefinedTypes.WriteUShort(_addBlockQtty, ConstDefinitions.AddBlocksQttyOffset);
 
-            _addBlockOffset += AddBlockLayout.Size;
+            //_addBlockOffset += AddBlockLayout.Size;
 
-            _blocksLayoutOrdened.Add(new WrapperBlockLayouts(addBlock));
+            //_blocksLayoutOrdened.Add(new WrapperBlockLayouts(addBlock));
         }
 
         public void CommitBlockLayouts(int? qtty = null)
@@ -232,38 +235,38 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
 
         private void CommitBlockLayout(WrapperBlockLayouts item)
         {
-            if (item.BlockLayoutType == BlockLayoutType.AddBlock)
-            {
-                var addBlockLayout = (AddBlockLayout)item.Object;
-                _pmOriginalFile.AddBlock(new PersistentBlockLayout((int)addBlockLayout.RegionSize, addBlockLayout.RegionsQtty)
-                {
-                    BlockOffset = addBlockLayout.BlockOffset
-                });
+            //if (item.BlockLayoutType == BlockLayoutType.AddBlock)
+            //{
+            //    var addBlockLayout = (AddBlockLayout)item.Object;
+            //    _pmOriginalFile.AddBlock(new PersistentBlockLayout((int)addBlockLayout.RegionSize, addBlockLayout.RegionsQtty)
+            //    {
+            //        BlockOffset = addBlockLayout.StartBlockOffset
+            //    });
 
-                addBlockLayout.CommitByte.State = CommitState.CommitedAndWriteOnOriginalFileFinished;
-                _pmCSharpDefinedTypes.WriteByte(addBlockLayout.CommitByte.Value, offset: addBlockLayout.TransactionOffset);
-            }
+            //    addBlockLayout.CommitByte.State = CommitState.CommitedAndWriteOnOriginalFileFinished;
+            //    _pmCSharpDefinedTypes.WriteByte(addBlockLayout.CommitByte.Value, offset: addBlockLayout.TransactionOffset);
+            //}
         }
 
         public void RemoveBlock(RemoveBlockLayout removeBlock)
         {
-            if (_removeBlockOffset + RemoveBlockLayout.Size >= _initialUpdateContentBlockOffset)
-            {
-                throw new ApplicationException("Not enough space for a new block (remove) on trasaction file");
-            }
+            //if (_removeBlockOffset + RemoveBlockLayout.Size >= _initialUpdateContentBlockOffset)
+            //{
+            //    throw new ApplicationException("Not enough space for a new block (remove) on trasaction file");
+            //}
 
-            removeBlock.CommitByte.UnCommit();
-            _pmCSharpDefinedTypes.WriteByte(removeBlock.CommitByte.Value, offset: _removeBlockOffset);
+            //removeBlock.CommitByte.UnCommit();
+            //_pmCSharpDefinedTypes.WriteByte(removeBlock.CommitByte.Value, offset: _removeBlockOffset);
 
-            _pmCSharpDefinedTypes.WriteUInt(removeBlock.BlockOffset, offset: _removeBlockOffset + 1);
+            //_pmCSharpDefinedTypes.WriteUInt(removeBlock.StartBlockOffset, offset: _removeBlockOffset + 1);
 
-            removeBlock.CommitByte.Commit();
-            _pmCSharpDefinedTypes.WriteByte(removeBlock.CommitByte.Value, offset: _removeBlockOffset);
+            //removeBlock.CommitByte.Commit();
+            //_pmCSharpDefinedTypes.WriteByte(removeBlock.CommitByte.Value, offset: _removeBlockOffset);
 
-            _removeBlockOffset += RemoveBlockLayout.Size;
+            //_removeBlockOffset += RemoveBlockLayout.Size;
         }
 
-        public void UpdateContent(UpdateContentLayout updateContent)
+        public void UpdateContent(UpdateContentBlockLayout updateContent)
         {
             if (_updateContentBlockOffset + updateContent.UpdateContentLayoutSize <= _pmCSharpDefinedTypes.FileBasedStream.Length)
             {

@@ -26,11 +26,19 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="PMemory\MemoryLayoutTransactions\MemoryLayoutTransactionTests.cs" />
+  </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\FileFormatExplain\FileFormatExplain.csproj" />
     <ProjectReference Include="..\PM.Core\PM.Core.csproj" />
     <ProjectReference Include="..\PM.Tests.Common\PM.Tests.Common.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="PMemory\MemoryLayoutTransactions\" />
   </ItemGroup>
 
 </Project>

@@ -62,7 +62,7 @@ namespace PM.Core.Tests.PMemory.MemoryLayoutTransactions
 
             memoryLayoutTransaction.AddBlock(new AddBlockLayout
             {
-                BlockOffset = uint.MaxValue,
+                StartBlockOffset = uint.MaxValue,
                 RegionSize = 12,
                 RegionsQtty = 13,
                 Order = new Core.PMemory.FileFields.OrderField(AddBlockLayout.Offset.Order, instance: 1)
@@ -91,7 +91,7 @@ namespace PM.Core.Tests.PMemory.MemoryLayoutTransactions
 
             memoryLayoutTransaction.AddBlock(new AddBlockLayout
             {
-                BlockOffset = uint.MinValue,
+                StartBlockOffset = uint.MinValue,
                 RegionSize = uint.MaxValue,
                 RegionsQtty = byte.MaxValue,
                 Order = new Core.PMemory.FileFields.OrderField(AddBlockLayout.Offset.Order, instance: 1)
@@ -137,14 +137,14 @@ namespace PM.Core.Tests.PMemory.MemoryLayoutTransactions
             // Insert two blocks layouts
             memoryLayoutTransaction.AddBlock(new AddBlockLayout
             {
-                BlockOffset = uint.MaxValue,
+                StartBlockOffset = uint.MaxValue,
                 RegionSize = 16,
                 RegionsQtty = 13,
                 Order = new Core.PMemory.FileFields.OrderField(AddBlockLayout.Offset.Order, instance: 2)
             });
             memoryLayoutTransaction.AddBlock(new AddBlockLayout
             {
-                BlockOffset = uint.MinValue,
+                StartBlockOffset = uint.MinValue,
                 RegionSize = 8,
                 RegionsQtty = 64,
                 Order = new Core.PMemory.FileFields.OrderField(AddBlockLayout.Offset.Order, instance: 2)

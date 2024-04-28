@@ -17,7 +17,7 @@
             Object = removeBlockLayout;
         }
 
-        public WrapperBlockLayouts(UpdateContentLayout updateContentLayout)
+        public WrapperBlockLayouts(UpdateContentBlockLayout updateContentLayout)
         {
             BlockLayoutType = BlockLayoutType.UpdateContentBlock;
             Object = updateContentLayout;
