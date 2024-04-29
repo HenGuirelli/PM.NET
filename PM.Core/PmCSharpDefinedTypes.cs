@@ -35,6 +35,10 @@ namespace PM.Core
             }
 
             if (minSize == null) return newSizeCalculated;
+            else
+            {
+                if (newSizeCalculated < minSize && minSize < _5MiB) return minSize.Value * 2;
+            }
 
             return newSizeCalculated < minSize.Value ? minSize.Value : newSizeCalculated;
         }

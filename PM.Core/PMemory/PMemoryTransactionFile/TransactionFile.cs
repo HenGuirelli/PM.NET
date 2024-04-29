@@ -20,6 +20,11 @@ namespace PM.Core.PMemory.PMemoryTransactionFile
             _pmTransactionFile = pmTransactionFile;
             _pmOriginalFile = pmOriginalFile;
 
+            if (pmTransactionFile.FileBasedStream.Length < 100)
+            {
+                pmTransactionFile.IncreaseSize(minSize: 100);
+            }
+
             if (IsFirstExecution())
             {
                 CreateHeaderFile();
@@ -54,13 +59,18 @@ namespace PM.Core.PMemory.PMemoryTransactionFile
 
         private void LoadTransactionFileIntoMemory()
         {
-            var addblock = AddBlockLayout.LoadFromTransactionFile(_pmTransactionFile);
-            var removeblock = RemoveBlockLayout.LoadFromTransactionFile(_pmTransactionFile);
-            var updateContentblock = UpdateContentBlockLayout.LoadFromTransactionFile(_pmTransactionFile);
-
-            _blocksLayoutsOrdered.Add(new WrapperBlockLayouts(addblock));
-            _blocksLayoutsOrdered.Add(new WrapperBlockLayouts(removeblock));
-            _blocksLayoutsOrdered.Add(new WrapperBlockLayouts(updateContentblock));
+            if (AddBlockLayout.TryLoadFromTransactionFile(_pmTransactionFile, out var addblock))
+            {
+                _blocksLayoutsOrdered.Add(new WrapperBlockLayouts(addblock!));
+            }
+            if (RemoveBlockLayout.TryLoadFromTransactionFile(_pmTransactionFile, out var removeblock))
+            {
+                _blocksLayoutsOrdered.Add(new WrapperBlockLayouts(removeblock!));
+            }
+            if (UpdateContentBlockLayout.TryLoadFromTransactionFile(_pmTransactionFile, out var updateContentblock))
+            {
+                _blocksLayoutsOrdered.Add(new WrapperBlockLayouts(updateContentblock!));
+            }
         }
 
         private void ApplyPendingTransaction()
@@ -68,7 +78,7 @@ namespace PM.Core.PMemory.PMemoryTransactionFile
             try
             {
                 _isPendingTransactionRunning = true;
-                SpinWait.SpinUntil(() => _transactionFileWriteOperationRunning > 0);
+                SpinWait.SpinUntil(() => _transactionFileWriteOperationRunning == 0);
 
                 foreach (var block in _blocksLayoutsOrdered)
                 {
@@ -85,9 +95,9 @@ namespace PM.Core.PMemory.PMemoryTransactionFile
         {
             try
             {
-                SpinWait.SpinUntil(() => _isPendingTransactionRunning);
+                SpinWait.SpinUntil(() => !_isPendingTransactionRunning);
                 _transactionFileWriteOperationRunning++;
-                // TODO: implement
+                addBlockLayout.WriteTo(_pmTransactionFile);
             }
             finally
             {
@@ -99,9 +109,9 @@ namespace PM.Core.PMemory.PMemoryTransactionFile
         {
             try
             {
-                SpinWait.SpinUntil(() => _isPendingTransactionRunning);
+                SpinWait.SpinUntil(() => !_isPendingTransactionRunning);
                 _transactionFileWriteOperationRunning++;
-                // TODO: implement
+                removeBlockLayout.WriteTo(_pmTransactionFile);
             }
             finally
             {
@@ -113,9 +123,14 @@ namespace PM.Core.PMemory.PMemoryTransactionFile
         {
             try
             {
-                SpinWait.SpinUntil(() => _isPendingTransactionRunning);
+                SpinWait.SpinUntil(() => !_isPendingTransactionRunning);
                 _transactionFileWriteOperationRunning++;
-                // TODO: implement
+                if (updateContentBlockLayout.TotalLength > _pmTransactionFile.FileBasedStream.Length)
+                {
+                    _pmTransactionFile.IncreaseSize(minSize: updateContentBlockLayout.TotalLength);
+                }
+
+                updateContentBlockLayout.WriteTo(_pmTransactionFile);
             }
             finally
             {

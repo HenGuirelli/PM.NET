@@ -32,19 +32,51 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
 
         public StartBlockOffsetField StartBlockOffset { get; set; } = new StartBlockOffsetField(TransactionFileOffset.RemoveBlockStartBlockOffset);
 
+
+        public RemoveBlockLayout(UInt32 startBlockOffsetField)
+        {
+            StartBlockOffset = new StartBlockOffsetField(TransactionFileOffset.RemoveBlockStartBlockOffset) { Value = startBlockOffsetField };
+        }
+
+        public static bool TryLoadFromTransactionFile(PmCSharpDefinedTypes transactionFilePm, out RemoveBlockLayout? result)
+        {
+            if (IsPendingTransaction(transactionFilePm))
+            {
+                result = LoadFromTransactionFile(transactionFilePm);
+                return true;
+            }
+            result = null;
+            return false;
+        }
+
+        private static bool IsPendingTransaction(PmCSharpDefinedTypes transactionFilePm)
+        {
+            var commitByteState = (CommitState)transactionFilePm.ReadByte(TransactionFileOffset.RemoveBlockCommitByte);
+            return commitByteState == CommitState.Commited;
+        }
+
         public static RemoveBlockLayout LoadFromTransactionFile(PmCSharpDefinedTypes pmTransactionFile)
         {
-            return new RemoveBlockLayout
+            return new RemoveBlockLayout(startBlockOffsetField: pmTransactionFile.ReadUInt(TransactionFileOffset.RemoveBlockStartBlockOffset))
             {
                 CommitByte = new CommitByteField(offset: TransactionFileOffset.RemoveBlockCommitByte, (CommitState)pmTransactionFile.ReadByte(TransactionFileOffset.RemoveBlockCommitByte)),
-                Order = new OrderField(offset: TransactionFileOffset.RemoveBlockOrder, pmTransactionFile.ReadUShort(TransactionFileOffset.RemoveBlockOrder)),
-                StartBlockOffset = new StartBlockOffsetField(offset: TransactionFileOffset.RemoveBlockStartBlockOffset) { Value = pmTransactionFile.ReadUInt(TransactionFileOffset.RemoveBlockStartBlockOffset) },
+                Order = new OrderField(offset: TransactionFileOffset.RemoveBlockOrder, pmTransactionFile.ReadUShort(TransactionFileOffset.RemoveBlockOrder))
             };
         }
 
         public void ApplyInOriginalFile(PmCSharpDefinedTypes transactionFile, PersistentAllocatorLayout originalFile)
         {
             throw new NotImplementedException();
+        }
+
+        public void WriteTo(PmCSharpDefinedTypes pmCSharpDefinedTypes)
+        {
+            pmCSharpDefinedTypes.WriteUShort(Order.Value, offset: TransactionFileOffset.RemoveBlockOrder);
+            pmCSharpDefinedTypes.WriteUInt(StartBlockOffset.Value, offset: TransactionFileOffset.RemoveBlockStartBlockOffset);
+
+            // Commit byte need always be the last
+            CommitByte.Commit();
+            pmCSharpDefinedTypes.WriteByte(CommitByte.Value, offset: TransactionFileOffset.RemoveBlockCommitByte);
         }
     }
 }

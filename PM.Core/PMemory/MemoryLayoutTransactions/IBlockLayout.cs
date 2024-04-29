@@ -6,5 +6,6 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
     {
         OrderField Order { get; }
         void ApplyInOriginalFile(PmCSharpDefinedTypes transactionFile, PersistentAllocatorLayout originalFile);
+        void WriteTo(PmCSharpDefinedTypes transactionFile);
     }
 }

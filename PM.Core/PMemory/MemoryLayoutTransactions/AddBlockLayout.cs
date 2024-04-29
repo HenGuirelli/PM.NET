@@ -34,15 +34,42 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
         public RegionsQttyField RegionsQtty { get; set; } = new RegionsQttyField(TransactionFileOffset.AddBlockRegionsQtty);
         public RegionsSizeField RegionSize { get; set; } = new RegionsSizeField(TransactionFileOffset.AddBlockRegionSize);
 
+        public AddBlockLayout(
+            UInt32 startBlockOffsetField,
+            byte regionsQttyField,
+            UInt32 regionsSizeField)
+        {
+            StartBlockOffset = new StartBlockOffsetField(TransactionFileOffset.AddBlockStartBlockOffset) { Value = startBlockOffsetField };
+            RegionsQtty = new RegionsQttyField(TransactionFileOffset.AddBlockRegionsQtty) { Value = regionsQttyField };
+            RegionSize = new RegionsSizeField(TransactionFileOffset.AddBlockRegionSize) { Value = regionsSizeField };
+        }
+
+        public static bool TryLoadFromTransactionFile(PmCSharpDefinedTypes transactionFilePm, out AddBlockLayout? result)
+        {
+            if (IsPendingTransaction(transactionFilePm))
+            {
+                result = LoadFromTransactionFile(transactionFilePm);
+                return true;
+            }
+            result = null;
+            return false;
+        }
+
+        private static bool IsPendingTransaction(PmCSharpDefinedTypes transactionFilePm)
+        {
+            var commitByteState = (CommitState)transactionFilePm.ReadByte(TransactionFileOffset.AddBlockCommitByte);
+            return commitByteState == CommitState.Commited;
+        }
+
         public static AddBlockLayout LoadFromTransactionFile(PmCSharpDefinedTypes transactionFilePm)
         {
-            return new AddBlockLayout
+            return new AddBlockLayout(
+                startBlockOffsetField: transactionFilePm.ReadUInt(TransactionFileOffset.AddBlockStartBlockOffset),
+                regionsQttyField: transactionFilePm.ReadByte(TransactionFileOffset.AddBlockRegionsQtty),
+                regionsSizeField: transactionFilePm.ReadUInt(TransactionFileOffset.AddBlockRegionSize))
             {
                 CommitByte = new CommitByteField(offset: TransactionFileOffset.AddBlockCommitByte, (CommitState)transactionFilePm.ReadByte(TransactionFileOffset.AddBlockCommitByte)),
                 Order = new OrderField(offset: TransactionFileOffset.AddBlockOrder, transactionFilePm.ReadUShort(TransactionFileOffset.AddBlockOrder)),
-                StartBlockOffset = new StartBlockOffsetField(offset: TransactionFileOffset.AddBlockStartBlockOffset) { Value = transactionFilePm.ReadUInt(TransactionFileOffset.AddBlockStartBlockOffset) },
-                RegionsQtty = new RegionsQttyField(TransactionFileOffset.AddBlockRegionsQtty) { Value = transactionFilePm.ReadByte(TransactionFileOffset.AddBlockRegionsQtty) },
-                RegionSize = new RegionsSizeField(TransactionFileOffset.AddBlockRegionSize) { Value  = transactionFilePm.ReadUInt(TransactionFileOffset.AddBlockRegionSize) }
             };
         }
 
@@ -55,6 +82,18 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
 
             CommitByte.State = CommitState.CommitedAndWriteOnOriginalFileFinished;
             transactionFile.WriteByte(CommitByte.Value, offset: TransactionFileOffset.AddBlockCommitByte);
+        }
+
+        public void WriteTo(PmCSharpDefinedTypes pmCSharpDefinedTypes)
+        {
+            pmCSharpDefinedTypes.WriteUShort(Order.Value, offset: TransactionFileOffset.AddBlockOrder);
+            pmCSharpDefinedTypes.WriteUInt(StartBlockOffset.Value, offset: TransactionFileOffset.AddBlockStartBlockOffset);
+            pmCSharpDefinedTypes.WriteByte(RegionsQtty.Value, offset: TransactionFileOffset.AddBlockRegionsQtty);
+            pmCSharpDefinedTypes.WriteUInt(RegionSize.Value, offset: TransactionFileOffset.AddBlockRegionSize);
+
+            // Commit byte need always be the last
+            CommitByte.Commit();
+            pmCSharpDefinedTypes.WriteByte(CommitByte.Value, offset: TransactionFileOffset.AddBlockCommitByte);
         }
     }
 }

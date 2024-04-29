@@ -24,4 +24,10 @@
         public virtual int Offset { get; internal set; }
         public virtual UInt32 Value { get; internal set; }
     }
+
+    public abstract class ByteArrayFiled : IField<byte[]?>
+    {
+        public virtual int Offset { get; internal set; }
+        public virtual byte[]? Value { get; internal set; }
+    }
 }

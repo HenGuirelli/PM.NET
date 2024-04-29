@@ -18,7 +18,7 @@
         public const int UpdateContentBlockCommitByte = 22;
         public const int UpdateContentBlockOrder = 23;
         public const int UpdateContentBlockStartBlockOffset = 25;
-        public const int UpdateContentBlockRegionsQtty = 29;
-        public const int UpdateContentBlockRegionSize = 33;
+        public const int UpdateContentBlockContentSize = 29;
+        public const int UpdateContentBlockContent = 33;
     }
 }
