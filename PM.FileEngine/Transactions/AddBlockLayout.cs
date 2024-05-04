@@ -44,8 +44,13 @@ namespace PM.FileEngine.Transactions
 
         private static bool IsPendingTransaction(PmCSharpDefinedTypes transactionFilePm)
         {
-            var commitByteState = (CommitState)transactionFilePm.ReadByte(TransactionFileOffset.AddBlockCommitByte);
-            return commitByteState == CommitState.Commited;
+            var blockType = transactionFilePm.ReadByte(offset: TransactionFileOffset.HeaderBlockType);
+            if (blockType == (byte)BlockLayoutType.AddBlock)
+            {
+                var commitByteState = (CommitState)transactionFilePm.ReadByte(TransactionFileOffset.AddBlockCommitByte);
+                return commitByteState == CommitState.Commited;
+            }
+            return false;
         }
 
         public static AddBlockLayout LoadFromTransactionFile(PmCSharpDefinedTypes transactionFilePm)

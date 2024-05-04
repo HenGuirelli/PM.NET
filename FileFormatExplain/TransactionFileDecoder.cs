@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using PM.FileEngine.Transactions;
+using System.Text;
 
 namespace FileFormatExplain
 {
@@ -8,28 +9,37 @@ namespace FileFormatExplain
         {
             var stringBuilder = new StringBuilder();
             stringBuilder.AppendLine(ByteArrayToHexStringConverter.ByteArrayToString(buffer));
-            stringBuilder.AppendLine($"CommitByte={buffer[0].ToString("X2")}");
-            stringBuilder.AppendLine($"Version={BitConverter.ToUInt16(buffer, 1).ToString("X4")}");
-            stringBuilder.AppendLine($"=================AddBlockLayout=================");
-            stringBuilder.AppendLine($"CommitByte={buffer[3].ToString("X2")}");
-            stringBuilder.AppendLine($"Order={BitConverter.ToUInt16(buffer, 4).ToString("X4")}");
-            stringBuilder.AppendLine($"StartBlockOffset={BitConverter.ToUInt32(buffer, 6).ToString("X8")}");
-            stringBuilder.AppendLine($"RegionsQtty={buffer[10].ToString("X2")}");
-            stringBuilder.AppendLine($"RegionSize={BitConverter.ToUInt32(buffer, 11).ToString("X8")}");
-            stringBuilder.AppendLine($"=================RemoveBlockLayout=================");
-            stringBuilder.AppendLine($"CommitByte={buffer[15].ToString("X2")}");
-            stringBuilder.AppendLine($"Order={BitConverter.ToUInt16(buffer, 16).ToString("X4")}");
-            stringBuilder.AppendLine($"StartBlockOffset={BitConverter.ToUInt32(buffer, 18).ToString("X8")}");
-            stringBuilder.AppendLine($"=================UpdateContentBlockLayout=================");
-            stringBuilder.AppendLine($"CommitByte={buffer[22].ToString("X2")}");
-            stringBuilder.AppendLine($"Order={BitConverter.ToUInt16(buffer, 23).ToString("X4")}");
-            stringBuilder.AppendLine($"StartBlockOffset={BitConverter.ToUInt32(buffer, 25).ToString("X8")}");
-            var contentSize = BitConverter.ToUInt32(buffer, 29);
-            stringBuilder.AppendLine($"ContentSize={contentSize.ToString("X8")}");
+            stringBuilder.AppendLine($"HeaderCommitByte={buffer[TransactionFileOffset.HeaderCommitByte].ToString("X2")}");
+            stringBuilder.AppendLine($"Version={BitConverter.ToUInt16(buffer, TransactionFileOffset.HeaderVersion).ToString("X4")}");
+            stringBuilder.AppendLine($"BlockType={buffer[TransactionFileOffset.HeaderBlockType].ToString("X2")}");
+            if (buffer[3] == (byte)BlockLayoutType.AddBlock)
+            {
+                stringBuilder.AppendLine($"=================AddBlockLayout=================");
+                stringBuilder.AppendLine($"CommitByte={buffer[TransactionFileOffset.AddBlockCommitByte].ToString("X2")}");
+                stringBuilder.AppendLine($"StartBlockOffset={BitConverter.ToUInt32(buffer, TransactionFileOffset.AddBlockStartBlockOffset).ToString("X8")}");
+                stringBuilder.AppendLine($"RegionsQtty={buffer[TransactionFileOffset.AddBlockRegionsQtty].ToString("X2")}");
+                stringBuilder.AppendLine($"RegionSize={BitConverter.ToUInt32(buffer, TransactionFileOffset.AddBlockRegionSize).ToString("X8")}");
+            }
+            if (buffer[3] == (byte)BlockLayoutType.RemoveBlock)
+            {
+                stringBuilder.AppendLine($"=================RemoveBlockLayout=================");
+                stringBuilder.AppendLine($"CommitByte={buffer[TransactionFileOffset.RemoveBlockCommitByte].ToString("X2")}");
+                stringBuilder.AppendLine($"BeforeBlockOffset={BitConverter.ToUInt32(buffer, TransactionFileOffset.RemoveBlockBeforeBlockOffset).ToString("X8")}");
+                stringBuilder.AppendLine($"RemovedBlockOffset={BitConverter.ToUInt32(buffer, TransactionFileOffset.RemoveBlockRemovedBlockOffset).ToString("X8")}");
+                stringBuilder.AppendLine($"AfterBlockOffset={BitConverter.ToUInt32(buffer, TransactionFileOffset.RemoveBlockAfterBlockOffset).ToString("X8")}");
+            }
+            if (buffer[3] == (byte)BlockLayoutType.UpdateContentBlock)
+            {
+                stringBuilder.AppendLine($"=================UpdateContentBlockLayout=================");
+                stringBuilder.AppendLine($"CommitByte={buffer[TransactionFileOffset.UpdateContentBlockCommitByte].ToString("X2")}");
+                stringBuilder.AppendLine($"StartBlockOffset={BitConverter.ToUInt32(buffer, TransactionFileOffset.UpdateContentBlockStartBlockOffset).ToString("X8")}");
+                var contentSize = BitConverter.ToUInt32(buffer, TransactionFileOffset.UpdateContentBlockContentSize);
+                stringBuilder.AppendLine($"ContentSize={contentSize.ToString("X8")}");
+                var content = new byte[contentSize];
+                Array.Copy(buffer, TransactionFileOffset.UpdateContentBlockContent, content, 0, contentSize);
+                stringBuilder.AppendLine($"Content={ByteArrayToHexStringConverter.ByteArrayToString(content)}");
+            }
 
-            var content = new byte[contentSize];
-            Array.Copy(buffer, 33, content, 0, contentSize);
-            stringBuilder.AppendLine($"Content={ByteArrayToHexStringConverter.ByteArrayToString(content)}");
             return stringBuilder.ToString();
         }
     }

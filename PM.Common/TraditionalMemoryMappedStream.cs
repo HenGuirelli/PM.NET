@@ -26,6 +26,7 @@ namespace PM.Common
             base.Open();
             if (!File.Exists(FilePath))
             {
+                Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
                 using var fs = new FileStream(
                     FilePath,
                     FileMode.Create,

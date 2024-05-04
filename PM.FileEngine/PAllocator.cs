@@ -108,5 +108,23 @@ namespace PM.FileEngine
         {
             throw new NotImplementedException();
         }
+
+        internal byte[] ReadTransactionFile()
+        {
+            return ReadFile(_transactionFile.FilePath);
+        }
+
+        internal byte[] ReadOriginalFile()
+        {
+            return ReadFile(PersistentMemory.FilePath);
+        }
+
+        internal static byte[] ReadFile(string filename)
+        {
+            using var stream = new StreamReader(new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+            using var memstream = new MemoryStream();
+            stream.BaseStream.CopyTo(memstream);
+            return memstream.ToArray();
+        }
     }
 }

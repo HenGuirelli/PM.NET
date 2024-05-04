@@ -2,8 +2,8 @@
 {
     public enum BlockLayoutType
     {
-        AddBlock = 0,
-        RemoveBlock = 1,
-        UpdateContentBlock = 2
+        AddBlock = 1,
+        RemoveBlock = 2,
+        UpdateContentBlock = 3
     }
 }

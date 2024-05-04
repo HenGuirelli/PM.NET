@@ -13,6 +13,7 @@ namespace PM.FileEngine.Transactions
         private WrapperBlockLayout? _pendingBlockLayout;
 
         public bool HasPendingTransactions => _pendingBlockLayout != null;
+        public string FilePath => _pmTransactionFile.FilePath;
 
         public TransactionFile(PmCSharpDefinedTypes pmTransactionFile, PAllocator pAllocator)
         {

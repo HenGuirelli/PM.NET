@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PM.Core\PM.Core.csproj" />
+    <ProjectReference Include="..\PM.FileEngine\PM.FileEngine.csproj" />
   </ItemGroup>
 
 </Project>
