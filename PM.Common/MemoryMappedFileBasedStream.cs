@@ -1,6 +1,6 @@
 ﻿using Serilog;
 
-namespace PM.Core
+namespace PM.FileEngine
 {
     public abstract class MemoryMappedFileBasedStream : Stream
     {

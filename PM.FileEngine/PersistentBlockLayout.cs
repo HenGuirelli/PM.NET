@@ -1,4 +1,6 @@
-﻿using Serilog;
+﻿using PM.Common;
+using PM.FileEngine;
+using Serilog;
 
 namespace PM.Core.PMemory
 {
@@ -75,7 +77,7 @@ namespace PM.Core.PMemory
         public const int Header_FreeBlockBitmapOffset = 5;
         public const int Header_NextBlockOffset = 13;
 
-        public PersistentBlockLayout(int regionSize, byte regionQuantity)
+        public PersistentBlockLayout(uint regionSize, byte regionQuantity)
         {
             if (!BitwiseOperations.IsPowerOfTwo(regionSize)) throw new ArgumentException($"{nameof(regionSize)} must be power of two");
             if (regionQuantity <= 0) throw new ArgumentException($"{nameof(regionQuantity)} must be greater than zero");
@@ -172,8 +174,8 @@ namespace PM.Core.PMemory
             PersistentMemory.WriteByte(RegionsQuantity, offset);
             offset += sizeof(byte);
 
-            PersistentMemory.WriteInt(RegionsSize, offset);
-            offset += sizeof(int);
+            PersistentMemory.WriteUInt(RegionsSize, offset);
+            offset += sizeof(uint);
 
             PersistentMemory.WriteULong(FreeBlocks, offset);
             offset += sizeof(ulong);

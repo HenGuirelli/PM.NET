@@ -1,7 +1,7 @@
 ﻿using System.Buffers.Binary;
 using System.Text;
 
-namespace PM.Core
+namespace PM.FileEngine
 {
     public interface IIncreaseFileSizeStrategy
     {
@@ -389,7 +389,7 @@ namespace PM.Core
         /// Increase the PM file size given a specific strategy
         /// </summary>
         /// <param name="minSize"></param>
-        internal void IncreaseSize(long? minSize = null, IIncreaseFileSizeStrategy? increaseFileSizeStrategy = null)
+        public void IncreaseSize(long? minSize = null, IIncreaseFileSizeStrategy? increaseFileSizeStrategy = null)
         {
             increaseFileSizeStrategy ??= DefaultIncreaseFileSizeStrategy.Instance;
             var newSize = increaseFileSizeStrategy.GetNewIncreasedSize(FileBasedStream.Length, minSize);

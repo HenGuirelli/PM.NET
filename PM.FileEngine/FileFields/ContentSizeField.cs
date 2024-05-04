@@ -1,4 +1,4 @@
-﻿namespace PM.Core.PMemory.FileFields
+﻿namespace PM.FileEngine.FileFields
 {
     public class ContentSizeField : UInt32Filed
     {

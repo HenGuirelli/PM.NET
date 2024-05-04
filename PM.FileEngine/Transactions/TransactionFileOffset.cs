@@ -1,9 +1,9 @@
-﻿namespace PM.Core.PMemory.PMemoryTransactionFile
+﻿namespace PM.FileEngine.Transactions
 {
     internal class TransactionFileOffset
     {
-        public const int HeaderCommitByte = 0;
-        public const int HeaderVersion = 1;
+        public const int HeaderVersion = 0;
+        public const int HeaderCommitByte = 1;
 
         public const int AddBlockCommitByte = 3;
         public const int AddBlockOrder = 4;

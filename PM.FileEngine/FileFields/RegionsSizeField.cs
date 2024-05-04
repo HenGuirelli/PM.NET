@@ -1,4 +1,6 @@
-﻿namespace PM.Core.PMemory.FileFields
+﻿using PM.Common;
+
+namespace PM.FileEngine.FileFields
 {
     public class RegionsSizeField : UInt32Filed
     {

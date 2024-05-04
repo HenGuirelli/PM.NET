@@ -1,7 +1,6 @@
-﻿using PM.Core.PMemory.FileFields;
-using PM.Core.PMemory.PMemoryTransactionFile;
+﻿using PM.FileEngine.FileFields;
 
-namespace PM.Core.PMemory.MemoryLayoutTransactions
+namespace PM.FileEngine.Transactions
 {
     public class UpdateContentBlockLayout : IBlockLayout
     {
@@ -16,20 +15,6 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
         }
         private CommitByteField _commitByte = new(TransactionFileOffset.UpdateContentBlockCommitByte);
 
-        public OrderField Order
-        {
-            get => _order ??= new OrderField(TransactionFileOffset.UpdateContentBlockOrder, instance: 1);
-            internal set
-            {
-                if (value != null)
-                {
-                    value.Offset = TransactionFileOffset.UpdateContentBlockOrder;
-                    _order = value;
-                }
-            }
-        }
-        private OrderField? _order;
-
         public StartBlockOffsetField StartBlockOffset { get; set; } = new StartBlockOffsetField(TransactionFileOffset.UpdateContentBlockStartBlockOffset);
         public ContentSizeField ContentSize { get; set; } = new ContentSizeField(TransactionFileOffset.UpdateContentBlockContentSize);
         public ContentField Content { get; set; } = new ContentField(TransactionFileOffset.UpdateContentBlockContent);
@@ -39,11 +24,11 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
         /// </summary>
         public long TotalLength => (Content?.Value?.Length ?? 0) + 29;
 
-        public UpdateContentBlockLayout(UInt32 startBlockOffset, UInt32 contentSize, byte[] content)
+        public UpdateContentBlockLayout(uint startBlockOffset, uint contentSize, byte[] content)
         {
             StartBlockOffset = new StartBlockOffsetField(offset: TransactionFileOffset.UpdateContentBlockStartBlockOffset) { Value = startBlockOffset };
             ContentSize = new ContentSizeField(offset: TransactionFileOffset.UpdateContentBlockContentSize) { Value = contentSize };
-            Content = new ContentField(offset: TransactionFileOffset.UpdateContentBlockContent) { Value = content } ;
+            Content = new ContentField(offset: TransactionFileOffset.UpdateContentBlockContent) { Value = content };
         }
 
         public static bool TryLoadFromTransactionFile(PmCSharpDefinedTypes transactionFilePm, out UpdateContentBlockLayout? result)
@@ -72,7 +57,6 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
                 pmTransactionFile.ReadBytes(count: contentSize, offset: TransactionFileOffset.UpdateContentBlockContent))
             {
                 CommitByte = new CommitByteField(offset: TransactionFileOffset.UpdateContentBlockCommitByte, (CommitState)pmTransactionFile.ReadByte(TransactionFileOffset.UpdateContentBlockCommitByte)),
-                Order = new OrderField(offset: TransactionFileOffset.UpdateContentBlockOrder, pmTransactionFile.ReadUShort(TransactionFileOffset.UpdateContentBlockOrder))
             };
         }
 
@@ -83,7 +67,6 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
 
         public void WriteTo(PmCSharpDefinedTypes pmCSharpDefinedTypes)
         {
-            pmCSharpDefinedTypes.WriteUShort(Order.Value, offset: TransactionFileOffset.UpdateContentBlockOrder);
             pmCSharpDefinedTypes.WriteUInt(StartBlockOffset.Value, offset: TransactionFileOffset.UpdateContentBlockStartBlockOffset);
             pmCSharpDefinedTypes.WriteUInt(ContentSize.Value, offset: TransactionFileOffset.UpdateContentBlockContentSize);
             if (Content.Value != null)

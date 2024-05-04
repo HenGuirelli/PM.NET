@@ -1,4 +1,4 @@
-﻿namespace PM.Core.PMemory.FileFields
+﻿namespace PM.FileEngine.FileFields
 {
     public interface IField<out T>
     {

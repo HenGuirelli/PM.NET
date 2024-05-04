@@ -23,4 +23,12 @@
   		<_Parameter1>$(AssemblyName).Tests</_Parameter1>
   	</AssemblyAttribute>
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PM.Common\PM.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="PMemory\MemoryLayoutTransactions\" />
+  </ItemGroup>
 </Project>

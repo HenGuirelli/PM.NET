@@ -1,4 +1,4 @@
-﻿namespace PM.Core.PMemory.MemoryLayoutTransactions
+﻿namespace PM.FileEngine.Transactions
 {
     public enum BlockLayoutType
     {

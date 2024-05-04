@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using PM.FileEngine;
+using Serilog;
 
 namespace PM.Core.PMemory
 {
@@ -20,7 +21,7 @@ namespace PM.Core.PMemory
         /// <summary>
         /// Region size in bytes
         /// </summary>
-        public int Size { get; }
+        public uint Size { get; }
 
         /// <summary>
         /// Index of region inside a block
@@ -30,7 +31,7 @@ namespace PM.Core.PMemory
         private readonly PmCSharpDefinedTypes _persistentMemory;
         private readonly PersistentBlockLayout _persistentBlockLayout;
 
-        public PersistentRegion(PmCSharpDefinedTypes persistentMemory, int size, PersistentBlockLayout persistentBlockLayout)
+        public PersistentRegion(PmCSharpDefinedTypes persistentMemory, uint size, PersistentBlockLayout persistentBlockLayout)
         {
             Size = size;
             _persistentMemory = persistentMemory;

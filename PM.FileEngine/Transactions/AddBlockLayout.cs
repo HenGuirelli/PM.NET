@@ -1,7 +1,7 @@
-﻿using PM.Core.PMemory.FileFields;
-using PM.Core.PMemory.PMemoryTransactionFile;
+﻿using PM.Core.PMemory;
+using PM.FileEngine.FileFields;
 
-namespace PM.Core.PMemory.MemoryLayoutTransactions
+namespace PM.FileEngine.Transactions
 {
     public class AddBlockLayout : IBlockLayout
     {
@@ -16,28 +16,14 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
         }
         private CommitByteField _commitByte = new(TransactionFileOffset.AddBlockCommitByte);
 
-        public OrderField Order
-        {
-            get => _order ??= new OrderField(TransactionFileOffset.AddBlockOrder, instance: 1);
-            internal set
-            {
-                if (value != null)
-                {
-                    value.Offset = TransactionFileOffset.AddBlockOrder;
-                    _order = value;
-                }
-            }
-        }
-        private OrderField? _order;
-
         public StartBlockOffsetField StartBlockOffset { get; set; } = new StartBlockOffsetField(TransactionFileOffset.AddBlockStartBlockOffset);
         public RegionsQttyField RegionsQtty { get; set; } = new RegionsQttyField(TransactionFileOffset.AddBlockRegionsQtty);
         public RegionsSizeField RegionSize { get; set; } = new RegionsSizeField(TransactionFileOffset.AddBlockRegionSize);
 
         public AddBlockLayout(
-            UInt32 startBlockOffset,
+            uint startBlockOffset,
             byte regionsQtty,
-            UInt32 regionsSize)
+            uint regionsSize)
         {
             StartBlockOffset = new StartBlockOffsetField(TransactionFileOffset.AddBlockStartBlockOffset) { Value = startBlockOffset };
             RegionsQtty = new RegionsQttyField(TransactionFileOffset.AddBlockRegionsQtty) { Value = regionsQtty };
@@ -69,13 +55,12 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
                 regionsSize: transactionFilePm.ReadUInt(TransactionFileOffset.AddBlockRegionSize))
             {
                 CommitByte = new CommitByteField(offset: TransactionFileOffset.AddBlockCommitByte, (CommitState)transactionFilePm.ReadByte(TransactionFileOffset.AddBlockCommitByte)),
-                Order = new OrderField(offset: TransactionFileOffset.AddBlockOrder, transactionFilePm.ReadUShort(TransactionFileOffset.AddBlockOrder)),
             };
         }
 
         public void ApplyInOriginalFile(PmCSharpDefinedTypes transactionFile, PAllocator pAllocator)
         {
-            var block = new PersistentBlockLayout((int)RegionSize.Value, RegionsQtty.Value)
+            var block = new PersistentBlockLayout(RegionSize.Value, RegionsQtty.Value)
             {
                 BlockOffset = StartBlockOffset.Value
             };
@@ -87,7 +72,6 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
 
         public void WriteTo(PmCSharpDefinedTypes pmCSharpDefinedTypes)
         {
-            pmCSharpDefinedTypes.WriteUShort(Order.Value, offset: TransactionFileOffset.AddBlockOrder);
             pmCSharpDefinedTypes.WriteUInt(StartBlockOffset.Value, offset: TransactionFileOffset.AddBlockStartBlockOffset);
             pmCSharpDefinedTypes.WriteByte(RegionsQtty.Value, offset: TransactionFileOffset.AddBlockRegionsQtty);
             pmCSharpDefinedTypes.WriteUInt(RegionSize.Value, offset: TransactionFileOffset.AddBlockRegionSize);

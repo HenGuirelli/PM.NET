@@ -1,4 +1,4 @@
-﻿namespace PM.Core.PMemory.PMemoryTransactionFile
+﻿namespace PM.FileEngine.Transactions
 {
     public class TransacionFileVersionException : ApplicationException
     {

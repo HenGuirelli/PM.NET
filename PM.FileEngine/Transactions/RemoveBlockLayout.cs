@@ -1,7 +1,6 @@
-﻿using PM.Core.PMemory.FileFields;
-using PM.Core.PMemory.PMemoryTransactionFile;
+﻿using PM.FileEngine.FileFields;
 
-namespace PM.Core.PMemory.MemoryLayoutTransactions
+namespace PM.FileEngine.Transactions
 {
     public class RemoveBlockLayout : IBlockLayout
     {
@@ -15,20 +14,6 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
             }
         }
         private CommitByteField _commitByte = new(TransactionFileOffset.RemoveBlockCommitByte);
-
-        public OrderField Order
-        {
-            get => _order ??= new OrderField(TransactionFileOffset.RemoveBlockOrder, instance: 1);
-            internal set
-            {
-                if (value != null)
-                {
-                    value.Offset = TransactionFileOffset.RemoveBlockOrder;
-                    _order = value;
-                }
-            }
-        }
-        private OrderField? _order;
 
         public StartBlockOffsetField BeforeBlockOffset { get; set; } = new StartBlockOffsetField(TransactionFileOffset.RemoveBlockBeforeBlockOffset);
         public StartBlockOffsetField RemovedBlockOffset { get; set; } = new StartBlockOffsetField(TransactionFileOffset.RemoveBlockRemovedBlockOffset);
@@ -72,7 +57,6 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
                 afterBlockOffset: pmTransactionFile.ReadUInt(TransactionFileOffset.RemoveBlockAfterBlockOffset))
             {
                 CommitByte = new CommitByteField(offset: TransactionFileOffset.RemoveBlockCommitByte, (CommitState)pmTransactionFile.ReadByte(TransactionFileOffset.RemoveBlockCommitByte)),
-                Order = new OrderField(offset: TransactionFileOffset.RemoveBlockOrder, pmTransactionFile.ReadUShort(TransactionFileOffset.RemoveBlockOrder))
             };
         }
 
@@ -80,7 +64,7 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
         {
             var nextBlockLayoutStartAddress_localOffset = 14;
 
-            if ()
+            throw new ApplicationException("Veriricar se é primeiro ou ultimo bloco");
 
             pAllocator.PersistentMemory.WriteUInt(AfterBlockOffset.Value, BeforeBlockOffset.Value + nextBlockLayoutStartAddress_localOffset);
 
@@ -90,7 +74,6 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
 
         public void WriteTo(PmCSharpDefinedTypes pmCSharpDefinedTypes)
         {
-            pmCSharpDefinedTypes.WriteUShort(Order.Value, offset: TransactionFileOffset.RemoveBlockOrder);
             pmCSharpDefinedTypes.WriteUInt(BeforeBlockOffset.Value, offset: TransactionFileOffset.RemoveBlockBeforeBlockOffset);
             pmCSharpDefinedTypes.WriteUInt(RemovedBlockOffset.Value, offset: TransactionFileOffset.RemoveBlockRemovedBlockOffset);
             pmCSharpDefinedTypes.WriteUInt(AfterBlockOffset.Value, offset: TransactionFileOffset.RemoveBlockAfterBlockOffset);

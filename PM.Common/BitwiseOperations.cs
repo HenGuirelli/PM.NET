@@ -1,4 +1,4 @@
-﻿namespace PM.Core
+﻿namespace PM.Common
 {
     public class BitwiseOperations
     {

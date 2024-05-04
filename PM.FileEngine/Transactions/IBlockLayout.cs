@@ -1,10 +1,7 @@
-﻿using PM.Core.PMemory.FileFields;
-
-namespace PM.Core.PMemory.MemoryLayoutTransactions
+﻿namespace PM.FileEngine.Transactions
 {
     public interface IBlockLayout
     {
-        OrderField Order { get; }
         void ApplyInOriginalFile(PmCSharpDefinedTypes transactionFile, PAllocator pAllocator);
         void WriteTo(PmCSharpDefinedTypes transactionFile);
     }
