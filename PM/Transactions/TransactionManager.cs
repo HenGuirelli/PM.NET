@@ -7,6 +7,7 @@ using PM.Managers;
 using PM.CastleHelpers;
 using Castle.DynamicProxy;
 using System;
+using PM.Common;
 
 namespace PM.Transactions
 {

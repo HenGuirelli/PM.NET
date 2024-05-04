@@ -1,8 +1,10 @@
-﻿namespace PM.FileEngine.Tests.PMemoryTransactionFile
+﻿using PM.Common;
+
+namespace PM.FileEngine.Tests.PMemoryTransactionFile
 {
     public class PmStreams
     {
-        public Core.MemoryMappedFileBasedStream OriginalStream { get; set; }
-        public Core.MemoryMappedFileBasedStream TransactionStream { get; set; }
+        public MemoryMappedFileBasedStream OriginalStream { get; set; }
+        public MemoryMappedFileBasedStream TransactionStream { get; set; }
     }
 }

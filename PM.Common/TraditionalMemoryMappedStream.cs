@@ -1,7 +1,7 @@
 ﻿using Serilog;
 using System.IO.MemoryMappedFiles;
 
-namespace PM.Core
+namespace PM.Common
 {
     public class TraditionalMemoryMappedStream : MemoryMappedFileBasedStream
     {

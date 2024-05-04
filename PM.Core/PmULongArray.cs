@@ -1,4 +1,6 @@
-﻿namespace PM.Core
+﻿using PM.Common;
+
+namespace PM.Core
 {
     public class PmULongArray : PmPrimitiveArray<ulong>
     {

@@ -1,4 +1,6 @@
-﻿namespace PM.Core
+﻿using PM.Common;
+
+namespace PM.Core
 {
     public abstract class PmPrimitiveArray<T> : IDisposable
         where T : struct

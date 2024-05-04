@@ -1,4 +1,6 @@
-﻿namespace PM.FileEngine.Transactions
+﻿using PM.Common;
+
+namespace PM.FileEngine.Transactions
 {
     public interface IBlockLayout
     {

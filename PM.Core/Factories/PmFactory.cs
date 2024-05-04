@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using PM.Common;
+using Serilog;
 
 namespace PM.Core.Factories
 {

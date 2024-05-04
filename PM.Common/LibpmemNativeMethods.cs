@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace PM.FileEngine
+namespace PM.Common
 {
     public class Mode
     {

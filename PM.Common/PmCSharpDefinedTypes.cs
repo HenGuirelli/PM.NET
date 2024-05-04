@@ -1,7 +1,7 @@
 ﻿using System.Buffers.Binary;
 using System.Text;
 
-namespace PM.FileEngine
+namespace PM.Common
 {
     public interface IIncreaseFileSizeStrategy
     {
@@ -396,7 +396,7 @@ namespace PM.FileEngine
             Resize(newSize);
         }
 
-        internal void Resize(long size)
+        public void Resize(long size)
         {
             _pm.Resize(size);
         }

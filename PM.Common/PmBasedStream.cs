@@ -1,7 +1,7 @@
 ﻿using Serilog;
 using System.Runtime.InteropServices;
 
-namespace PM.FileEngine
+namespace PM.Common
 {
     public abstract class PmBasedStream : MemoryMappedFileBasedStream
     {
