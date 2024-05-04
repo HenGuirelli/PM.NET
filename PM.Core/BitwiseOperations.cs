@@ -15,6 +15,10 @@
         {
             return number > 0 && (number & (number - 1)) == 0;
         }
+        public static bool IsPowerOfTwo(uint number)
+        {
+            return number > 0 && (number & (number - 1)) == 0;
+        }
 
 
         public static int RoundUpPowerOfTwo(int value)

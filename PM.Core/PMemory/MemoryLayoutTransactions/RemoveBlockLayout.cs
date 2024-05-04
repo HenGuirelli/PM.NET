@@ -30,12 +30,21 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
         }
         private OrderField? _order;
 
-        public StartBlockOffsetField StartBlockOffset { get; set; } = new StartBlockOffsetField(TransactionFileOffset.RemoveBlockStartBlockOffset);
+        public StartBlockOffsetField BeforeBlockOffset { get; set; } = new StartBlockOffsetField(TransactionFileOffset.RemoveBlockBeforeBlockOffset);
+        public StartBlockOffsetField RemovedBlockOffset { get; set; } = new StartBlockOffsetField(TransactionFileOffset.RemoveBlockRemovedBlockOffset);
+        public StartBlockOffsetField AfterBlockOffset { get; set; } = new StartBlockOffsetField(TransactionFileOffset.RemoveBlockAfterBlockOffset);
 
-
-        public RemoveBlockLayout(UInt32 startBlockOffsetField)
+        /// <summary>
+        /// Remove a block layout from Pmemory
+        /// </summary>
+        /// <param name="beforeBlockOffset">the block offset that precedes the block to be removed</param>
+        /// <param name="removedBlockOffset">the block offset to be removed</param>
+        /// <param name="afterBlockOffset">the block offset that comes after the block to be removed. Zero if the removed block is the last</param>
+        public RemoveBlockLayout(UInt32 beforeBlockOffset, UInt32 removedBlockOffset, UInt32 afterBlockOffset)
         {
-            StartBlockOffset = new StartBlockOffsetField(TransactionFileOffset.RemoveBlockStartBlockOffset) { Value = startBlockOffsetField };
+            BeforeBlockOffset = new StartBlockOffsetField(TransactionFileOffset.RemoveBlockBeforeBlockOffset) { Value = beforeBlockOffset };
+            RemovedBlockOffset = new StartBlockOffsetField(TransactionFileOffset.RemoveBlockRemovedBlockOffset) { Value = removedBlockOffset };
+            AfterBlockOffset = new StartBlockOffsetField(TransactionFileOffset.RemoveBlockAfterBlockOffset) { Value = afterBlockOffset };
         }
 
         public static bool TryLoadFromTransactionFile(PmCSharpDefinedTypes transactionFilePm, out RemoveBlockLayout? result)
@@ -57,22 +66,34 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
 
         public static RemoveBlockLayout LoadFromTransactionFile(PmCSharpDefinedTypes pmTransactionFile)
         {
-            return new RemoveBlockLayout(startBlockOffsetField: pmTransactionFile.ReadUInt(TransactionFileOffset.RemoveBlockStartBlockOffset))
+            return new RemoveBlockLayout(
+                beforeBlockOffset: pmTransactionFile.ReadUInt(TransactionFileOffset.RemoveBlockBeforeBlockOffset),
+                removedBlockOffset: pmTransactionFile.ReadUInt(TransactionFileOffset.RemoveBlockRemovedBlockOffset),
+                afterBlockOffset: pmTransactionFile.ReadUInt(TransactionFileOffset.RemoveBlockAfterBlockOffset))
             {
                 CommitByte = new CommitByteField(offset: TransactionFileOffset.RemoveBlockCommitByte, (CommitState)pmTransactionFile.ReadByte(TransactionFileOffset.RemoveBlockCommitByte)),
                 Order = new OrderField(offset: TransactionFileOffset.RemoveBlockOrder, pmTransactionFile.ReadUShort(TransactionFileOffset.RemoveBlockOrder))
             };
         }
 
-        public void ApplyInOriginalFile(PmCSharpDefinedTypes transactionFile, PersistentAllocatorLayout originalFile)
+        public void ApplyInOriginalFile(PmCSharpDefinedTypes transactionFile, PAllocator pAllocator)
         {
-            throw new NotImplementedException();
+            var nextBlockLayoutStartAddress_localOffset = 14;
+
+            if ()
+
+            pAllocator.PersistentMemory.WriteUInt(AfterBlockOffset.Value, BeforeBlockOffset.Value + nextBlockLayoutStartAddress_localOffset);
+
+            CommitByte.State = CommitState.CommitedAndWriteOnOriginalFileFinished;
+            transactionFile.WriteByte(CommitByte.Value, offset: TransactionFileOffset.RemoveBlockCommitByte);
         }
 
         public void WriteTo(PmCSharpDefinedTypes pmCSharpDefinedTypes)
         {
             pmCSharpDefinedTypes.WriteUShort(Order.Value, offset: TransactionFileOffset.RemoveBlockOrder);
-            pmCSharpDefinedTypes.WriteUInt(StartBlockOffset.Value, offset: TransactionFileOffset.RemoveBlockStartBlockOffset);
+            pmCSharpDefinedTypes.WriteUInt(BeforeBlockOffset.Value, offset: TransactionFileOffset.RemoveBlockBeforeBlockOffset);
+            pmCSharpDefinedTypes.WriteUInt(RemovedBlockOffset.Value, offset: TransactionFileOffset.RemoveBlockRemovedBlockOffset);
+            pmCSharpDefinedTypes.WriteUInt(AfterBlockOffset.Value, offset: TransactionFileOffset.RemoveBlockAfterBlockOffset);
 
             // Commit byte need always be the last
             CommitByte.Commit();

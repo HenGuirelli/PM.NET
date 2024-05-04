@@ -36,7 +36,7 @@ namespace PM.Tests.Common
             return Path.Combine(PmGlobalConfiguration.PmInternalsFolder, filename);
         }
 
-        protected static MemoryMappedFileBasedStream CreatePmStream(string mappedMemoryFilePath, long size)
+        protected static MemoryMappedFileBasedStream CreatePmStream(string mappedMemoryFilePath, long size = 4096)
         {
             if (PmGlobalConfiguration.PmTarget == PmTargets.PM)
             {

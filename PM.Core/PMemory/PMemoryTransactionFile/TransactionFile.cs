@@ -8,17 +8,18 @@ namespace PM.Core.PMemory.PMemoryTransactionFile
         public const ushort TransactionFileVersion = 1;
 
         private readonly PmCSharpDefinedTypes _pmTransactionFile;
-        private readonly PersistentAllocatorLayout _pmOriginalFile;
+        private readonly PAllocator _pmAllocator;
 
+        private readonly Dictionary<BlockLayoutType, WrapperBlockLayouts> _blocksLayoutsByType = new();
         private readonly SortedSet<WrapperBlockLayouts> _blocksLayoutsOrdered = new();
 
         private volatile bool _isPendingTransactionRunning = false;
         private volatile int _transactionFileWriteOperationRunning = 0;
 
-        public TransactionFile(PmCSharpDefinedTypes pmTransactionFile, PersistentAllocatorLayout pmOriginalFile)
+        public TransactionFile(PmCSharpDefinedTypes pmTransactionFile, PAllocator pAllocator)
         {
             _pmTransactionFile = pmTransactionFile;
-            _pmOriginalFile = pmOriginalFile;
+            _pmAllocator = pAllocator;
 
             if (pmTransactionFile.FileBasedStream.Length < 100)
             {
@@ -61,19 +62,25 @@ namespace PM.Core.PMemory.PMemoryTransactionFile
         {
             if (AddBlockLayout.TryLoadFromTransactionFile(_pmTransactionFile, out var addblock))
             {
-                _blocksLayoutsOrdered.Add(new WrapperBlockLayouts(addblock!));
+                var addWrapper = new WrapperBlockLayouts(addblock!);
+                _blocksLayoutsByType[BlockLayoutType.AddBlock] = addWrapper;
+                _blocksLayoutsOrdered.Add(addWrapper);
             }
             if (RemoveBlockLayout.TryLoadFromTransactionFile(_pmTransactionFile, out var removeblock))
             {
-                _blocksLayoutsOrdered.Add(new WrapperBlockLayouts(removeblock!));
+                var removeWrapper = new WrapperBlockLayouts(removeblock!);
+                _blocksLayoutsByType[BlockLayoutType.RemoveBlock] = removeWrapper;
+                _blocksLayoutsOrdered.Add(removeWrapper);
             }
             if (UpdateContentBlockLayout.TryLoadFromTransactionFile(_pmTransactionFile, out var updateContentblock))
             {
-                _blocksLayoutsOrdered.Add(new WrapperBlockLayouts(updateContentblock!));
+                var updateContentWrapper = new WrapperBlockLayouts(updateContentblock!);
+                _blocksLayoutsByType[BlockLayoutType.UpdateContentBlock] = updateContentWrapper;
+                _blocksLayoutsOrdered.Add(updateContentWrapper);
             }
         }
 
-        private void ApplyPendingTransaction()
+        public void ApplyPendingTransaction()
         {
             try
             {
@@ -82,7 +89,8 @@ namespace PM.Core.PMemory.PMemoryTransactionFile
 
                 foreach (var block in _blocksLayoutsOrdered)
                 {
-                    block.Object.ApplyInOriginalFile(_pmTransactionFile, _pmOriginalFile);
+                    block.Object.ApplyInOriginalFile(_pmTransactionFile, _pmAllocator);
+                    _blocksLayoutsByType.Remove(block.BlockLayoutType);
                 }
             }
             finally
@@ -97,7 +105,16 @@ namespace PM.Core.PMemory.PMemoryTransactionFile
             {
                 SpinWait.SpinUntil(() => !_isPendingTransactionRunning);
                 _transactionFileWriteOperationRunning++;
+
+                if (_blocksLayoutsByType.ContainsKey(BlockLayoutType.AddBlock))
+                {
+                    throw new ApplicationException("Block still not commited");
+                }
+
                 addBlockLayout.WriteTo(_pmTransactionFile);
+                var addWrapper = new WrapperBlockLayouts(addBlockLayout);
+                _blocksLayoutsOrdered.Add(addWrapper);
+                _blocksLayoutsByType[BlockLayoutType.AddBlock] = addWrapper;
             }
             finally
             {
@@ -111,7 +128,17 @@ namespace PM.Core.PMemory.PMemoryTransactionFile
             {
                 SpinWait.SpinUntil(() => !_isPendingTransactionRunning);
                 _transactionFileWriteOperationRunning++;
+
+
+                if (_blocksLayoutsByType.ContainsKey(BlockLayoutType.RemoveBlock))
+                {
+                    throw new ApplicationException("Block still not commited");
+                }
+
                 removeBlockLayout.WriteTo(_pmTransactionFile);
+                var removeWrapper = new WrapperBlockLayouts(removeBlockLayout);
+                _blocksLayoutsOrdered.Add(removeWrapper);
+                _blocksLayoutsByType[BlockLayoutType.RemoveBlock] = removeWrapper;
             }
             finally
             {
@@ -125,12 +152,22 @@ namespace PM.Core.PMemory.PMemoryTransactionFile
             {
                 SpinWait.SpinUntil(() => !_isPendingTransactionRunning);
                 _transactionFileWriteOperationRunning++;
+
+
+                if (_blocksLayoutsByType.ContainsKey(BlockLayoutType.UpdateContentBlock))
+                {
+                    throw new ApplicationException("Block still not commited");
+                }
+
                 if (updateContentBlockLayout.TotalLength > _pmTransactionFile.FileBasedStream.Length)
                 {
                     _pmTransactionFile.IncreaseSize(minSize: updateContentBlockLayout.TotalLength);
                 }
 
                 updateContentBlockLayout.WriteTo(_pmTransactionFile);
+                var updateContentWrapper = new WrapperBlockLayouts(updateContentBlockLayout);
+                _blocksLayoutsOrdered.Add(updateContentWrapper);
+                _blocksLayoutsByType[BlockLayoutType.UpdateContentBlock] = updateContentWrapper;
             }
             finally
             {

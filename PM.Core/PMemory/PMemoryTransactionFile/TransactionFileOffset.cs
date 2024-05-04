@@ -13,7 +13,9 @@
 
         public const int RemoveBlockCommitByte = 15;
         public const int RemoveBlockOrder = 16;
-        public const int RemoveBlockStartBlockOffset = 18;
+        public const int RemoveBlockBeforeBlockOffset = 18;
+        public const int RemoveBlockRemovedBlockOffset = 22;
+        public const int RemoveBlockAfterBlockOffset = 16;
 
         public const int UpdateContentBlockCommitByte = 22;
         public const int UpdateContentBlockOrder = 23;

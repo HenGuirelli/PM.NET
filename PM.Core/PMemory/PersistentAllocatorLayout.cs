@@ -2,6 +2,7 @@
 
 namespace PM.Core.PMemory
 {
+    [Obsolete]
     public class PersistentAllocatorLayout
     {
         private readonly Dictionary<int, List<PersistentBlockLayout>> _blocksBySize = new();

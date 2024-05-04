@@ -76,7 +76,7 @@ namespace PM.Core.PMemory.MemoryLayoutTransactions
             };
         }
 
-        public void ApplyInOriginalFile(PmCSharpDefinedTypes transactionFile, PersistentAllocatorLayout originalFile)
+        public void ApplyInOriginalFile(PmCSharpDefinedTypes transactionFile, PAllocator pAllocator)
         {
             throw new NotImplementedException();
         }

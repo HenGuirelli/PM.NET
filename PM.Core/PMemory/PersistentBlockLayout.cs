@@ -11,7 +11,7 @@ namespace PM.Core.PMemory
         /// <summary>
         /// Size of each region inside a block (always power of two).
         /// </summary>
-        public int RegionsSize { get; internal set; }
+        public uint RegionsSize { get; internal set; }
 
         /// <summary>
         /// Quantity of regions inside a block.

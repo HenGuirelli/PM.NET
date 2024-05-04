@@ -1,18 +1,109 @@
-﻿using Serilog;
+﻿using PM.Core.PMemory.MemoryLayoutTransactions;
+using PM.Core.PMemory.PMemoryTransactionFile;
+using Serilog;
 
 namespace PM.Core.PMemory
 {
+    public interface IPAllocatorAddBlock
+    {
+        void Addblock(PersistentBlockLayout persistentBlockLayout);
+    }
+
+    public interface IPAllocatorRemoveBlock
+    {
+        void Removeblock(PersistentBlockLayout persistentBlockLayout);
+    }
+
+
+    internal class PAllocatorEngineRemove : IPAllocatorRemoveBlock
+    {
+        private PmCSharpDefinedTypes _originalFile;
+        private TransactionFile _transactionFile;
+        private PersistentBlockLayout _firstPersistentBlockLayout;
+
+        public PAllocatorEngineRemove(
+            PmCSharpDefinedTypes originalFile,
+            TransactionFile transactionFile,
+            // Used to get address
+            PersistentBlockLayout firstPersistentBlockLayout)
+        {
+            _originalFile = originalFile;
+            _transactionFile = transactionFile;
+            _firstPersistentBlockLayout = firstPersistentBlockLayout;
+        }
+
+        public void Removeblock(PersistentBlockLayout persistentBlockLayout)
+        {
+            var removedBlock = _firstPersistentBlockLayout;
+            PersistentBlockLayout? beforeBlock = null;
+            PersistentBlockLayout? afterBlock = null;
+            while (removedBlock.NextBlock != null)
+            {
+                if (removedBlock == persistentBlockLayout) break;
+                beforeBlock = removedBlock;
+                removedBlock = removedBlock.NextBlock;
+            }
+
+            _transactionFile.AddRemoveBlockLayout(new RemoveBlockLayout(
+                beforeBlockOffset: beforeBlock?.BlockOffset ?? 0,
+                removedBlockOffset: persistentBlockLayout.BlockOffset,
+                afterBlockOffset: afterBlock?.BlockOffset ?? 0));
+
+            _transactionFile.ApplyPendingTransaction();
+        }
+    }
+
+    internal class PAllocatorEngineAdd : IPAllocatorAddBlock
+    {
+        private readonly PmCSharpDefinedTypes _originalFile;
+        private readonly TransactionFile _transactionFile;
+
+        private PersistentBlockLayout _lastBlock;
+
+        public PAllocatorEngineAdd(
+            PmCSharpDefinedTypes originalFile,
+            TransactionFile transactionFile,
+            // Used to get address
+            PersistentBlockLayout firstPersistentBlockLayout)
+        {
+            _originalFile = originalFile;
+            _transactionFile = transactionFile;
+
+            var block = firstPersistentBlockLayout;
+            while (block.NextBlock != null) { block = block.NextBlock; }
+            _lastBlock = block;
+        }
+
+        public void Addblock(PersistentBlockLayout persistentBlockLayout)
+        {
+            var newBlockOffset = _lastBlock.BlockOffset + _lastBlock.TotalSizeBytes;
+            _transactionFile.AddNewBlockLayout(
+                new AddBlockLayout(
+                    startBlockOffset: newBlockOffset,
+                    regionsQtty: persistentBlockLayout.RegionsQuantity,
+                    regionsSize: persistentBlockLayout.RegionsSize
+                ));
+
+            // This operation modify original file
+            _lastBlock.NextBlockOffset = newBlockOffset;
+
+            _transactionFile.ApplyPendingTransaction();
+        }
+    }
+
     public class PAllocator : IPersistentAllocator, IPersistentObject, IDisposable
     {
-        private readonly PmCSharpDefinedTypes _persistentMemory;
+        internal readonly PmCSharpDefinedTypes PersistentMemory;
+        private readonly TransactionFile _transactionFile;
         private PersistentAllocatorLayout? _persistentAllocatorLayout;
         internal PersistentAllocatorLayout? PersistentAllocatorLayout => _persistentAllocatorLayout;
-        public string FilePath => _persistentMemory.FilePath;
+        public string FilePath => PersistentMemory.FilePath;
         public int MinRegionSizeBytes { get; set; } = 8;
 
-        public PAllocator(PmCSharpDefinedTypes persistentMemory)
+        public PAllocator(PmCSharpDefinedTypes persistentMemory, PmCSharpDefinedTypes transactionFile)
         {
-            _persistentMemory = persistentMemory;
+            PersistentMemory = persistentMemory;
+            _transactionFile = new TransactionFile(transactionFile, this);
         }
 
         public void CreateLayout(PersistentAllocatorLayout persistentBlocksLayout)
@@ -25,10 +116,10 @@ namespace PM.Core.PMemory
                     $"to verify if layout already created.");
             }
 
-            persistentBlocksLayout.PmCSharpDefinedTypes = _persistentMemory;
-            if (_persistentMemory.FileBasedStream.Length < persistentBlocksLayout.TotalSizeBytes)
+            persistentBlocksLayout.PmCSharpDefinedTypes = PersistentMemory;
+            if (PersistentMemory.FileBasedStream.Length < persistentBlocksLayout.TotalSizeBytes)
             {
-                _persistentMemory.Resize(persistentBlocksLayout.TotalSizeBytes);
+                PersistentMemory.Resize(persistentBlocksLayout.TotalSizeBytes);
             }
 
             _persistentAllocatorLayout = persistentBlocksLayout;
@@ -44,8 +135,14 @@ namespace PM.Core.PMemory
                 block.WriteBlockLayoutOnPm();
             }
 
-            _persistentMemory.WriteByte(1, offset: 0); // Write commit byte
+            PersistentMemory.WriteByte(1, offset: 0); // Write commit byte
             Log.Debug("Layout commit byte write. Total blocks created: {blocks}", persistentBlocksLayout.Blocks.Count());
+        }
+
+        public bool IsLayoutCreated()
+        {
+            // Verify Commit byte
+            return PersistentMemory.ReadByte() == 1;
         }
 
         /// <summary>
@@ -53,18 +150,18 @@ namespace PM.Core.PMemory
         /// </summary>
         /// <param name="offset">Block offset</param>
         /// <param name="block">Block layout</param>
-        internal void WriteBlockLayout(int offset, PersistentBlockLayout block)
+        internal void WriteBlockLayout(uint offset, PersistentBlockLayout block)
         {
-            _persistentMemory.WriteByte(block.RegionsQuantity, offset);
+            PersistentMemory.WriteByte(block.RegionsQuantity, offset);
             offset += sizeof(byte);
 
-            _persistentMemory.WriteInt(block.RegionsSize, offset);
+            PersistentMemory.WriteInt(block.RegionsSize, offset);
             offset += sizeof(int);
 
-            _persistentMemory.WriteULong(block.FreeBlocks, offset);
+            PersistentMemory.WriteULong(block.FreeBlocks, offset);
             offset += sizeof(ulong);
 
-            _persistentMemory.WriteUInt(block.NextBlockOffset, offset);
+            PersistentMemory.WriteUInt(block.NextBlockOffset, offset);
 
             Log.Debug(
                 "{RegionsQuantity}|{RegionsSize}|{FreeBlocks}|{NextBlockOffset}",
@@ -72,12 +169,6 @@ namespace PM.Core.PMemory
                 block.RegionsSize,
                 block.FreeBlocks,
                 block.NextBlockOffset);
-        }
-
-        public bool IsLayoutCreated()
-        {
-            // Verify Commit byte
-            return _persistentMemory.ReadByte() == 1;
         }
 
         public PersistentRegion Alloc(int size)
@@ -121,24 +212,24 @@ namespace PM.Core.PMemory
             var offset = 1u;
             _persistentAllocatorLayout = new PersistentAllocatorLayout
             {
-                PmCSharpDefinedTypes = _persistentMemory
+                PmCSharpDefinedTypes = PersistentMemory
             };
             bool lastBlock;
             do
             {
                 var blockOffset = offset;
-                var regionQuantity = _persistentMemory.ReadByte(offset);
+                var regionQuantity = PersistentMemory.ReadByte(offset);
                 offset += 1;
-                var regionSize = _persistentMemory.ReadInt(offset);
+                var regionSize = PersistentMemory.ReadInt(offset);
                 offset += 4;
-                var freeBlocksBitmap = _persistentMemory.ReadULong(offset);
+                var freeBlocksBitmap = PersistentMemory.ReadULong(offset);
                 offset += 8;
-                var nextBlockOffset = _persistentMemory.ReadUInt(offset);
+                var nextBlockOffset = PersistentMemory.ReadUInt(offset);
                 offset += 4;
 
                 var block = new PersistentBlockLayout(regionSize, regionQuantity)
                 {
-                    PersistentMemory = _persistentMemory,
+                    PersistentMemory = PersistentMemory,
                     FreeBlocks = freeBlocksBitmap,
                     BlockOffset = blockOffset,
                     _nextBlockOffset = nextBlockOffset,
@@ -154,7 +245,7 @@ namespace PM.Core.PMemory
 
         public void Dispose()
         {
-            _persistentMemory?.Dispose();
+            PersistentMemory?.Dispose();
         }
 
         public PersistentRegion GetRegion(uint blockID, int regionIndex)
