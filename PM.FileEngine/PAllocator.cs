@@ -196,7 +196,7 @@ namespace PM.FileEngine
             // Have only one available block
             else if (block.NextBlock == null)
             {
-                if (block.RegionsSize <= regionSize)
+                if (block.RegionsSize >= regionSize && regionSize > block.RegionsSize / 2)
                 {
                     var region = block.GetFreeRegion();
                     if (region != null) return region; // Find a free region
@@ -206,7 +206,7 @@ namespace PM.FileEngine
             // First fit algorithm
             while (block?.NextBlock != null)
             {
-                if (block.RegionsSize <= regionSize)
+                if (block.RegionsSize >= regionSize && regionSize > block.RegionsSize / 2)
                 {
                     var region = block.GetFreeRegion();
                     if (region != null) return region; // Find a free region

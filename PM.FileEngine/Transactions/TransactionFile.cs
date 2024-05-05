@@ -93,10 +93,10 @@ namespace PM.FileEngine.Transactions
                 ApplyPendingTransaction();
             }
 
+            UpdateHeaderBlockType(BlockLayoutType.AddBlock);
             addBlockLayout.WriteTo(_pmTransactionFile);
             _pendingBlockLayout = new WrapperBlockLayout(addBlockLayout);
 
-            UpdateHeaderBlockType(BlockLayoutType.AddBlock);
             ApplyPendingTransaction();
         }
 
@@ -107,10 +107,10 @@ namespace PM.FileEngine.Transactions
                 ApplyPendingTransaction();
             }
 
+            UpdateHeaderBlockType(BlockLayoutType.UpdateFreeBlocksFromBlock);
             updateFreeBlocksFromBlockLayout.WriteTo(_pmTransactionFile);
             _pendingBlockLayout = new WrapperBlockLayout(updateFreeBlocksFromBlockLayout);
 
-            UpdateHeaderBlockType(BlockLayoutType.UpdateFreeBlocksFromBlock);
             ApplyPendingTransaction();
         }
 
@@ -121,10 +121,10 @@ namespace PM.FileEngine.Transactions
                 ApplyPendingTransaction();
             }
 
+            UpdateHeaderBlockType(BlockLayoutType.RemoveBlock);
             removeBlockLayout.WriteTo(_pmTransactionFile);
             _pendingBlockLayout = new WrapperBlockLayout(removeBlockLayout);
 
-            UpdateHeaderBlockType(BlockLayoutType.RemoveBlock);
             ApplyPendingTransaction();
         }
 
@@ -140,10 +140,10 @@ namespace PM.FileEngine.Transactions
                 _pmTransactionFile.IncreaseSize(minSize: updateContentBlockLayout.TotalLength);
             }
 
+            UpdateHeaderBlockType(BlockLayoutType.UpdateContentBlock);
             updateContentBlockLayout.WriteTo(_pmTransactionFile);
             _pendingBlockLayout = new WrapperBlockLayout(updateContentBlockLayout);
 
-            UpdateHeaderBlockType(BlockLayoutType.UpdateContentBlock);
             ApplyPendingTransaction();
         }
 
