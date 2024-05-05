@@ -10,8 +10,9 @@ namespace FileFormatExplain
             stringBuilder.AppendLine(ByteArrayToHexStringConverter.ByteArrayToString(buffer));
 
             stringBuilder.AppendLine($"CommitByte={buffer[0].ToString("X2")}");
+            stringBuilder.AppendLine($"StartBlocksOffset={BitConverter.ToUInt32(buffer, 1).ToString("X8")}");
             var count = 0;
-            var offsetTotal = 1;
+            var offsetTotal = 5;
             while (true)
             {
                 stringBuilder.AppendLine($"========Block {count}========");

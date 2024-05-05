@@ -20,8 +20,7 @@
             return number > 0 && (number & (number - 1)) == 0;
         }
 
-
-        public static int RoundUpPowerOfTwo(int value)
+        public static uint RoundUpPowerOfTwo(uint value)
         {
             if (value <= 0)
             {
@@ -32,7 +31,7 @@
             if ((value & (value - 1)) == 0) return value;
 
             // Find the most significant bit and increment
-            int moreSignificantbit = 1;
+            uint moreSignificantbit = 1;
             while (moreSignificantbit < value)
             {
                 moreSignificantbit <<= 1;

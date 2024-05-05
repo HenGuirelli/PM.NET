@@ -39,6 +39,13 @@ namespace FileFormatExplain
                 Array.Copy(buffer, TransactionFileOffset.UpdateContentBlockContent, content, 0, contentSize);
                 stringBuilder.AppendLine($"Content={ByteArrayToHexStringConverter.ByteArrayToString(content)}");
             }
+            if (buffer[3] == (byte)BlockLayoutType.UpdateFreeBlocksFromBlock)
+            {
+                stringBuilder.AppendLine($"=================UpdateFreeBlocksFromBlock=================");
+                stringBuilder.AppendLine($"CommitByte={buffer[TransactionFileOffset.UpdateFreeBlocksFromBlockLayoutCommitByte].ToString("X2")}");
+                stringBuilder.AppendLine($"StartBlockOffset={BitConverter.ToUInt32(buffer, TransactionFileOffset.UpdateFreeBlocksFromBlockLayoutStartBlockOffset).ToString("X8")}");
+                stringBuilder.AppendLine($"NewFreeBlocks={BitConverter.ToUInt64(buffer, TransactionFileOffset.UpdateFreeBlocksFromBlockLayoutFreeBlocksValue).ToString("X16")}");
+            }
 
             return stringBuilder.ToString();
         }

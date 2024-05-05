@@ -4,6 +4,7 @@
     {
         AddBlock = 1,
         RemoveBlock = 2,
-        UpdateContentBlock = 3
+        UpdateContentBlock = 3,
+        UpdateFreeBlocksFromBlock = 4
     }
 }

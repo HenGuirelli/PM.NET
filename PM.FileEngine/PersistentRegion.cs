@@ -1,5 +1,6 @@
 ﻿using PM.Common;
 using PM.FileEngine;
+using PM.FileEngine.Transactions;
 using Serilog;
 
 namespace PM.Core.PMemory
@@ -31,15 +32,20 @@ namespace PM.Core.PMemory
 
         private readonly PmCSharpDefinedTypes _persistentMemory;
         private readonly PersistentBlockLayout _persistentBlockLayout;
+        private readonly TransactionFile _transactionFile;
 
-        public PersistentRegion(PmCSharpDefinedTypes persistentMemory, uint size, PersistentBlockLayout persistentBlockLayout)
+        public PersistentRegion(
+            PmCSharpDefinedTypes persistentMemory,
+            TransactionFile transactionFile,
+            uint size, PersistentBlockLayout persistentBlockLayout)
         {
             Size = size;
             _persistentMemory = persistentMemory;
             _persistentBlockLayout = persistentBlockLayout;
+            _transactionFile = transactionFile;
         }
 
-        public byte[] GetData(int count, int offset)
+        public byte[] Read(uint? count = null, int? offset = null)
         {
             if (count + offset > Size)
             {
@@ -51,12 +57,12 @@ namespace PM.Core.PMemory
                 throw ex;
             }
 
-            return _persistentMemory.ReadBytes(count, offset + Pointer);
+            return _persistentMemory.ReadBytes(count ?? Size, (offset ?? 0) + Pointer);
         }
 
-        public void Write(byte[] value, int offset)
+        public void Write(byte[] value, int? offset = null)
         {
-            if (value.Length + offset > Size)
+            if (value.Length + (offset ?? 0) > Size)
             {
                 var exceptionMessage = $"Attempt to write in other pmemory region. " +
                     $"Write attempt: {value.Length} bytes in address {Pointer + offset} | " +
@@ -68,8 +74,13 @@ namespace PM.Core.PMemory
 
             Log.Verbose(
                 "Writing {bytes} bytes in address={address} (region offset={offset} | Region={regionIndex} | Block={blockID})",
-                value, offset + Pointer, offset, RegionIndex, _persistentBlockLayout.BlockOffset);
-            _persistentMemory.WriteBytes(value, offset + Pointer);
+                value, (offset ?? 0) + Pointer, offset, RegionIndex, _persistentBlockLayout.BlockOffset);
+            //_persistentMemory.WriteBytes(value, (offset ?? 0) + Pointer);
+            _transactionFile.AddUpdateContentBlockLayout(
+                new UpdateContentBlockLayout(
+                    startBlockOffset: (uint)((offset ?? 0) + Pointer),
+                    contentSize: (uint)value.Length,
+                    content: value));
         }
     }
 }

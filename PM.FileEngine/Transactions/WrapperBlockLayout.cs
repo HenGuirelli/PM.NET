@@ -22,5 +22,11 @@
             BlockLayoutType = BlockLayoutType.UpdateContentBlock;
             Object = updateContentLayout;
         }
+
+        public WrapperBlockLayout(UpdateFreeBlocksFromBlockLayout updateContentLayout)
+        {
+            BlockLayoutType = BlockLayoutType.UpdateFreeBlocksFromBlock;
+            Object = updateContentLayout;
+        }
     }
 }

@@ -3,7 +3,7 @@ using PM.FileEngine.FileFields;
 
 namespace PM.FileEngine.Transactions
 {
-    internal class TransactionFile
+    public class TransactionFile
     {
         public const ushort TransactionFileVersion = 1;
 
@@ -71,6 +71,10 @@ namespace PM.FileEngine.Transactions
             {
                 _pendingBlockLayout = new WrapperBlockLayout(updateContentblock!);
             }
+            if (UpdateFreeBlocksFromBlockLayout.TryLoadFromTransactionFile(_pmTransactionFile, out var updateFreeBlocksFromBlockLayout))
+            {
+                _pendingBlockLayout = new WrapperBlockLayout(updateFreeBlocksFromBlockLayout!);
+            }
         }
 
         public void ApplyPendingTransaction()
@@ -91,6 +95,23 @@ namespace PM.FileEngine.Transactions
 
             addBlockLayout.WriteTo(_pmTransactionFile);
             _pendingBlockLayout = new WrapperBlockLayout(addBlockLayout);
+
+            UpdateHeaderBlockType(BlockLayoutType.AddBlock);
+            ApplyPendingTransaction();
+        }
+
+        public void UpdateFreeBlocksLayout(UpdateFreeBlocksFromBlockLayout updateFreeBlocksFromBlockLayout)
+        {
+            if (HasPendingTransactions)
+            {
+                ApplyPendingTransaction();
+            }
+
+            updateFreeBlocksFromBlockLayout.WriteTo(_pmTransactionFile);
+            _pendingBlockLayout = new WrapperBlockLayout(updateFreeBlocksFromBlockLayout);
+
+            UpdateHeaderBlockType(BlockLayoutType.UpdateFreeBlocksFromBlock);
+            ApplyPendingTransaction();
         }
 
         public void AddRemoveBlockLayout(RemoveBlockLayout removeBlockLayout)
@@ -102,6 +123,9 @@ namespace PM.FileEngine.Transactions
 
             removeBlockLayout.WriteTo(_pmTransactionFile);
             _pendingBlockLayout = new WrapperBlockLayout(removeBlockLayout);
+
+            UpdateHeaderBlockType(BlockLayoutType.RemoveBlock);
+            ApplyPendingTransaction();
         }
 
         public void AddUpdateContentBlockLayout(UpdateContentBlockLayout updateContentBlockLayout)
@@ -118,6 +142,14 @@ namespace PM.FileEngine.Transactions
 
             updateContentBlockLayout.WriteTo(_pmTransactionFile);
             _pendingBlockLayout = new WrapperBlockLayout(updateContentBlockLayout);
+
+            UpdateHeaderBlockType(BlockLayoutType.UpdateContentBlock);
+            ApplyPendingTransaction();
+        }
+
+        private void UpdateHeaderBlockType(BlockLayoutType blockLayout)
+        {
+            _pmTransactionFile.WriteByte((byte)blockLayout, offset: TransactionFileOffset.HeaderBlockType);
         }
     }
 }

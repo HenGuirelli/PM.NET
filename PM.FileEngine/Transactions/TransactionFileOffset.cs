@@ -20,5 +20,9 @@
         public const int UpdateContentBlockStartBlockOffset = 5;
         public const int UpdateContentBlockContentSize = 9;
         public const int UpdateContentBlockContent = 13;
+
+        public const int UpdateFreeBlocksFromBlockLayoutCommitByte = 4;
+        public const int UpdateFreeBlocksFromBlockLayoutStartBlockOffset = 5;
+        public const int UpdateFreeBlocksFromBlockLayoutFreeBlocksValue = 9;
     }
 }

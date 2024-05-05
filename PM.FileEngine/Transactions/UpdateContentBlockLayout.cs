@@ -68,7 +68,11 @@ namespace PM.FileEngine.Transactions
 
         public void ApplyInOriginalFile(PmCSharpDefinedTypes transactionFile, PAllocator pAllocator)
         {
-            throw new NotImplementedException();
+            if (Content.Value != null)
+                pAllocator.PersistentMemory.WriteBytes(Content.Value, offset: StartBlockOffset.Value);
+
+            CommitByte.State = CommitState.CommitedAndWriteOnOriginalFileFinished;
+            transactionFile.WriteByte(CommitByte.Value, offset: TransactionFileOffset.UpdateContentBlockCommitByte);
         }
 
         public void WriteTo(PmCSharpDefinedTypes pmCSharpDefinedTypes)
@@ -84,5 +88,5 @@ namespace PM.FileEngine.Transactions
             CommitByte.Commit();
             pmCSharpDefinedTypes.WriteByte(CommitByte.Value, offset: TransactionFileOffset.UpdateContentBlockCommitByte);
         }
-    }
+    } 
 }

@@ -25,6 +25,12 @@
         public virtual UInt32 Value { get; internal set; }
     }
 
+    public abstract class UInt64Filed : IField<UInt64>
+    {
+        public virtual int Offset { get; internal set; }
+        public virtual UInt64 Value { get; internal set; }
+    }
+
     public abstract class ByteArrayFiled : IField<byte[]?>
     {
         public virtual int Offset { get; internal set; }

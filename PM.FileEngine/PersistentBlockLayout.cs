@@ -1,6 +1,8 @@
 ﻿using PM.Common;
 using PM.FileEngine;
+using PM.FileEngine.Transactions;
 using Serilog;
+using System.Reflection;
 
 namespace PM.Core.PMemory
 {
@@ -65,6 +67,7 @@ namespace PM.Core.PMemory
         internal uint BlockOffset { get; set; }
 
         internal PmCSharpDefinedTypes? PersistentMemory { get; set; }
+        internal TransactionFile? TransactionFile { get; set; }
 
         internal PersistentBlockLayout? NextBlock { get; set; }
 
@@ -92,20 +95,22 @@ namespace PM.Core.PMemory
             Regions = new PersistentRegion[RegionsQuantity];
         }
 
-        internal void Configure()
+        internal void LoadFromPm()
         {
             if (PersistentMemory is null) throw new ApplicationException($"Property {nameof(PersistentMemory)} cannot be null.");
+            if (TransactionFile is null) throw new ApplicationException($"Property {nameof(TransactionFile)} cannot be null.");
 
             for (int i = 0; i < RegionsQuantity; i++)
             {
                 var startPointerOffset = (uint)(BlockHeaderSizeBytes + BlockOffset + (RegionsSize * i));
 
-                var region = Regions[i] = new PersistentRegion(PersistentMemory, RegionsSize, this)
+                var region = Regions[i] = new PersistentRegion(PersistentMemory, TransactionFile, RegionsSize, this)
                 {
                     Pointer = startPointerOffset,
                     IsFree = !BitwiseOperations.VerifyBit(FreeBlocks, i),
                     RegionIndex = i,
                 };
+
                 if (!region.IsFree) _totalRegionsInUse++;
 
                 Log.Verbose(
@@ -135,7 +140,7 @@ namespace PM.Core.PMemory
         /// <returns>Free region or null if all regions are in use</returns>
         public PersistentRegion? GetFreeRegion()
         {
-            if (PersistentMemory is null) throw new ApplicationException($"Property {nameof(PersistentMemory)} cannot be null.");
+            if (TransactionFile is null) throw new ApplicationException($"Property {nameof(TransactionFile)} cannot be null.");
 
             for (uint i = 0; i < RegionsQuantity; i++)
             {
@@ -143,7 +148,7 @@ namespace PM.Core.PMemory
                 if (region.IsFree)
                 {
                     FreeBlocks = (FreeBlocks << 1) + 1;
-                    PersistentMemory.WriteULong(FreeBlocks, BlockOffset + Header_FreeBlockBitmapOffset);
+                    TransactionFile.UpdateFreeBlocksLayout(new UpdateFreeBlocksFromBlockLayout(BlockOffset + Header_FreeBlockBitmapOffset, FreeBlocks));
                     Log.Verbose("Update FreeBlocks value={value} for block={blockID}", FreeBlocks, BlockOffset);
 
                     region.IsFree = false;

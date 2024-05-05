@@ -301,6 +301,18 @@ namespace PM.Common
             return array;
         }
 
+        public byte[] ReadBytes(uint count, long offset = 0)
+        {
+            var array = new byte[count];
+            _pm.Seek(offset, SeekOrigin.Begin);
+            // Cast to (int) because framework limitation...
+            if (_pm.Read(array, 0, (int)count) == 0)
+            {
+                throw new ApplicationException(ReadErrorExceptionMessage);
+            }
+            return array;
+        }
+
         public void WriteBytes(byte[] value, long offset = 0)
         {
             _pm.Seek(offset, SeekOrigin.Begin);
