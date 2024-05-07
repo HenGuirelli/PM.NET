@@ -100,7 +100,7 @@ namespace PM.Core.PMemory
             if (PersistentMemory is null) throw new ApplicationException($"Property {nameof(PersistentMemory)} cannot be null.");
             if (TransactionFile is null) throw new ApplicationException($"Property {nameof(TransactionFile)} cannot be null.");
 
-            for (int i = 0; i < RegionsQuantity; i++)
+            for (byte i = 0; i < RegionsQuantity; i++)
             {
                 var startPointerOffset = (uint)(BlockHeaderSizeBytes + BlockOffset + (RegionsSize * i));
 

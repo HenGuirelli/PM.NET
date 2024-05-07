@@ -28,7 +28,12 @@ namespace PM.Core.PMemory
         /// <summary>
         /// Index of region inside a block
         /// </summary>
-        public int RegionIndex { get; set; }
+        public byte RegionIndex { get; set; }
+
+        /// <summary>
+        /// Block ID of region is storage
+        /// </summary>
+        public uint BlockID => _persistentBlockLayout.BlockOffset;
 
         private readonly PmCSharpDefinedTypes _persistentMemory;
         private readonly PersistentBlockLayout _persistentBlockLayout;
@@ -37,7 +42,8 @@ namespace PM.Core.PMemory
         public PersistentRegion(
             PmCSharpDefinedTypes persistentMemory,
             TransactionFile transactionFile,
-            uint size, PersistentBlockLayout persistentBlockLayout)
+            uint size,
+            PersistentBlockLayout persistentBlockLayout)
         {
             Size = size;
             _persistentMemory = persistentMemory;

@@ -15,7 +15,7 @@ namespace FileFormatExplain
             var offsetTotal = 5;
             while (true)
             {
-                stringBuilder.AppendLine($"========Block {count}========");
+                stringBuilder.AppendLine($"========Block {count} (0x{offsetTotal.ToString("x8")})========");
                 var regionsQuantity = buffer[offsetTotal];
                 offsetTotal += 1;
                 var regionsSize = BitConverter.ToUInt32(buffer, offsetTotal);

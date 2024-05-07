@@ -6,100 +6,15 @@ using Serilog;
 
 namespace PM.FileEngine
 {
-    public interface IPAllocatorAddBlock
-    {
-        void Addblock(PersistentBlockLayout persistentBlockLayout);
-    }
-
-    public interface IPAllocatorRemoveBlock
-    {
-        void Removeblock(PersistentBlockLayout persistentBlockLayout);
-    }
-
-
-    internal class PAllocatorEngineRemove : IPAllocatorRemoveBlock
-    {
-        private PmCSharpDefinedTypes _originalFile;
-        private TransactionFile _transactionFile;
-        private PersistentBlockLayout _firstPersistentBlockLayout;
-
-        public PAllocatorEngineRemove(
-            PmCSharpDefinedTypes originalFile,
-            TransactionFile transactionFile,
-            // Used to get address
-            PersistentBlockLayout firstPersistentBlockLayout)
-        {
-            _originalFile = originalFile;
-            _transactionFile = transactionFile;
-            _firstPersistentBlockLayout = firstPersistentBlockLayout;
-        }
-
-        public void Removeblock(PersistentBlockLayout persistentBlockLayout)
-        {
-            var removedBlock = _firstPersistentBlockLayout;
-            PersistentBlockLayout? beforeBlock = null;
-            PersistentBlockLayout? afterBlock = null;
-            while (removedBlock.NextBlock != null)
-            {
-                if (removedBlock == persistentBlockLayout) break;
-                beforeBlock = removedBlock;
-                removedBlock = removedBlock.NextBlock;
-            }
-
-            _transactionFile.AddRemoveBlockLayout(new RemoveBlockLayout(
-                beforeBlockOffset: beforeBlock?.BlockOffset ?? 0,
-                removedBlockOffset: persistentBlockLayout.BlockOffset,
-                afterBlockOffset: afterBlock?.BlockOffset ?? 0));
-
-            _transactionFile.ApplyPendingTransaction();
-        }
-    }
-
-    internal class PAllocatorEngineAdd : IPAllocatorAddBlock
-    {
-        private readonly PmCSharpDefinedTypes _originalFile;
-        private readonly TransactionFile _transactionFile;
-
-        private PersistentBlockLayout _lastBlock;
-
-        public PAllocatorEngineAdd(
-            PmCSharpDefinedTypes originalFile,
-            TransactionFile transactionFile,
-            // Used to get address
-            PersistentBlockLayout firstPersistentBlockLayout)
-        {
-            _originalFile = originalFile;
-            _transactionFile = transactionFile;
-
-            var block = firstPersistentBlockLayout;
-            while (block.NextBlock != null) { block = block.NextBlock; }
-            _lastBlock = block;
-        }
-
-        public void Addblock(PersistentBlockLayout persistentBlockLayout)
-        {
-            var newBlockOffset = _lastBlock.BlockOffset + _lastBlock.TotalSizeBytes;
-            _transactionFile.AddNewBlockLayout(
-                new AddBlockLayout(
-                    startBlockOffset: newBlockOffset,
-                    regionsQtty: persistentBlockLayout.RegionsQuantity,
-                    regionsSize: persistentBlockLayout.RegionsSize
-                ));
-
-            // This operation modify original file
-            _lastBlock.NextBlockOffset = newBlockOffset;
-
-            _transactionFile.ApplyPendingTransaction();
-        }
-    }
-
     public class PAllocator
     {
         public uint MinRegionSizeBytes { get; set; } = 8;
         public PmCSharpDefinedTypes PersistentMemory { get; }
+        public PersistentBlockLayout? FirstPersistentBlockLayout => _firstPersistentBlockLayout;
+        public bool HasAnyBlocks => _firstPersistentBlockLayout != null;
 
-        private readonly TransactionFile _transactionFile;
         PersistentBlockLayout? _firstPersistentBlockLayout;
+        private readonly TransactionFile _transactionFile;
         private uint _headerStartblocksOffset;
 
         public PAllocator(PmCSharpDefinedTypes persistentMemory, PmCSharpDefinedTypes transactionFile)
@@ -132,7 +47,7 @@ namespace PM.FileEngine
             // has block?
             _headerStartblocksOffset = PersistentMemory.ReadUInt(offset: OriginalFileOffsets.HeaderStartBlocksOffset);
             // Verify if "regions quantity" is equals 0.
-            if (PersistentMemory.ReadByte(offset: _headerStartblocksOffset) == 0) return;
+            if (_headerStartblocksOffset < 5 || PersistentMemory.ReadByte(offset: _headerStartblocksOffset) == 0) return;
 
             LoadBlock(_headerStartblocksOffset);
         }
@@ -237,8 +152,6 @@ namespace PM.FileEngine
                     regionsQtty: regionQuantity,
                     regionsSize: regionSize));
 
-            _transactionFile.ApplyPendingTransaction();
-
             var block = new PersistentBlockLayout(regionSize, regionQuantity: regionQuantity)
             {
                 BlockOffset = startBlockOffset,                
@@ -250,7 +163,7 @@ namespace PM.FileEngine
             if (lastBlock != null)
             {
                 lastBlock.NextBlock = block;
-                lastBlock._nextBlockOffset = block.BlockOffset;
+                lastBlock.NextBlockOffset = block.BlockOffset;
             }
 
             return block;
@@ -270,6 +183,11 @@ namespace PM.FileEngine
 
         internal void WriteBlockLayout(uint offset, PersistentBlockLayout block)
         {
+            if (offset + block.TotalSizeBytes > PersistentMemory.FileBasedStream.Length)
+            {
+                PersistentMemory.IncreaseSize(minSize: offset + block.TotalSizeBytes);
+            }
+
             PersistentMemory.WriteByte(block.RegionsQuantity, offset);
             offset += sizeof(byte);
             
