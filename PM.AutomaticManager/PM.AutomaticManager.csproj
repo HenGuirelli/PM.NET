@@ -8,9 +8,13 @@
 
   <ItemGroup>
     <PackageReference Include="Castle.Core" Version="4.4.1" />
+    <PackageReference Include="Serilog" Version="3.1.1" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PM.Core\PM.Core.csproj" />
     <ProjectReference Include="..\PM.FileEngine\PM.FileEngine.csproj" />
   </ItemGroup>
 

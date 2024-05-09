@@ -1,43 +1,21 @@
-﻿using PM.Core.PMemory;
+﻿using PM.AutomaticManager.Proxies;
+using PM.Core.PMemory;
 using PM.FileEngine;
 using System;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace PM.AutomaticManager
 {
-    internal enum MetadataType
-    {
-        Pointer = 1,
-        Object = 2
-    }
-
-    internal class ObjectMetaDataStructure
-    {
-        public UInt32 BlockID { get; set; }
-        public byte RegionIndex { get; set; }
-        public UInt16 OffsetInnerRegion { get; set; }
-        public UInt32 ObjectSize { get; set; }
-        public string? ObjectUserName { get; set; }
-    }
-
-    internal class MetaDataStructure
-    {
-        public MetadataType MetadataType { get; set; }
-        public ObjectMetaDataStructure? ObjectMetaDataStructure { get; set; }
-    }
-
-
-
     public class PMemoryManager
     {
         private PAllocator _allocator;
         private PersistentRegion _region;
         private volatile int _nextStructureOffset = 0;
 
-        // Cache
-        readonly List<MetaDataStructure> _metaDataStructure = new();
+        // Caches
+        readonly Dictionary<string, MetaDataStructure> _metaDataStructure = new();
+        static readonly Dictionary<Type, ObjectPropertiesInfoMapper> _propertiesMapper = new();
 
         public PMemoryManager(PAllocator allocator)
         {
@@ -76,18 +54,20 @@ namespace PM.AutomaticManager
                                 str.Append((char)@char);
                             }
 
-                            _metaDataStructure.Add(new MetaDataStructure
-                            {
-                                MetadataType = MetadataType.Object,
-                                ObjectMetaDataStructure = new ObjectMetaDataStructure
+                            var objectUserName = str.ToString();
+                            _metaDataStructure.Add(objectUserName,
+                                new MetaDataStructure
                                 {
-                                    BlockID = blockId,
-                                    RegionIndex = regionIndex,
-                                    OffsetInnerRegion = offsetInnerRegion,
-                                    ObjectSize = objectSize,
-                                    ObjectUserName = str.ToString()
-                                }
-                            });
+                                    MetadataType = MetadataType.Object,
+                                    ObjectMetaDataStructure = new ObjectMetaDataStructure
+                                    {
+                                        BlockID = blockId,
+                                        RegionIndex = regionIndex,
+                                        OffsetInnerRegion = offsetInnerRegion,
+                                        ObjectSize = objectSize,
+                                        ObjectUserName = objectUserName
+                                    }
+                                });
                         }
                     }
                 }
@@ -96,12 +76,19 @@ namespace PM.AutomaticManager
 
         public void AddNewObject(string id, object obj)
         {
+            var type = obj.GetType();
+            if (!_propertiesMapper.ContainsKey(type))
+            {
+                _propertiesMapper[type] = new ObjectPropertiesInfoMapper(type);
+            }
+
             var objectBuffer = GetObjectBuffer(obj);
 
             var objectRegion = _allocator.Alloc((uint)objectBuffer.Length);
             var blockId = BitConverter.GetBytes(objectRegion.BlockID);
             var regionIndex = objectRegion.RegionIndex;
-            var offsetInnerRegion = BitConverter.GetBytes((UInt16)0); // Always zero
+            UInt16 offsetInnerRegion = 0;
+            var offsetInnerRegionBytes = BitConverter.GetBytes(offsetInnerRegion); // Always zero
             var objectSizeBytes = BitConverter.GetBytes(objectRegion.RegionIndex);
 
             var buffer = new byte[12 + id.Length];
@@ -109,14 +96,27 @@ namespace PM.AutomaticManager
             buffer[0] = (byte)MetadataType.Object;
             Array.Copy(sourceArray: blockId, sourceIndex: 0, destinationArray: buffer, destinationIndex: 1, length: blockId.Length);
             buffer[5] = regionIndex;
-            Array.Copy(sourceArray: offsetInnerRegion, sourceIndex: 0, destinationArray: buffer, destinationIndex: 6, length: offsetInnerRegion.Length);
+            Array.Copy(sourceArray: offsetInnerRegionBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: 6, length: offsetInnerRegionBytes.Length);
             Array.Copy(sourceArray: objectSizeBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: 8, length: objectSizeBytes.Length);
             Array.Copy(sourceArray: idBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: 12, length: idBytes.Length);
-
 
             objectRegion.Write(objectBuffer);
             _region.Write(buffer, _nextStructureOffset);
             _nextStructureOffset += buffer.Length;
+
+            // Add to cache
+            _metaDataStructure.Add(id, new MetaDataStructure
+            {
+                MetadataType = MetadataType.Object,
+                ObjectMetaDataStructure = new ObjectMetaDataStructure
+                {
+                    BlockID = objectRegion.BlockID,
+                    RegionIndex = regionIndex,
+                    OffsetInnerRegion = offsetInnerRegion,
+                    ObjectSize = (uint)objectBuffer.Length,
+                    ObjectUserName = id
+                }
+            });
         }
 
         private byte[] GetObjectBuffer(object objeto)
@@ -239,6 +239,16 @@ namespace PM.AutomaticManager
             Buffer.BlockCopy(bytes1, 0, resultado, 0, bytes1.Length);
             Buffer.BlockCopy(bytes2, 0, resultado, bytes1.Length, bytes2.Length);
             return resultado;
+        }
+
+        internal void UpdateProperty(PropertyInfo method, object value)
+        {
+            _propertiesMapper[]
+        }
+
+        internal object GetPropertyValue(PropertyInfo method)
+        {
+            throw new NotImplementedException();
         }
     }
 }

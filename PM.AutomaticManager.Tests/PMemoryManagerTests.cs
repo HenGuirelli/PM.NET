@@ -1,7 +1,6 @@
 using FileFormatExplain;
 using PM.Common;
 using PM.Tests.Common;
-using System.Buffers;
 using Xunit.Abstractions;
 
 namespace PM.AutomaticManager.Tests
@@ -37,6 +36,16 @@ namespace PM.AutomaticManager.Tests
             pMemoryManager.AddNewObject("id object to restore later", testobj);
 
             var result = PMemoryDecoder.DecodeHex(pAllocator.ReadOriginalFile());
+
+            Assert.Throws<ArgumentException>(() => pMemoryManager.AddNewObject("id object to restore later", testobj));
+
+            var testobj2 = new TestClass
+            {
+                Int = int.MinValue
+            };
+            pMemoryManager.AddNewObject("other root obj", testobj2);
+
+            result = PMemoryDecoder.DecodeHex(pAllocator.ReadOriginalFile());
         }
 
 

@@ -1,7 +1,9 @@
-﻿using PM.Common;
+﻿using PM.AutomaticManager.Configs;
+using PM.Common;
+using PM.Core;
 using Serilog;
 
-namespace PM.Core.Factories
+namespace PM.AutomaticManager.Factories
 {
     public class PmFactory
     {
