@@ -2,6 +2,7 @@
 using PM.Common;
 using PM.Core;
 using Serilog;
+using System.IO;
 
 namespace PM.AutomaticManager.Factories
 {
@@ -16,6 +17,7 @@ namespace PM.AutomaticManager.Factories
         {
             try
             {
+                size = GetFileSizeOrDefault(pmMemoryMappedFile, size);
                 if (PmGlobalConfiguration.PmTarget == PmTargets.PM)
                 {
                     return new PmMarshalStream(pmMemoryMappedFile, size);
@@ -32,6 +34,15 @@ namespace PM.AutomaticManager.Factories
             }
             throw new ArgumentException(
                 nameof(PmGlobalConfiguration.PmTarget));
+        }
+
+        private static long GetFileSizeOrDefault(string pmMemoryMappedFile, long @default)
+        {
+            if (File.Exists(pmMemoryMappedFile))
+            {
+                return new FileInfo(pmMemoryMappedFile).Length;
+            }
+            return @default;
         }
     }
 }

@@ -6,6 +6,6 @@
         public byte RegionIndex { get; set; }
         public UInt16 OffsetInnerRegion { get; set; }
         public UInt32 ObjectSize { get; set; }
-        public string? ObjectUserName { get; set; }
+        public string? ObjectUserID { get; set; }
     }
 }

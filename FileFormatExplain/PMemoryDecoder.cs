@@ -4,10 +4,11 @@ namespace FileFormatExplain
 {
     public class PMemoryDecoder
     {
-        public static string DecodeHex(byte[] buffer)
+        public static string DecodeHex(byte[] buffer, bool dump = true)
         {
             var stringBuilder = new StringBuilder();
-            stringBuilder.AppendLine(ByteArrayToHexStringConverter.ByteArrayToString(buffer));
+            if (dump)
+                stringBuilder.AppendLine(ByteArrayToHexStringConverter.ByteArrayToString(buffer));
 
             stringBuilder.AppendLine($"CommitByte={buffer[0].ToString("X2")}");
             stringBuilder.AppendLine($"StartBlocksOffset={BitConverter.ToUInt32(buffer, 1).ToString("X8")}");

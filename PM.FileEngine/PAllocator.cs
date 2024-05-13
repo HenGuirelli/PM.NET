@@ -59,6 +59,7 @@ namespace PM.FileEngine
             PersistentBlockLayout? lastBlock = null;
             while (true)
             {
+                var blockOffset = offset;
                 var regionsQuantity = PersistentMemory.ReadByte(offset);
                 offset += sizeof(byte);
                 var regionsSize = PersistentMemory.ReadUInt(offset);
@@ -66,12 +67,15 @@ namespace PM.FileEngine
                 var freeBlocks = PersistentMemory.ReadULong(offset);
                 offset += sizeof(ulong);
                 var nextBlockOffset = PersistentMemory.ReadUInt(offset);
-                offset += sizeof(uint);
+                offset = nextBlockOffset;
 
                 var block = new PersistentBlockLayout(regionsSize, regionsQuantity)
                 {
                     FreeBlocks = freeBlocks,
-                    NextBlockOffset = nextBlockOffset,
+                    _nextBlockOffset = nextBlockOffset,
+                    PersistentMemory = PersistentMemory,
+                    TransactionFile = _transactionFile,
+                    BlockOffset = blockOffset
                 };
 
                 // First block
@@ -87,6 +91,8 @@ namespace PM.FileEngine
                 block.LoadFromPm();
 
                 lastBlock = block;
+
+                if (nextBlockOffset == 0) break;
             }
         }
 
@@ -223,6 +229,22 @@ namespace PM.FileEngine
             using var memstream = new MemoryStream();
             stream.BaseStream.CopyTo(memstream);
             return memstream.ToArray();
+        }
+        
+        public PersistentRegion GetRegion(uint blockId, byte regionIndex)
+        {
+            var blockLayout = _firstPersistentBlockLayout;
+            while (blockLayout != null)
+            {
+                if (blockLayout.BlockOffset == blockId)
+                {
+                    return blockLayout.GetRegion(regionIndex);
+                }
+
+                blockLayout = blockLayout.NextBlock;
+            }
+
+            throw new NotImplementedException();
         }
     }
 }

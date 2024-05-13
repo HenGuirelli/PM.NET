@@ -107,7 +107,7 @@ namespace PM.Core.PMemory
                 var region = Regions[i] = new PersistentRegion(PersistentMemory, TransactionFile, RegionsSize, this)
                 {
                     Pointer = startPointerOffset,
-                    IsFree = !BitwiseOperations.VerifyBit(FreeBlocks, i),
+                    IsFree = !BitwiseOperations.IsBitOn(FreeBlocks, i),
                     RegionIndex = i,
                 };
 

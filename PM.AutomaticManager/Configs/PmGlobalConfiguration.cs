@@ -6,31 +6,32 @@ namespace PM.AutomaticManager.Configs
     {
         public static PmTargets PmTarget { get; set; } = PmTargets.PM;
         public static int CollectFileInterval { get; set; } = 120000;
-        public static string PmMemoryFilePath { get; set; } = Path.Combine(PmInternalsFolder, "PM.NET.FileMemory");
-        public static string PmMemoryFileTransactionPath { get; set; } = Path.Combine(PmInternalsFolder, "PM.NET.FileMemory.Transaction");
+        public static string PmMemoryFilePath { get; set; } = Path.Combine(PmInternalsFolder, "PM.NET.FileMemory.pm");
+        public static string PmMemoryFileTransactionPath { get; set; } = Path.Combine(PmInternalsFolder, "PM.NET.FileMemory.Transaction.pm");
 
         #region PmInternalsFolder
-        private static string _pmInternalsFolder = Path.Combine("pm", "internals");
+        private static string? _pmInternalsFolder;
         private static bool _pmInternalsFolderCreated = false;
         public static string PmInternalsFolder
         {
             get
             {
+                var defaultInternalsFolder = Path.Combine("pm", "internals");
                 if (!_pmInternalsFolderCreated && !Directory.Exists(_pmInternalsFolder))
                 {
-                    Directory.CreateDirectory(_pmInternalsFolder);
+                    Directory.CreateDirectory(_pmInternalsFolder ?? defaultInternalsFolder);
                     _pmInternalsFolderCreated = true;
                 }
-                return _pmInternalsFolder;
+                return _pmInternalsFolder ?? defaultInternalsFolder;
             }
             set
             {
+                _pmInternalsFolder = value;
                 if (!_pmInternalsFolderCreated && !Directory.Exists(_pmInternalsFolder))
                 {
                     Directory.CreateDirectory(_pmInternalsFolder);
                     _pmInternalsFolderCreated = true;
                 }
-                _pmInternalsFolder = value;
             }
         }
         #endregion PmInternalsFolder

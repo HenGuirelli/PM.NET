@@ -1,4 +1,5 @@
 ﻿using Castle.DynamicProxy;
+using PM.Core.PMemory;
 using System.Reflection;
 
 namespace PM.AutomaticManager.Proxies
@@ -7,13 +8,16 @@ namespace PM.AutomaticManager.Proxies
     {
         private readonly Type _targetType;
         private readonly PMemoryManager _memoryManager;
+        private readonly PersistentRegion _persistentRegion;
 
         public PmInterceptor(
+            PersistentRegion persistentRegion,
             PMemoryManager memoryManager,
             Type targetType)
         {
             _targetType = targetType;
             _memoryManager = memoryManager;
+            _persistentRegion = persistentRegion;
         }
 
         public void Intercept(IInvocation invocation)
@@ -27,7 +31,7 @@ namespace PM.AutomaticManager.Proxies
                 if (property != null)
                 {
                     var value = CastleManager.GetValue(invocation);
-                    _memoryManager.UpdateProperty(CastleManager.GetPropertyInfo(invocation), value);
+                    _memoryManager.UpdateProperty(_persistentRegion, _targetType, CastleManager.GetPropertyInfo(invocation), value);
                     invocation.Proceed();
                 }
             }
@@ -36,7 +40,7 @@ namespace PM.AutomaticManager.Proxies
                 var property = GetPropFromMethod(invocation.Method);
                 if (property != null)
                 {
-                    var value = _memoryManager.GetPropertyValue(CastleManager.GetPropertyInfo(invocation));
+                    var value = _memoryManager.GetPropertyValue(_persistentRegion, _targetType, CastleManager.GetPropertyInfo(invocation));
                     if (value is null) return;
 
                     invocation.Proceed();

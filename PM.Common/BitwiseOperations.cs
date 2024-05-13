@@ -2,11 +2,14 @@
 {
     public class BitwiseOperations
     {
-        public static bool VerifyBit(ulong bitmap, int index)
+        public static bool IsBitOn(ulong bitmap, int index)
         {
-            int bitOffset = 7 - (index % 8);
+            if (index < 0 || index >= sizeof(ulong) * 8)
+            {
+                throw new ArgumentOutOfRangeException(nameof(index), "Índice fora do intervalo válido.");
+            }
 
-            byte mask = (byte)(1 << bitOffset);
+            ulong mask = (ulong)1 << index;
 
             return (bitmap & mask) != 0;
         }
