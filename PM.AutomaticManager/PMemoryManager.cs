@@ -1,5 +1,6 @@
 ﻿using PM.Core.PMemory;
 using PM.FileEngine;
+using Serilog;
 using System.Buffers.Binary;
 using System.Linq;
 using System.Reflection;
@@ -334,7 +335,7 @@ namespace PM.AutomaticManager
             }
         }
 
-        internal object GetPropertyValue(PersistentRegion persistentRegion, Type targetType, PropertyInfo property)
+        internal object? GetPropertyValue(PersistentRegion persistentRegion, Type targetType, PropertyInfo property)
         {
             var mapper = _propertiesMapper[targetType];
             var propertyInternalOffset = mapper.GetPropertyOffset(property);
@@ -413,7 +414,7 @@ namespace PM.AutomaticManager
                         BitConverter.ToInt32(byteValue, sizeof(int) * 3)
                     });
                 }
-                if (property.PropertyType == typeof(string))
+                else if (property.PropertyType == typeof(string))
                 {
                     var blockID = persistentRegion.Read(sizeof(uint), offset: propertyInternalOffset);
                     propertyInternalOffset += sizeof(uint);
@@ -433,6 +434,25 @@ namespace PM.AutomaticManager
                         strRegionInternalOffset += 1;
                     }
                     return Encoding.UTF8.GetString(stringBytes.ToArray());
+                }
+                else
+                {
+                    // Complex types
+                    var blockIDBytes = persistentRegion.Read(sizeof(uint), offset: propertyInternalOffset);
+                    var blockId = BitConverter.ToUInt32(blockIDBytes);
+                    if (blockId == 0)
+                    {
+                        Log.Information("Attempt to get a object that have null pointer.");
+                        return null;
+                    }
+                    propertyInternalOffset += sizeof(uint);
+
+                    var regionIndex = persistentRegion.Read(sizeof(byte), offset: propertyInternalOffset)[0];
+                    var objRegion = _allocator.GetRegion(blockId, regionIndex);
+
+                    InnerObjectFactory innerObjectFactory = new();
+                    var obj = innerObjectFactory.CreateInnerObject(objRegion, property.PropertyType);
+                    return obj;
                 }
             }
             // TODO: implement to non-primitive types
