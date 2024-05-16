@@ -155,17 +155,26 @@ namespace PM.AutomaticManager.Tests
             Assert.Null(proxyObj.SelfReferenceObject);
 
             // Post Inner object update
-            proxyObj.SelfReferenceObject = new ComplexClass();
-            proxyObj.SelfReferenceObject.IntVal1 = int.MaxValue;
-            proxyObj.SelfReferenceObject.IntVal2 = int.MinValue;
+            proxyObj.PocoObject = new PocoClass();
+            Assert.NotNull(proxyObj.PocoObject);
+
+            // Proxy should be createad and intercept
+            proxyObj.PocoObject.IntVal1 = int.MaxValue;
+            Assert.Equal(int.MaxValue, proxyObj.PocoObject.IntVal1);
+
 
             var decoded = PMemoryDecoder.DecodeHex(factory.Allocator.ReadOriginalFile(), dump: false);
             _output.WriteLine(decoded);
 
-            Assert.Equal(int.MaxValue, proxyObj.SelfReferenceObject.IntVal1);
-            Assert.Equal(int.MinValue, proxyObj.SelfReferenceObject.IntVal2);
 
             // Pre Inner object update
+
+            // Self reference
+            proxyObj.SelfReferenceObject = new ComplexClass();
+            proxyObj.SelfReferenceObject.IntVal1 = int.MaxValue;
+            proxyObj.SelfReferenceObject.IntVal2 = int.MinValue;
+            Assert.Equal(int.MaxValue, proxyObj.SelfReferenceObject.IntVal1);
+            Assert.Equal(int.MinValue, proxyObj.SelfReferenceObject.IntVal2);
 
             //proxyObj.IntVal1 = int.MaxValue;
             //proxyObj.IntVal2 = int.MinValue;

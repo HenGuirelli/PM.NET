@@ -1,7 +1,9 @@
 ﻿using PM.Core.PMemory;
 using PM.FileEngine;
 using Serilog;
+using System;
 using System.Buffers.Binary;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -201,7 +203,7 @@ namespace PM.AutomaticManager
                 // Se for um valor primitivo, converte para bytes e concatena
                 if (propriedade.PropertyType.IsPrimitive)
                 {
-                    byte[] bytesValor = ObterBytesValor(valorPropriedade);
+                    byte[] bytesValor = GetBytesFromObject(valorPropriedade);
                     bytes = ConcatenarBytes(bytes, bytesValor);
                 }
                 // Se for uma string, converte para bytes UTF-8 e concatena
@@ -235,71 +237,71 @@ namespace PM.AutomaticManager
             return bytes;
         }
 
-        static byte[] ObterBytesValor(object valor)
+        static byte[] GetBytesFromObject(object valor)
         {
-            Type tipo = valor.GetType();
+            Type type = valor.GetType();
 
-            if (tipo == typeof(bool))
+            if (type == typeof(bool))
             {
                 return BitConverter.GetBytes((bool)valor);
             }
-            else if (tipo == typeof(char))
+            else if (type == typeof(char))
             {
                 return BitConverter.GetBytes((char)valor);
             }
-            else if (tipo == typeof(sbyte))
+            else if (type == typeof(sbyte))
             {
                 return new byte[] { (byte)((sbyte)valor) };
             }
-            else if (tipo == typeof(byte))
+            else if (type == typeof(byte))
             {
                 return new byte[] { (byte)valor };
             }
-            else if (tipo == typeof(short))
+            else if (type == typeof(short))
             {
                 return BitConverter.GetBytes((short)valor);
             }
-            else if (tipo == typeof(ushort))
+            else if (type == typeof(ushort))
             {
                 return BitConverter.GetBytes((ushort)valor);
             }
-            else if (tipo == typeof(int))
+            else if (type == typeof(int))
             {
                 return BitConverter.GetBytes((int)valor);
             }
-            else if (tipo == typeof(uint))
+            else if (type == typeof(uint))
             {
                 return BitConverter.GetBytes((uint)valor);
             }
-            else if (tipo == typeof(long))
+            else if (type == typeof(long))
             {
                 return BitConverter.GetBytes((long)valor);
             }
-            else if (tipo == typeof(ulong))
+            else if (type == typeof(ulong))
             {
                 return BitConverter.GetBytes((ulong)valor);
             }
-            else if (tipo == typeof(float))
+            else if (type == typeof(float))
             {
                 return BitConverter.GetBytes((float)valor);
             }
-            else if (tipo == typeof(double))
+            else if (type == typeof(double))
             {
                 return BitConverter.GetBytes((double)valor);
             }
-            else if (tipo == typeof(decimal))
+            else if (type == typeof(decimal))
             {
                 int[] bits = decimal.GetBits((decimal)valor);
                 byte[] bytes = new byte[bits.Length * sizeof(int)];
                 Buffer.BlockCopy(bits, 0, bytes, 0, bytes.Length);
                 return bytes;
             }
-            else if (tipo == typeof(string))
+            else if (type == typeof(string))
             {
                 return Encoding.UTF8.GetBytes((string)valor);
             }
 
-            throw new ArgumentException("Tipo de valor não suportado.");
+            throw new ArgumentException($"Object type not supported {type.Name}");
         }
 
         static byte[] ConcatenarBytes(byte[] bytes1, byte[] bytes2)
@@ -312,21 +314,53 @@ namespace PM.AutomaticManager
 
         internal void UpdateProperty(PersistentRegion persistentRegion, Type targetType, PropertyInfo property, object value)
         {
-            var mapper = _propertiesMapper[targetType];
+            if (!_propertiesMapper.TryGetValue(targetType, out var mapper))
+            {
+                mapper = _propertiesMapper[targetType] = new ObjectPropertiesInfoMapper(targetType);
+            }
+
             var propertyInternalOffset = mapper.GetPropertyOffset(property);
             if (property.PropertyType.IsPrimitive || property.PropertyType == typeof(decimal))
             {
-                persistentRegion.Write(ObterBytesValor(value), offset: propertyInternalOffset);
+                persistentRegion.Write(GetBytesFromObject(value), offset: propertyInternalOffset);
             }
             else
             {
+                // TODO: Add transaction
+
                 var objectPropertiesInfoMapper = new ObjectPropertiesInfoMapper(property.PropertyType);
                 var objectLength = (uint)objectPropertiesInfoMapper.GetTypeSize();
                 var region = _allocator.Alloc(objectLength);
-                // TODO: Add transaction
-                region.Write(ObterBytesValor(value), offset: 0);
-                var blockIdBytes = ObterBytesValor(region.BlockID);
-                var regionIndexBytes = ObterBytesValor(region.RegionIndex);
+                var objectBytes = new byte[objectLength];
+                int i = 0;
+                foreach (var innerProperty in property.PropertyType.GetProperties())
+                {
+                    if (innerProperty.PropertyType.IsPrimitive || innerProperty.PropertyType == typeof(decimal))
+                    {
+                        var propertyValueBytes = GetBytesFromObject(innerProperty.GetValue(value)!);
+                        Buffer.BlockCopy(propertyValueBytes, 0, objectBytes, i, propertyValueBytes.Length);
+                        i += propertyValueBytes.Length;
+                    }
+                    else if (innerProperty.PropertyType == typeof(string))
+                    {
+                        var strValue = (string?)innerProperty.GetValue(value);
+                        if (strValue != null)
+                            region.Write(Encoding.UTF8.GetBytes(strValue), offset: 0);
+                    }
+                    else // Complex class, do recursion
+                    {
+                        //_ = new ObjectPropertiesInfoMapper(property.PropertyType);
+                        var objectValue = innerProperty.GetValue(value);
+                        if (objectValue != null)
+                        {
+                            UpdateProperty(region, property.PropertyType, innerProperty, objectValue);
+                            region.Write(objectBytes, offset: 0);
+                        }
+                    }
+                }
+
+                var blockIdBytes = GetBytesFromObject(region.BlockID);
+                var regionIndexBytes = GetBytesFromObject(region.RegionIndex);
                 persistentRegion.Write(
                     blockIdBytes
                     .Concat(regionIndexBytes)
@@ -337,7 +371,11 @@ namespace PM.AutomaticManager
 
         internal object? GetPropertyValue(PersistentRegion persistentRegion, Type targetType, PropertyInfo property)
         {
-            var mapper = _propertiesMapper[targetType];
+            if (!_propertiesMapper.TryGetValue(targetType, out var mapper))
+            {
+                mapper = _propertiesMapper[targetType] = new ObjectPropertiesInfoMapper(targetType);
+            }
+
             var propertyInternalOffset = mapper.GetPropertyOffset(property);
             if (property.PropertyType.IsPrimitive)
             {
@@ -450,12 +488,11 @@ namespace PM.AutomaticManager
                     var regionIndex = persistentRegion.Read(sizeof(byte), offset: propertyInternalOffset)[0];
                     var objRegion = _allocator.GetRegion(blockId, regionIndex);
 
-                    InnerObjectFactory innerObjectFactory = new();
+                    InnerObjectFactory innerObjectFactory = new(this);
                     var obj = innerObjectFactory.CreateInnerObject(objRegion, property.PropertyType);
                     return obj;
                 }
             }
-            // TODO: implement to non-primitive types
             throw new NotImplementedException();
         }
 

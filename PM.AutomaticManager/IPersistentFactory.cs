@@ -16,7 +16,7 @@ namespace PM.AutomaticManager
         private readonly PmProxyGenerator _generator = new(proxyCacheCount: PmGlobalConfiguration.ProxyCacheCount);
 
         internal PAllocator Allocator { get; set; }
-        private readonly PMemoryManager _pManager;
+        internal PMemoryManager PMemoryManager { get; set; }
 
         public PersistentFactory()
         {
@@ -24,7 +24,7 @@ namespace PM.AutomaticManager
                 PmFactory.CreatePmCSharpDefinedTypes(PmGlobalConfiguration.PmMemoryFilePath),
                 PmFactory.CreatePmCSharpDefinedTypes(PmGlobalConfiguration.PmMemoryFileTransactionPath)
             );
-            _pManager = new(Allocator);
+            PMemoryManager = new(Allocator);
         }
 
         public object CreateRootObject(Type type, string objectUserID)
@@ -32,12 +32,12 @@ namespace PM.AutomaticManager
             if (string.IsNullOrWhiteSpace(objectUserID))
                 throw new ArgumentNullException($"{nameof(objectUserID)} cannot be null");
 
-            if (_pManager.ObjectExists(objectUserID))
+            if (PMemoryManager.ObjectExists(objectUserID))
             {
                 Log.Information("Object user ID '{object}' found in PM. Start loading into memory...", objectUserID);
-                _pManager.RegisterNewObjectPropertiesInfoMapper(type);
-                var persistentRegion = _pManager.GetRegionByObjectUserID(objectUserID);
-                var interceptor = new PmInterceptor(persistentRegion, _pManager, type);
+                PMemoryManager.RegisterNewObjectPropertiesInfoMapper(type);
+                var persistentRegion = PMemoryManager.GetRegionByObjectUserID(objectUserID);
+                var interceptor = new PmInterceptor(persistentRegion, PMemoryManager, type);
                 var obj = _generator.CreateClassProxy(type, interceptor);
                 Log.Information("Object user ID '{object}' load finished", objectUserID);
                 return obj;
@@ -45,8 +45,8 @@ namespace PM.AutomaticManager
             else
             {
                 Log.Information("Object user ID '{object}' not found in PM. Start creation...", objectUserID);
-                var persistentRegion = _pManager.AllocRootObjectByType(type, objectUserID);
-                var interceptor = new PmInterceptor(persistentRegion, _pManager, type);
+                var persistentRegion = PMemoryManager.AllocRootObjectByType(type, objectUserID);
+                var interceptor = new PmInterceptor(persistentRegion, PMemoryManager, type);
                 var obj = _generator.CreateClassProxy(type, interceptor);
                 Log.Information("Object user ID '{object}' creating finished", objectUserID);
                 return obj;
