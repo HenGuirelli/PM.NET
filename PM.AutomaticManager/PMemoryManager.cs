@@ -459,11 +459,15 @@ namespace PM.AutomaticManager
                 }
                 else if (property.PropertyType == typeof(string))
                 {
-                    var blockID = persistentRegion.Read(sizeof(uint), offset: propertyInternalOffset);
+                    var blockIDBytes = persistentRegion.Read(sizeof(uint), offset: propertyInternalOffset);
                     propertyInternalOffset += sizeof(uint);
                     var regionIndex = persistentRegion.Read(sizeof(byte), offset: propertyInternalOffset)[0];
 
-                    var strRegion = _allocator.GetRegion(BitConverter.ToUInt32(blockID), regionIndex);
+                    var blockId = BitConverter.ToUInt32(blockIDBytes);
+                    // Dont have pointer
+                    if (blockId == 0) return null;
+
+                    var strRegion = _allocator.GetRegion(blockId, regionIndex);
 
                     var stringBytes = new List<byte>();
                     var strRegionInternalOffset = 0;

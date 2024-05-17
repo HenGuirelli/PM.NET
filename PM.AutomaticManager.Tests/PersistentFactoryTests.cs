@@ -75,7 +75,7 @@ namespace PM.AutomaticManager.Tests
 
             proxyObj.IntVal1 = int.MinValue;
             Assert.Equal(int.MinValue, proxyObj.IntVal1);
-            
+
             decoded = PMemoryDecoder.DecodeHex(factory.Allocator.ReadOriginalFile(), dump: false);
             _output.WriteLine(decoded);
 
@@ -128,6 +128,7 @@ namespace PM.AutomaticManager.Tests
             Assert.Equal(decimal.MaxValue, proxyObj.DecimalVal1);
             Assert.Equal(decimal.MinValue, proxyObj.DecimalVal2);
 
+            Assert.Null(proxyObj.StringVal1);
             proxyObj.StringVal1 = "Hello";
             proxyObj.StringVal2 = "World";
             Assert.Equal("Hello", proxyObj.StringVal1);
