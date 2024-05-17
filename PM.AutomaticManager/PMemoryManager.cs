@@ -1,10 +1,6 @@
 ﻿using PM.Core.PMemory;
 using PM.FileEngine;
 using Serilog;
-using System;
-using System.Buffers.Binary;
-using System.Drawing;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -312,7 +308,7 @@ namespace PM.AutomaticManager
             return resultado;
         }
 
-        internal void UpdateProperty(PersistentRegion persistentRegion, Type targetType, PropertyInfo property, object value)
+        internal void UpdateProperty(PersistentRegion persistentRegion, Type targetType, PropertyInfo property, object? value)
         {
             if (!_propertiesMapper.TryGetValue(targetType, out var mapper))
             {
@@ -323,6 +319,21 @@ namespace PM.AutomaticManager
             if (property.PropertyType.IsPrimitive || property.PropertyType == typeof(decimal))
             {
                 persistentRegion.Write(GetBytesFromObject(value), offset: propertyInternalOffset);
+            }
+            else if (property.PropertyType == typeof(string))
+            {
+                var strValue = (string)value;
+                var objectBytes = Encoding.UTF8.GetBytes(strValue);
+                var region = _allocator.Alloc((uint)objectBytes.Length);
+                region.Write(objectBytes, offset: 0);
+
+                var blockIdBytes = GetBytesFromObject(region.BlockID);
+                var regionIndexBytes = GetBytesFromObject(region.RegionIndex);
+                persistentRegion.Write(
+                    blockIdBytes
+                    .Concat(regionIndexBytes)
+                    .ToArray(),
+                    offset: propertyInternalOffset);
             }
             else
             {
@@ -340,12 +351,6 @@ namespace PM.AutomaticManager
                         var propertyValueBytes = GetBytesFromObject(innerProperty.GetValue(value)!);
                         Buffer.BlockCopy(propertyValueBytes, 0, objectBytes, i, propertyValueBytes.Length);
                         i += propertyValueBytes.Length;
-                    }
-                    else if (innerProperty.PropertyType == typeof(string))
-                    {
-                        var strValue = (string?)innerProperty.GetValue(value);
-                        if (strValue != null)
-                            region.Write(Encoding.UTF8.GetBytes(strValue), offset: 0);
                     }
                     else // Complex class, do recursion
                     {
@@ -506,7 +511,7 @@ namespace PM.AutomaticManager
             var metaDataStructure = _metaDataStructure[objectUserID];
             if (metaDataStructure.MetadataType == MetadataType.Object)
             {
-                if (metaDataStructure.ObjectMetaDataStructure is null) 
+                if (metaDataStructure.ObjectMetaDataStructure is null)
                     throw new ApplicationException($"{nameof(metaDataStructure.ObjectMetaDataStructure)} cannot be null");
 
                 var blockID = metaDataStructure.ObjectMetaDataStructure.BlockID;

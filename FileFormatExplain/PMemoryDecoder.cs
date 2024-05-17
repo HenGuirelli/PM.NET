@@ -1,10 +1,11 @@
-﻿using System.Text;
+﻿using PM.Common;
+using System.Text;
 
 namespace FileFormatExplain
 {
     public class PMemoryDecoder
     {
-        public static string DecodeHex(byte[] buffer, bool dump = true)
+        public static string DecodeHex(byte[] buffer, bool dump = true, bool ignoreFreeRegions = true)
         {
             var stringBuilder = new StringBuilder();
             if (dump)
@@ -33,6 +34,9 @@ namespace FileFormatExplain
 
                 for (var regionIndex = 0; regionIndex < regionsQuantity; regionIndex++)
                 {
+                    if (ignoreFreeRegions && !BitwiseOperations.IsBitOn(freeBlocks, regionIndex))
+                        continue;
+
                     var regionContent = new byte[regionsSize];
                     Array.Copy(buffer, offsetTotal, regionContent, 0, regionsSize);
                     stringBuilder.AppendLine($"Region {regionIndex}: " + ByteArrayToHexStringConverter.ByteArrayToString(regionContent));

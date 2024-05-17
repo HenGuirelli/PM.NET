@@ -57,5 +57,13 @@ namespace PM.AutomaticManager
         {
             return (T)CreateRootObject(typeof(T), objectUserID);
         }
+
+#if DEBUG
+        internal static void Purge()
+        {
+            File.Delete(PmGlobalConfiguration.PmMemoryFilePath);
+            File.Delete(PmGlobalConfiguration.PmMemoryFileTransactionPath);
+        }
+#endif
     }
 }
