@@ -1,4 +1,5 @@
 ﻿using PM.AutomaticManager.Proxies;
+using PM.AutomaticManager.Tansactions;
 using PM.Core.PMemory;
 using PM.FileEngine;
 using Serilog;
@@ -9,17 +10,18 @@ namespace PM.AutomaticManager
 {
     public class PMemoryManager
     {
-        private readonly PAllocator _allocator;
+        internal PAllocator Allocator { get; }
         private readonly PersistentRegion _metadataRegion;
-        private volatile int _nextStructureOffset = 0;
+        private volatile int _nextMetadataStructureInternalOffset = 0;
 
         // Caches
-        readonly Dictionary<string, MetaDataStructure> _metaDataStructure = new();
+        readonly Dictionary<string, MetaDataStructure> _metaDataStructureByObjectUserID = new();
+        readonly Dictionary<MetadataType, MetaDataStructure> _metaDataStructureByType = new();
         static readonly Dictionary<Type, ObjectPropertiesInfoMapper> _propertiesMapper = new();
 
         public PMemoryManager(PAllocator allocator)
         {
-            _allocator = allocator;
+            Allocator = allocator;
 
             if (!allocator.HasAnyBlocks)
             {
@@ -29,49 +31,91 @@ namespace PM.AutomaticManager
             }
             else
             {
-                _metadataRegion = _allocator.FirstPersistentBlockLayout!.Regions[0];
-                _nextStructureOffset = 0;
+                _metadataRegion = Allocator.FirstPersistentBlockLayout!.Regions[0];
+                _nextMetadataStructureInternalOffset = 0;
                 while (true)
                 {
-                    var metadataType = _metadataRegion.Read(count: 1, offset: _nextStructureOffset)[0]; // Read First metadataStructure
-                    _nextStructureOffset += 1;
-                    if (metadataType != 0) // Have value!!
+                    var initialMetadatastructureOffset = _nextMetadataStructureInternalOffset;
+
+                    var metadataType = _metadataRegion.Read(count: 1, offset: _nextMetadataStructureInternalOffset)[0]; // Read First metadataStructure
+                    _nextMetadataStructureInternalOffset += 1;
+                    var isMetadataValid = Convert.ToBoolean(_metadataRegion.Read(count: 1, offset: _nextMetadataStructureInternalOffset)[0]);
+                    _nextMetadataStructureInternalOffset += 1;
+                    if (metadataType != 0 && isMetadataValid) // Have value!!
                     {
                         if (metadataType == (byte)MetadataType.Object)
                         {
-                            var blockId = BitConverter.ToUInt32(_metadataRegion.Read(count: 4, offset: _nextStructureOffset));
-                            _nextStructureOffset += sizeof(UInt32);
-                            var regionIndex = _metadataRegion.Read(count: 1, offset: _nextStructureOffset)[0];
-                            _nextStructureOffset += sizeof(byte);
-                            var offsetInnerRegion = BitConverter.ToUInt16(_metadataRegion.Read(count: 2, offset: _nextStructureOffset));
-                            _nextStructureOffset += sizeof(UInt16);
-                            var objectSize = BitConverter.ToUInt32(_metadataRegion.Read(count: 4, offset: _nextStructureOffset));
-                            _nextStructureOffset += sizeof(UInt32);
+                            var blockId = BitConverter.ToUInt32(_metadataRegion.Read(count: 4, offset: _nextMetadataStructureInternalOffset));
+                            _nextMetadataStructureInternalOffset += sizeof(UInt32);
+                            var regionIndex = _metadataRegion.Read(count: 1, offset: _nextMetadataStructureInternalOffset)[0];
+                            _nextMetadataStructureInternalOffset += sizeof(byte);
+                            var offsetInnerRegion = BitConverter.ToUInt16(_metadataRegion.Read(count: 2, offset: _nextMetadataStructureInternalOffset));
+                            _nextMetadataStructureInternalOffset += sizeof(UInt16);
+                            var objectSize = BitConverter.ToUInt32(_metadataRegion.Read(count: 4, offset: _nextMetadataStructureInternalOffset));
+                            _nextMetadataStructureInternalOffset += sizeof(UInt32);
                             var stringBytes = new List<byte>();
                             while (true)
                             {
-                                var @byte = _metadataRegion.Read(count: 1, offset: _nextStructureOffset)[0];
+                                var @byte = _metadataRegion.Read(count: 1, offset: _nextMetadataStructureInternalOffset)[0];
 
                                 if (@byte == 0) break;
 
                                 stringBytes.Add(@byte);
-                                _nextStructureOffset += 1;
+                                _nextMetadataStructureInternalOffset += 1;
                             }
 
                             var objectUserID = Encoding.UTF8.GetString(stringBytes.ToArray());
-                            _metaDataStructure.Add(objectUserID,
-                                new MetaDataStructure
+                            var metadataStructure = new MetaDataStructure
+                            {
+                                MetadataType = MetadataType.Object,
+                                ObjectMetaDataStructure = new ObjectMetaDataStructure
                                 {
-                                    MetadataType = MetadataType.Object,
-                                    ObjectMetaDataStructure = new ObjectMetaDataStructure
-                                    {
-                                        BlockID = blockId,
-                                        RegionIndex = regionIndex,
-                                        OffsetInnerRegion = offsetInnerRegion,
-                                        ObjectSize = objectSize,
-                                        ObjectUserID = objectUserID
-                                    }
-                                });
+                                    BlockID = blockId,
+                                    RegionIndex = regionIndex,
+                                    OffsetInnerRegion = offsetInnerRegion,
+                                    ObjectSize = objectSize,
+                                    ObjectUserID = objectUserID
+                                }
+                            };
+
+                            _metaDataStructureByObjectUserID.Add(objectUserID, metadataStructure);
+                            _metaDataStructureByType.Add(metadataStructure.MetadataType, metadataStructure);
+                        }
+
+                        if (metadataType == (byte)MetadataType.Transaction)
+                        {
+                            var blockId = BitConverter.ToUInt32(_metadataRegion.Read(count: 4, offset: _nextMetadataStructureInternalOffset));
+                            _nextMetadataStructureInternalOffset += sizeof(UInt32);
+                            var regionIndex = _metadataRegion.Read(count: 1, offset: _nextMetadataStructureInternalOffset)[0];
+                            _nextMetadataStructureInternalOffset += sizeof(byte);
+                            var offsetInnerRegion = BitConverter.ToUInt16(_metadataRegion.Read(count: 2, offset: _nextMetadataStructureInternalOffset));
+                            _nextMetadataStructureInternalOffset += sizeof(UInt16);
+                            var objectSize = BitConverter.ToUInt32(_metadataRegion.Read(count: 4, offset: _nextMetadataStructureInternalOffset));
+                            _nextMetadataStructureInternalOffset += sizeof(UInt32);
+                            var transactionState = (TransactionState)_metadataRegion.Read(count: 1, offset: _nextMetadataStructureInternalOffset)[0];
+                            _nextMetadataStructureInternalOffset += sizeof(byte);
+                            var transactionBlockIDTarget = BitConverter.ToUInt32(_metadataRegion.Read(count: 4, offset: _nextMetadataStructureInternalOffset));
+                            _nextMetadataStructureInternalOffset += sizeof(UInt32);
+                            var transactionRegionIndexTarget = _metadataRegion.Read(count: 1, offset: _nextMetadataStructureInternalOffset)[0];
+                            _nextMetadataStructureInternalOffset += sizeof(byte);
+
+                            var transactionMetaDataStructure = new TransactionMetaDataStructure(_metadataRegion, (uint)initialMetadatastructureOffset)
+                            {
+                                BlockID = blockId,
+                                RegionIndex = regionIndex,
+                                OffsetInnerRegion = offsetInnerRegion,
+                                ObjectSize = objectSize,
+                                TransactionState = transactionState,
+                                TransactionblockIDTarget = transactionBlockIDTarget,
+                                TransactionRegionIndexTarget = transactionRegionIndexTarget
+                            };
+                            TransactionManager.ApplyPendingTransaction(Allocator, transactionMetaDataStructure);
+                            var metadataStructure = new MetaDataStructure
+                            {
+                                MetadataType = MetadataType.Transaction,
+                                TransactionMetaDataStructure = transactionMetaDataStructure
+                            };
+                            _metaDataStructureByType.Add(metadataStructure.MetadataType, metadataStructure);
                         }
                     }
                     else { break; }
@@ -79,12 +123,81 @@ namespace PM.AutomaticManager
             }
         }
 
+        internal TransactonRegionReturn CreateNewTransactionRegion(object obj, uint objectSize)
+        {
+            var buffer = new byte[19];
+            var bufferOffset = 0;
+            // MetadataType
+            buffer[bufferOffset] = (byte)MetadataType.Transaction;
+            bufferOffset += sizeof(byte);
+            // Valid
+            buffer[bufferOffset] = BitConverter.GetBytes(true)[0];
+            bufferOffset += sizeof(byte);
+            // BlockId
+            if (!CastleManager.TryGetCastleProxyInterceptor(obj, out var pmInterceptor))
+            {
+                throw new ApplicationException("Transaction need occur in persistent object");
+            }
+            var originalBlockId = BitConverter.GetBytes(pmInterceptor!.PersistentRegion.BlockID);
+            Array.Copy(sourceArray: originalBlockId, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: originalBlockId.Length);
+            bufferOffset += sizeof(UInt32);
+            // region index
+            var originalRegionIndex = pmInterceptor.PersistentRegion.RegionIndex;
+            buffer[bufferOffset] = originalRegionIndex;
+            bufferOffset += sizeof(byte);
+            // offsetInnerRegion
+            var offsetInnerRegionBytes = BitConverter.GetBytes((UInt16)0); // Always zero
+            Array.Copy(sourceArray: offsetInnerRegionBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: offsetInnerRegionBytes.Length);
+            bufferOffset += sizeof(UInt16);
+            // objectSize
+            var objectSizeBytes = BitConverter.GetBytes(objectSize);
+            Array.Copy(sourceArray: objectSizeBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: objectSizeBytes.Length);
+            bufferOffset += sizeof(UInt32);
+            // TansactionState
+            byte transactionStateBytes = 0; // Init always 0
+            buffer[bufferOffset] = transactionStateBytes;
+            bufferOffset += sizeof(byte);
+            var transactionRegion = Allocator.Alloc(objectSize);
+            // TransactionBlockIDTarget
+            var transactionBlockIDTarget = BitConverter.GetBytes(transactionRegion.BlockID);
+            Array.Copy(sourceArray: transactionBlockIDTarget, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: transactionBlockIDTarget.Length);
+            bufferOffset += sizeof(UInt32);
+            // TransactionRegionIndexTarget
+            buffer[bufferOffset] = transactionRegion.RegionIndex;
+            bufferOffset += sizeof(byte);
+
+
+            _metadataRegion.Write(buffer, _nextMetadataStructureInternalOffset);
+
+
+            // Add to cache
+            var transactionMetaDataStructure = new TransactionMetaDataStructure(_metadataRegion, (uint)_nextMetadataStructureInternalOffset)
+            {
+                BlockID = transactionRegion.BlockID,
+                RegionIndex = transactionRegion.RegionIndex,
+                OffsetInnerRegion = (UInt16)0,
+                ObjectSize = objectSize,
+                TransactionState = TransactionState.NotStarted,
+                TransactionblockIDTarget = pmInterceptor!.PersistentRegion.BlockID,
+                TransactionRegionIndexTarget = originalRegionIndex
+            };
+            _nextMetadataStructureInternalOffset += buffer.Length;
+            var metadataStructure = new MetaDataStructure
+            {
+                MetadataType = MetadataType.Transaction,
+                TransactionMetaDataStructure = transactionMetaDataStructure
+            };
+            _metaDataStructureByType.Add(metadataStructure.MetadataType, metadataStructure);
+
+            return new TransactonRegionReturn(transactionMetaDataStructure, transactionRegion);
+        }
+
         internal PersistentRegion AllocRootObjectByType(Type type, string objectUserID)
         {
             ObjectPropertiesInfoMapper objectPropertiesInfoMapper = RegisterNewObjectPropertiesInfoMapper(type);
 
             var objectLength = (uint)objectPropertiesInfoMapper.GetTypeSize();
-            PersistentRegion objectRegion = _allocator.Alloc(objectLength);
+            PersistentRegion objectRegion = Allocator.Alloc(objectLength);
             var blockId = BitConverter.GetBytes(objectRegion.BlockID);
             var regionIndex = objectRegion.RegionIndex;
             UInt16 offsetInnerRegion = 0;
@@ -92,22 +205,30 @@ namespace PM.AutomaticManager
             var objectSizeBytes = BitConverter.GetBytes(objectLength);
 
             // 12 = metadata size + object user id length + \0 string byte
-            var buffer = new byte[12 + objectUserID.Length + 1];
+            var buffer = new byte[13 + objectUserID.Length + 1];
+            var bufferOffset = 0;
+            buffer[bufferOffset] = (byte)MetadataType.Object;
+            bufferOffset += sizeof(byte);
+            buffer[bufferOffset] = BitConverter.GetBytes(true)[0];
+            bufferOffset += sizeof(byte);
+            Array.Copy(sourceArray: blockId, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: blockId.Length);
+            bufferOffset += sizeof(UInt32);
+            buffer[bufferOffset] = regionIndex;
+            bufferOffset += sizeof(byte);
+            Array.Copy(sourceArray: offsetInnerRegionBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: offsetInnerRegionBytes.Length);
+            bufferOffset += sizeof(UInt16);
+            Array.Copy(sourceArray: objectSizeBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: objectSizeBytes.Length);
+            bufferOffset += sizeof(UInt32);
             var idBytes = Encoding.UTF8.GetBytes(objectUserID);
-            buffer[0] = (byte)MetadataType.Object;
-            Array.Copy(sourceArray: blockId, sourceIndex: 0, destinationArray: buffer, destinationIndex: 1, length: blockId.Length);
-            buffer[5] = regionIndex;
-            Array.Copy(sourceArray: offsetInnerRegionBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: 6, length: offsetInnerRegionBytes.Length);
-            Array.Copy(sourceArray: objectSizeBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: 8, length: objectSizeBytes.Length);
-            Array.Copy(sourceArray: idBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: 12, length: idBytes.Length);
-            // But \0 character in end of string
-            Array.Copy(sourceArray: new byte[] { (byte)'\0' }, sourceIndex: 0, destinationArray: buffer, destinationIndex: 12 + idBytes.Length, length: 1);
+            Array.Copy(sourceArray: idBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: idBytes.Length);
+            // Put \0 character in end of string
+            Array.Copy(sourceArray: new byte[] { (byte)'\0' }, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset + idBytes.Length, length: 1);
 
-            _metadataRegion.Write(buffer, _nextStructureOffset);
-            _nextStructureOffset += buffer.Length;
+            _metadataRegion.Write(buffer, _nextMetadataStructureInternalOffset);
+            _nextMetadataStructureInternalOffset += buffer.Length;
 
             // Add to cache
-            _metaDataStructure.Add(objectUserID, new MetaDataStructure
+            _metaDataStructureByObjectUserID.Add(objectUserID, new MetaDataStructure
             {
                 MetadataType = MetadataType.Object,
                 ObjectMetaDataStructure = new ObjectMetaDataStructure
@@ -281,7 +402,7 @@ namespace PM.AutomaticManager
                 // TODO: Add transaction
                 var strValue = (string)value;
                 var objectBytes = Encoding.UTF8.GetBytes(strValue);
-                var region = _allocator.Alloc((uint)objectBytes.Length);
+                var region = Allocator.Alloc((uint)objectBytes.Length);
                 region.Write(objectBytes, offset: 0);
 
                 var blockIdBytes = GetBytesFromObject(region.BlockID);
@@ -316,7 +437,7 @@ namespace PM.AutomaticManager
                         .ToArray(),
                         offset: propertyInternalOffset);
                     // 3. Get block to mark region as free region
-                    var blockToRemove = _allocator.GetBlock(blockId);
+                    var blockToRemove = Allocator.GetBlock(blockId);
                     // 4. Mark region as free
                     blockToRemove.MarkRegionAsFree(regionIndex);
 
@@ -340,7 +461,7 @@ namespace PM.AutomaticManager
 
                 var objectPropertiesInfoMapper = new ObjectPropertiesInfoMapper(property.PropertyType);
                 var objectLength = (uint)objectPropertiesInfoMapper.GetTypeSize();
-                var region = _allocator.Alloc(objectLength);
+                var region = Allocator.Alloc(objectLength);
                 var objectBytes = new byte[objectLength];
                 int i = 0;
                 foreach (var innerProperty in property.PropertyType.GetProperties())
@@ -470,7 +591,7 @@ namespace PM.AutomaticManager
                         return null;
                     }
 
-                    var strRegion = _allocator.GetRegion(blockId, regionIndex);
+                    var strRegion = Allocator.GetRegion(blockId, regionIndex);
 
                     var stringBytes = new List<byte>();
                     var strRegionInternalOffset = 0;
@@ -498,7 +619,7 @@ namespace PM.AutomaticManager
                     propertyInternalOffset += sizeof(uint);
 
                     var regionIndex = persistentRegion.Read(sizeof(byte), offset: propertyInternalOffset)[0];
-                    var objRegion = _allocator.GetRegion(blockId, regionIndex);
+                    var objRegion = Allocator.GetRegion(blockId, regionIndex);
 
                     // Create proxy and return
                     InnerObjectFactory innerObjectFactory = new(this);
@@ -512,12 +633,12 @@ namespace PM.AutomaticManager
 
         internal bool ObjectExists(string objectID)
         {
-            return _metaDataStructure.ContainsKey(objectID);
+            return _metaDataStructureByObjectUserID.ContainsKey(objectID);
         }
 
         internal PersistentRegion GetRegionByObjectUserID(string objectUserID)
         {
-            var metaDataStructure = _metaDataStructure[objectUserID];
+            var metaDataStructure = _metaDataStructureByObjectUserID[objectUserID];
             if (metaDataStructure.MetadataType == MetadataType.Object)
             {
                 if (metaDataStructure.ObjectMetaDataStructure is null)
@@ -526,7 +647,7 @@ namespace PM.AutomaticManager
                 var blockID = metaDataStructure.ObjectMetaDataStructure.BlockID;
                 var regionIndex = metaDataStructure.ObjectMetaDataStructure.RegionIndex;
 
-                return _allocator.GetRegion(blockID, regionIndex);
+                return Allocator.GetRegion(blockID, regionIndex);
             }
 
             throw new NotImplementedException();

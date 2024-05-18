@@ -15,8 +15,8 @@ namespace PM.AutomaticManager
     {
         private readonly PmProxyGenerator _generator = new(proxyCacheCount: PmGlobalConfiguration.ProxyCacheCount);
 
-        internal PAllocator Allocator { get; set; }
-        internal PMemoryManager PMemoryManager { get; set; }
+        public PAllocator Allocator { get; }
+        public PMemoryManager PMemoryManager { get; }
 
         public PersistentFactory()
         {
