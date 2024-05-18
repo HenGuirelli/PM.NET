@@ -88,6 +88,10 @@ namespace PM.AutomaticManager.Tests
         [Fact]
         public void OnInterceptAllPrimitiveTypes_ShouldSaveAndGetCorrectValue()
         {
+#if DEBUG
+            PersistentFactory.Purge();
+#endif
+
             PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
 
             var factory = new PersistentFactory();

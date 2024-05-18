@@ -322,6 +322,7 @@ namespace PM.AutomaticManager
             }
             else if (property.PropertyType == typeof(string))
             {
+                // TODO: Add transaction
                 var strValue = (string)value;
                 var objectBytes = Encoding.UTF8.GetBytes(strValue);
                 var region = _allocator.Alloc((uint)objectBytes.Length);
@@ -374,8 +375,9 @@ namespace PM.AutomaticManager
             }
         }
 
-        internal object? GetPropertyValue(PersistentRegion persistentRegion, Type targetType, PropertyInfo property)
+        internal object? GetPropertyValue(PersistentRegion persistentRegion, Type targetType, PropertyInfo property, out bool returnIsProxyObject)
         {
+            returnIsProxyObject = false;
             if (!_propertiesMapper.TryGetValue(targetType, out var mapper))
             {
                 mapper = _propertiesMapper[targetType] = new ObjectPropertiesInfoMapper(targetType);
@@ -465,7 +467,10 @@ namespace PM.AutomaticManager
 
                     var blockId = BitConverter.ToUInt32(blockIDBytes);
                     // Dont have pointer
-                    if (blockId == 0) return null;
+                    if (blockId == 0)
+                    {
+                        return null;
+                    }
 
                     var strRegion = _allocator.GetRegion(blockId, regionIndex);
 
@@ -497,8 +502,10 @@ namespace PM.AutomaticManager
                     var regionIndex = persistentRegion.Read(sizeof(byte), offset: propertyInternalOffset)[0];
                     var objRegion = _allocator.GetRegion(blockId, regionIndex);
 
+                    // Create proxy and return
                     InnerObjectFactory innerObjectFactory = new(this);
                     var obj = innerObjectFactory.CreateInnerObject(objRegion, property.PropertyType);
+                    returnIsProxyObject = true;
                     return obj;
                 }
             }

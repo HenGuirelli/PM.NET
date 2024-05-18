@@ -1,6 +1,5 @@
 ﻿using Castle.DynamicProxy;
 using PM.Core.PMemory;
-using System.Reflection;
 
 namespace PM.AutomaticManager.Proxies
 {
@@ -9,6 +8,9 @@ namespace PM.AutomaticManager.Proxies
         private readonly Type _targetType;
         private readonly PMemoryManager _memoryManager;
         private readonly PersistentRegion _persistentRegion;
+        // Internal objects cache. 
+        // Property name used as index, with prefix "get_" (not used in set)
+        private readonly Dictionary<string, object> _innerObjectsProxyCacheByPropertyName = new();
 
         public PmInterceptor(
             PersistentRegion persistentRegion,
@@ -26,33 +28,30 @@ namespace PM.AutomaticManager.Proxies
             string methodName = method.Name;
             if (method.IsSpecialName && methodName.StartsWith("set_"))
             {
-                var property = GetPropFromMethod(invocation.Method);
-
-                if (property != null)
-                {
-                    var value = CastleManager.GetValue(invocation);
-                    _memoryManager.UpdateProperty(_persistentRegion, _targetType, CastleManager.GetPropertyInfo(invocation), value);
-                    invocation.Proceed();
-                }
+                var value = CastleManager.GetValue(invocation);
+                _memoryManager.UpdateProperty(_persistentRegion, _targetType, CastleManager.GetPropertyInfo(invocation), value);
+                invocation.Proceed();
             }
             else if (method.IsSpecialName && methodName.StartsWith("get_"))
             {
-                var property = GetPropFromMethod(invocation.Method);
-                if (property != null)
+                if (_innerObjectsProxyCacheByPropertyName.TryGetValue(methodName, out var proxyObject))
                 {
-                    var value = _memoryManager.GetPropertyValue(_persistentRegion, _targetType, CastleManager.GetPropertyInfo(invocation));
-                    if (value is null) return;
-
                     invocation.Proceed();
-                    invocation.ReturnValue = value;
+                    invocation.ReturnValue = proxyObject;
+                    return;
                 }
-            }
-        }
 
-        private object GetPropFromMethod(MethodInfo method)
-        {
-            // TODO: optimize with cache
-            return _targetType.GetProperty(method.Name[4..]);
+                var value = _memoryManager.GetPropertyValue(_persistentRegion, _targetType, CastleManager.GetPropertyInfo(invocation), out var returnIsProxyObject);
+                if (value is null) return;
+
+                if (returnIsProxyObject)
+                {
+                    _innerObjectsProxyCacheByPropertyName[methodName] = value;
+                }
+
+                invocation.Proceed();
+                invocation.ReturnValue = value;
+            }
         }
     }
 }
