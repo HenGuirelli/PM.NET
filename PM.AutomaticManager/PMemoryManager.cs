@@ -362,8 +362,10 @@ namespace PM.AutomaticManager
                             UpdateProperty(region, property.PropertyType, innerProperty, objectValue);
                             region.Write(objectBytes, offset: 0);
                         }
+                        i += 5;
                     }
                 }
+                region.Write(objectBytes, offset: 0);
 
                 var blockIdBytes = GetBytesFromObject(region.BlockID);
                 var regionIndexBytes = GetBytesFromObject(region.RegionIndex);
