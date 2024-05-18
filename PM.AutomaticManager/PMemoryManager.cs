@@ -79,51 +79,6 @@ namespace PM.AutomaticManager
             }
         }
 
-        public void AddNewObject(string objectUserID, object obj)
-        {
-            var type = obj.GetType();
-            if (!_propertiesMapper.ContainsKey(type))
-            {
-                _propertiesMapper[type] = new ObjectPropertiesInfoMapper(type);
-            }
-
-            var objectBuffer = GetObjectBuffer(obj);
-
-            var objectRegion = _allocator.Alloc((uint)objectBuffer.Length);
-            var blockId = BitConverter.GetBytes(objectRegion.BlockID);
-            var regionIndex = objectRegion.RegionIndex;
-            UInt16 offsetInnerRegion = 0;
-            var offsetInnerRegionBytes = BitConverter.GetBytes(offsetInnerRegion); // Always zero
-            var objectSizeBytes = BitConverter.GetBytes(objectRegion.RegionIndex);
-
-            var buffer = new byte[12 + objectUserID.Length];
-            var idBytes = Encoding.UTF8.GetBytes(objectUserID);
-            buffer[0] = (byte)MetadataType.Object;
-            Array.Copy(sourceArray: blockId, sourceIndex: 0, destinationArray: buffer, destinationIndex: 1, length: blockId.Length);
-            buffer[5] = regionIndex;
-            Array.Copy(sourceArray: offsetInnerRegionBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: 6, length: offsetInnerRegionBytes.Length);
-            Array.Copy(sourceArray: objectSizeBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: 8, length: objectSizeBytes.Length);
-            Array.Copy(sourceArray: idBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: 12, length: idBytes.Length);
-
-            objectRegion.Write(objectBuffer);
-            _metadataRegion.Write(buffer, _nextStructureOffset);
-            _nextStructureOffset += buffer.Length;
-
-            // Add to cache
-            _metaDataStructure.Add(objectUserID, new MetaDataStructure
-            {
-                MetadataType = MetadataType.Object,
-                ObjectMetaDataStructure = new ObjectMetaDataStructure
-                {
-                    BlockID = objectRegion.BlockID,
-                    RegionIndex = regionIndex,
-                    OffsetInnerRegion = offsetInnerRegion,
-                    ObjectSize = (uint)objectBuffer.Length,
-                    ObjectUserID = objectUserID
-                }
-            });
-        }
-
         internal PersistentRegion AllocRootObjectByType(Type type, string objectUserID)
         {
             ObjectPropertiesInfoMapper objectPropertiesInfoMapper = RegisterNewObjectPropertiesInfoMapper(type);
