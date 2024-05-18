@@ -10,6 +10,8 @@ namespace PM.AutomaticManager.Proxies
 
         private readonly Type _targetType;
         private readonly PMemoryManager _memoryManager;
+        // ==================TODO: MEMORY LEAK HERE ===========================
+        // ================== SHOULD REMOVE FROM CACHE ===================
         // Internal objects cache. 
         // Property name used as index, with prefix "get_" (not used in set)
         private readonly Dictionary<string, object> _innerObjectsProxyCacheByPropertyName = new();
