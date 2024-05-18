@@ -17,7 +17,7 @@ namespace PM.AutomaticManager.Tests
         }
 
         [Fact]
-        public void OnCreateClassProxy()
+        public void OnCreateClassProxy_ShouldIntercept()
         {
             PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
 
@@ -52,7 +52,7 @@ namespace PM.AutomaticManager.Tests
             PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
 
             var factory = new PersistentFactory();
-            var proxyObj = factory.CreateRootObject<PocoClass>("All primitives types");
+            var proxyObj = factory.CreateRootObject<PocoClass>(nameof(OnInterceptAllPrimitiveTypes_ShouldSaveAndGetCorrectValue));
 
             proxyObj.IntVal1 = int.MaxValue;
             proxyObj.IntVal2 = int.MinValue;
@@ -116,7 +116,7 @@ namespace PM.AutomaticManager.Tests
             PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
 
             var factory = new PersistentFactory();
-            var proxyObj = factory.CreateRootObject<ComplexClass>("All primitives types");
+            var proxyObj = factory.CreateRootObject<ComplexClass>(nameof(OnInterceptComplexClass_WithNewObjects_ShouldSaveAndGetCorrectValue));
 
             Assert.Null(proxyObj.SelfReferenceObject);
 
@@ -190,6 +190,71 @@ namespace PM.AutomaticManager.Tests
             };
             Assert.Equal(int.MaxValue, proxyObj.SelfReferenceObject.IntVal1);
             Assert.Equal(int.MinValue, proxyObj.SelfReferenceObject.IntVal2);
+
+            var decoded = PMemoryDecoder.DecodeHex(factory.Allocator.ReadOriginalFile(), dump: false);
+            _output.WriteLine(decoded);
+        }
+
+        [Fact]
+        public void OnInterceptComplexClass_HellReferenceTest()
+        {
+#if DEBUG
+            PersistentFactory.Purge();
+#endif
+
+            PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
+
+            var factory = new PersistentFactory();
+            var proxyObj = factory.CreateRootObject<RootClass>(nameof(OnInterceptComplexClass_HellReferenceTest));
+
+            // ========== Level 1 ==========
+
+            Assert.Null(proxyObj.InnerObject1);
+            Assert.Null(proxyObj.InnerObject2);
+            proxyObj.InnerObject1 = new InnerClass1 { Val = 10 };
+            proxyObj.InnerObject2 = new InnerClass1 { Val = 11 };
+            Assert.Equal(10, proxyObj.InnerObject1.Val);
+            Assert.Equal(11, proxyObj.InnerObject2.Val);
+
+            // ========== Level 2 ==========
+
+            proxyObj.InnerObject1.InnerObject1 = new InnerClass2 { Val = 20 };
+            proxyObj.InnerObject1.InnerObject2 = new InnerClass2 { Val = 21 };
+            proxyObj.InnerObject2.InnerObject1 = new InnerClass2 { Val = 22 };
+            proxyObj.InnerObject2.InnerObject2 = new InnerClass2 { Val = 23 };
+            Assert.Equal(20, proxyObj.InnerObject1.InnerObject1.Val);
+            Assert.Equal(21, proxyObj.InnerObject1.InnerObject2.Val);
+            Assert.Equal(22, proxyObj.InnerObject2.InnerObject1.Val);
+            Assert.Equal(23, proxyObj.InnerObject2.InnerObject2.Val);
+            // Older values still working?
+            Assert.Equal(10, proxyObj.InnerObject1.Val);
+            Assert.Equal(11, proxyObj.InnerObject2.Val);
+
+            // ========== Level 3 ==========
+
+            proxyObj.InnerObject1.InnerObject1.InnerObject1 = new InnerClass3 { Val = 20 };
+            proxyObj.InnerObject1.InnerObject1.InnerObject2 = new InnerClass3 { Val = 21 };
+            proxyObj.InnerObject1.InnerObject2.InnerObject1 = new InnerClass3 { Val = 22 };
+            proxyObj.InnerObject1.InnerObject2.InnerObject2 = new InnerClass3 { Val = 23 };
+            proxyObj.InnerObject2.InnerObject1.InnerObject1 = new InnerClass3 { Val = 24 };
+            proxyObj.InnerObject2.InnerObject1.InnerObject2 = new InnerClass3 { Val = 25 };
+            proxyObj.InnerObject2.InnerObject2.InnerObject1 = new InnerClass3 { Val = 26 };
+            proxyObj.InnerObject2.InnerObject2.InnerObject2 = new InnerClass3 { Val = 27 };
+            Assert.Equal(20, proxyObj.InnerObject1.InnerObject1.InnerObject1.Val);
+            Assert.Equal(21, proxyObj.InnerObject1.InnerObject1.InnerObject2.Val);
+            Assert.Equal(22, proxyObj.InnerObject1.InnerObject2.InnerObject1.Val);
+            Assert.Equal(23, proxyObj.InnerObject1.InnerObject2.InnerObject2.Val);
+            Assert.Equal(24, proxyObj.InnerObject2.InnerObject1.InnerObject1.Val);
+            Assert.Equal(25, proxyObj.InnerObject2.InnerObject1.InnerObject2.Val);
+            Assert.Equal(26, proxyObj.InnerObject2.InnerObject2.InnerObject1.Val);
+            Assert.Equal(27, proxyObj.InnerObject2.InnerObject2.InnerObject2.Val);
+            // Older values still working?
+            Assert.Equal(20, proxyObj.InnerObject1.InnerObject1.Val);
+            Assert.Equal(21, proxyObj.InnerObject1.InnerObject2.Val);
+            Assert.Equal(22, proxyObj.InnerObject2.InnerObject1.Val);
+            Assert.Equal(23, proxyObj.InnerObject2.InnerObject2.Val);
+            Assert.Equal(10, proxyObj.InnerObject1.Val);
+            Assert.Equal(11, proxyObj.InnerObject2.Val);
 
             var decoded = PMemoryDecoder.DecodeHex(factory.Allocator.ReadOriginalFile(), dump: false);
             _output.WriteLine(decoded);

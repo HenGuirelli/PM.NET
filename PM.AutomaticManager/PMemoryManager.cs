@@ -355,12 +355,10 @@ namespace PM.AutomaticManager
                     }
                     else // Complex class, do recursion
                     {
-                        //_ = new ObjectPropertiesInfoMapper(property.PropertyType);
                         var objectValue = innerProperty.GetValue(value);
                         if (objectValue != null)
                         {
                             UpdateProperty(region, property.PropertyType, innerProperty, objectValue);
-                            region.Write(objectBytes, offset: 0);
                         }
                         i += 5;
                     }
