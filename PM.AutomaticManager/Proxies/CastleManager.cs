@@ -8,7 +8,7 @@ namespace PM.AutomaticManager.Proxies
         public static PropertyInfo GetPropertyInfo(IInvocation invocation)
         {
             MethodInfo method = invocation.GetConcreteMethod();
-            return method.DeclaringType?.GetProperty(GetPropertyName(method)) 
+            return method.DeclaringType?.GetProperty(GetPropertyName(method))
                     ?? throw new ArgumentException("Inocation is not a property");
         }
 
@@ -26,6 +26,25 @@ namespace PM.AutomaticManager.Proxies
         public static Type GetPropertyReturnType(IInvocation invocation)
         {
             return invocation.GetConcreteMethod().ReturnType;
+        }
+
+        public static bool TryGetCastleProxyInterceptor(object? obj, out PmInterceptor? pmInterceptor)
+        {
+            pmInterceptor = null;
+            if (obj == null)
+            {
+                return false;
+            }
+
+            if (obj is IProxyTargetAccessor proxyTargetAccessor)
+            {
+                // A proxy object must have only one interceptor of type PmInterceptor
+                var interceptor = (PmInterceptor)proxyTargetAccessor.GetInterceptors().Single(x => x is PmInterceptor);
+                pmInterceptor = interceptor;
+                return true;
+            }
+
+            return false;
         }
     }
 }

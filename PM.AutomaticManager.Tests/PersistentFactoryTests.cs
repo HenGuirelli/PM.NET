@@ -8,7 +8,7 @@ namespace PM.AutomaticManager.Tests
 {
     public class PersistentFactoryTests : UnitTest
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
 
         public PersistentFactoryTests(ITestOutputHelper output)
             : base(output)
@@ -258,6 +258,33 @@ namespace PM.AutomaticManager.Tests
             Assert.Equal(23, proxyObj.InnerObject2.InnerObject2.Val);
             Assert.Equal(10, proxyObj.InnerObject1.Val);
             Assert.Equal(11, proxyObj.InnerObject2.Val);
+
+            var decoded = PMemoryDecoder.DecodeHex(factory.Allocator.ReadOriginalFile(), dump: false);
+            _output.WriteLine(decoded);
+        }
+
+
+        [Fact]
+        public void OnInterceptComplexClass_CircularReference()
+        {
+#if DEBUG
+            PersistentFactory.Purge();
+#endif
+
+            PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
+
+            var factory = new PersistentFactory();
+            var proxyObj = factory.CreateRootObject<ComplexClass>(nameof(OnInterceptComplexClass_CircularReference));
+
+            proxyObj.IntVal1 = int.MinValue;
+            proxyObj.SelfReferenceObject = proxyObj;
+
+            Assert.Equal(int.MinValue, proxyObj.IntVal1);
+            Assert.Equal(int.MinValue, proxyObj.SelfReferenceObject.IntVal1);
+            Assert.Equal(int.MinValue, proxyObj.SelfReferenceObject.SelfReferenceObject.IntVal1);
+            Assert.Equal(int.MinValue, proxyObj.SelfReferenceObject.SelfReferenceObject.SelfReferenceObject.IntVal1);
+            Assert.Equal(int.MinValue, proxyObj.SelfReferenceObject.SelfReferenceObject.SelfReferenceObject.SelfReferenceObject.IntVal1);
+            Assert.Equal(int.MinValue, proxyObj.SelfReferenceObject.SelfReferenceObject.SelfReferenceObject.SelfReferenceObject.SelfReferenceObject.IntVal1);
 
             var decoded = PMemoryDecoder.DecodeHex(factory.Allocator.ReadOriginalFile(), dump: false);
             _output.WriteLine(decoded);

@@ -3,11 +3,12 @@ using PM.Core.PMemory;
 
 namespace PM.AutomaticManager.Proxies
 {
-    internal class PmInterceptor : IInterceptor
+    public class PmInterceptor : IInterceptor
     {
+        internal PersistentRegion PersistentRegion { get; }
+
         private readonly Type _targetType;
         private readonly PMemoryManager _memoryManager;
-        private readonly PersistentRegion _persistentRegion;
         // Internal objects cache. 
         // Property name used as index, with prefix "get_" (not used in set)
         private readonly Dictionary<string, object> _innerObjectsProxyCacheByPropertyName = new();
@@ -19,7 +20,7 @@ namespace PM.AutomaticManager.Proxies
         {
             _targetType = targetType;
             _memoryManager = memoryManager;
-            _persistentRegion = persistentRegion;
+            PersistentRegion = persistentRegion;
         }
 
         public void Intercept(IInvocation invocation)
@@ -29,7 +30,7 @@ namespace PM.AutomaticManager.Proxies
             if (method.IsSpecialName && methodName.StartsWith("set_"))
             {
                 var value = CastleManager.GetValue(invocation);
-                _memoryManager.UpdateProperty(_persistentRegion, _targetType, CastleManager.GetPropertyInfo(invocation), value);
+                _memoryManager.UpdateProperty(PersistentRegion, _targetType, CastleManager.GetPropertyInfo(invocation), value);
                 invocation.Proceed();
             }
             else if (method.IsSpecialName && methodName.StartsWith("get_"))
@@ -41,7 +42,7 @@ namespace PM.AutomaticManager.Proxies
                     return;
                 }
 
-                var value = _memoryManager.GetPropertyValue(_persistentRegion, _targetType, CastleManager.GetPropertyInfo(invocation), out var returnIsProxyObject);
+                var value = _memoryManager.GetPropertyValue(PersistentRegion, _targetType, CastleManager.GetPropertyInfo(invocation), out var returnIsProxyObject);
                 if (value is null) return;
 
                 if (returnIsProxyObject)

@@ -1,4 +1,5 @@
-﻿using PM.Core.PMemory;
+﻿using PM.AutomaticManager.Proxies;
+using PM.Core.PMemory;
 using PM.FileEngine;
 using Serilog;
 using System.Reflection;
@@ -338,6 +339,19 @@ namespace PM.AutomaticManager
             }
             else
             {
+                // Verify if the object already is a proxy object from PM.
+                if (CastleManager.TryGetCastleProxyInterceptor(value, out var pmInterceptor))
+                {
+                    var proxyObjectRegion = pmInterceptor!.PersistentRegion;
+
+                    persistentRegion.Write(
+                        GetBytesFromObject(proxyObjectRegion.BlockID)
+                        .Concat(GetBytesFromObject(proxyObjectRegion.RegionIndex))
+                        .ToArray(),
+                        offset: propertyInternalOffset);
+                    return;
+                }
+
                 // TODO: Add transaction
 
                 var objectPropertiesInfoMapper = new ObjectPropertiesInfoMapper(property.PropertyType);
