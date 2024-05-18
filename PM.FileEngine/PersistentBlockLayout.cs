@@ -1,8 +1,6 @@
 ﻿using PM.Common;
-using PM.FileEngine;
 using PM.FileEngine.Transactions;
 using Serilog;
-using System.Reflection;
 
 namespace PM.Core.PMemory
 {
@@ -142,12 +140,12 @@ namespace PM.Core.PMemory
         {
             if (TransactionFile is null) throw new ApplicationException($"Property {nameof(TransactionFile)} cannot be null.");
 
-            for (uint i = 0; i < RegionsQuantity; i++)
+            for (int i = 0; i < RegionsQuantity; i++)
             {
                 var region = Regions[i];
                 if (region.IsFree)
                 {
-                    FreeBlocks = (FreeBlocks << 1) + 1;
+                    FreeBlocks = FreeBlocks | (1ul << i);
                     TransactionFile.UpdateFreeBlocksLayout(new UpdateFreeBlocksFromBlockLayout(BlockOffset + Header_FreeBlockBitmapOffset, FreeBlocks));
                     Log.Verbose("Update FreeBlocks value={value} for block={blockID}", FreeBlocks, BlockOffset);
 

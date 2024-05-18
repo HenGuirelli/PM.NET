@@ -114,18 +114,9 @@ namespace PM.FileEngine
                 _firstPersistentBlockLayout = block = CreateNewBlock(regionSize);
                 return block.GetFreeRegion()!;
             }
-            // Have only one available block
-            else if (block.NextBlock == null)
-            {
-                if (block.RegionsSize >= regionSize && regionSize > block.RegionsSize / 2)
-                {
-                    var region = block.GetFreeRegion();
-                    if (region != null) return region; // Find a free region
-                }
-            }
 
             // First fit algorithm
-            while (block?.NextBlock != null)
+            while (block != null)
             {
                 if (block.RegionsSize >= regionSize && regionSize > block.RegionsSize / 2)
                 {
@@ -136,7 +127,7 @@ namespace PM.FileEngine
             }
 
             // Not find any region, should create one
-            _firstPersistentBlockLayout = block = CreateNewBlock(regionSize);
+            block = CreateNewBlock(regionSize);
             return block.GetFreeRegion()!;
         }
 
@@ -160,12 +151,12 @@ namespace PM.FileEngine
 
             var block = new PersistentBlockLayout(regionSize, regionQuantity: regionQuantity)
             {
-                BlockOffset = startBlockOffset,                
+                BlockOffset = startBlockOffset,
                 TransactionFile = _transactionFile,
                 PersistentMemory = PersistentMemory
             };
             block.LoadFromPm();
-            
+
             if (lastBlock != null)
             {
                 lastBlock.NextBlock = block;
@@ -196,15 +187,15 @@ namespace PM.FileEngine
 
             PersistentMemory.WriteByte(block.RegionsQuantity, offset);
             offset += sizeof(byte);
-            
+
             PersistentMemory.WriteUInt(block.RegionsSize, offset);
             offset += sizeof(int);
-            
+
             PersistentMemory.WriteULong(block.FreeBlocks, offset);
             offset += sizeof(ulong);
-            
+
             PersistentMemory.WriteUInt(block.NextBlockOffset, offset);
-            
+
             Log.Debug(
                 "{RegionsQuantity}|{RegionsSize}|{FreeBlocks}|{NextBlockOffset}",
                 block.RegionsQuantity,
@@ -230,7 +221,7 @@ namespace PM.FileEngine
             stream.BaseStream.CopyTo(memstream);
             return memstream.ToArray();
         }
-        
+
         public PersistentRegion GetRegion(uint blockId, byte regionIndex)
         {
             var blockLayout = _firstPersistentBlockLayout;
