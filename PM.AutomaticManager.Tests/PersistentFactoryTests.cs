@@ -289,5 +289,28 @@ namespace PM.AutomaticManager.Tests
             var decoded = PMemoryDecoder.DecodeHex(factory.Allocator.ReadOriginalFile(), dump: false);
             _output.WriteLine(decoded);
         }
+
+
+        [Fact]
+        public void OnInterceptComplexClass_ShouldRemoveReferences()
+        {
+#if DEBUG
+            PersistentFactory.Purge();
+#endif
+
+            PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
+
+            var factory = new PersistentFactory();
+            var proxyObj = factory.CreateRootObject<ComplexClass>(nameof(OnInterceptComplexClass_CircularReference));
+
+            proxyObj.SelfReferenceObject = new ComplexClass { IntVal1 = int.MaxValue };
+            Assert.Equal(int.MaxValue, proxyObj.SelfReferenceObject.IntVal1);
+            proxyObj.SelfReferenceObject = null!;
+
+            Assert.Null(proxyObj.SelfReferenceObject);
+
+            var decoded = PMemoryDecoder.DecodeHex(factory.Allocator.ReadOriginalFile(), dump: false);
+            _output.WriteLine(decoded);
+        }
     }
 }

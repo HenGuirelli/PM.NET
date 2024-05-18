@@ -1,5 +1,6 @@
 ﻿using Castle.DynamicProxy;
 using PM.Core.PMemory;
+using System.Reflection;
 
 namespace PM.AutomaticManager.Proxies
 {
@@ -27,15 +28,22 @@ namespace PM.AutomaticManager.Proxies
         {
             var method = invocation.GetConcreteMethod();
             string methodName = method.Name;
+            var methodNameWithouPrefix = GetPropertyName(method);
             if (method.IsSpecialName && methodName.StartsWith("set_"))
             {
                 var value = CastleManager.GetValue(invocation);
                 _memoryManager.UpdateProperty(PersistentRegion, _targetType, CastleManager.GetPropertyInfo(invocation), value);
+
+                // Set property as null. Remove from cache.
+                if (value is null && _innerObjectsProxyCacheByPropertyName.ContainsKey(methodNameWithouPrefix))
+                {
+                    _innerObjectsProxyCacheByPropertyName.Remove(methodNameWithouPrefix);
+                }
                 invocation.Proceed();
             }
             else if (method.IsSpecialName && methodName.StartsWith("get_"))
             {
-                if (_innerObjectsProxyCacheByPropertyName.TryGetValue(methodName, out var proxyObject))
+                if (_innerObjectsProxyCacheByPropertyName.TryGetValue(methodNameWithouPrefix, out var proxyObject))
                 {
                     invocation.Proceed();
                     invocation.ReturnValue = proxyObject;
@@ -47,12 +55,18 @@ namespace PM.AutomaticManager.Proxies
 
                 if (returnIsProxyObject)
                 {
-                    _innerObjectsProxyCacheByPropertyName[methodName] = value;
+                    _innerObjectsProxyCacheByPropertyName[methodNameWithouPrefix] = value;
                 }
 
                 invocation.Proceed();
                 invocation.ReturnValue = value;
             }
+        }
+
+        public static string GetPropertyName(MethodInfo method)
+        {
+            // Remove the prefix "get_" or "set_" from method name
+            return method.Name[4..];
         }
     }
 }

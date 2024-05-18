@@ -138,16 +138,13 @@ namespace PM.Core.PMemory
         /// <returns>Free region or null if all regions are in use</returns>
         public PersistentRegion? GetFreeRegion()
         {
-            if (TransactionFile is null) throw new ApplicationException($"Property {nameof(TransactionFile)} cannot be null.");
-
             for (int i = 0; i < RegionsQuantity; i++)
             {
                 var region = Regions[i];
                 if (region.IsFree)
                 {
                     FreeBlocks = FreeBlocks | (1ul << i);
-                    TransactionFile.UpdateFreeBlocksLayout(new UpdateFreeBlocksFromBlockLayout(BlockOffset + Header_FreeBlockBitmapOffset, FreeBlocks));
-                    Log.Verbose("Update FreeBlocks value={value} for block={blockID}", FreeBlocks, BlockOffset);
+                    UpdateFreeBlocks();
 
                     region.IsFree = false;
                     _totalRegionsInUse++;
@@ -155,6 +152,14 @@ namespace PM.Core.PMemory
                 }
             }
             return null;
+        }
+
+        internal void UpdateFreeBlocks()
+        {
+            if (TransactionFile is null) throw new ApplicationException($"Property {nameof(TransactionFile)} cannot be null.");
+
+            TransactionFile.UpdateFreeBlocksLayout(new UpdateFreeBlocksFromBlockLayout(BlockOffset + Header_FreeBlockBitmapOffset, FreeBlocks));
+            Log.Verbose("Update FreeBlocks value={value} for block={blockID}", FreeBlocks, BlockOffset);
         }
 
         internal PersistentRegion GetRegion(int regionIndex)
@@ -191,6 +196,15 @@ namespace PM.Core.PMemory
                 RegionsSize,
                 FreeBlocks,
                 NextBlockOffset);
+        }
+
+        public void MarkRegionAsFree(byte regionIndex)
+        {
+            // create a bitmap 
+            ulong bitmap = ~(1ul << regionIndex);
+            FreeBlocks = FreeBlocks & bitmap;
+
+            UpdateFreeBlocks();
         }
     }
 }

@@ -14,7 +14,7 @@ namespace PM.AutomaticManager.Proxies
 
         private static string GetPropertyName(MethodInfo method)
         {
-            // Remove o prefixo "get_" ou "set_" do nome do método
+            // Remove the prefix "get_" or "set_" from method name
             return method.Name[4..];
         }
 

@@ -224,18 +224,24 @@ namespace PM.FileEngine
 
         public PersistentRegion GetRegion(uint blockId, byte regionIndex)
         {
+            var block = GetBlock(blockId);
+            return block.GetRegion(regionIndex);
+        }
+
+        public PersistentBlockLayout GetBlock(uint blockId)
+        {
             var blockLayout = _firstPersistentBlockLayout;
             while (blockLayout != null)
             {
                 if (blockLayout.BlockOffset == blockId)
                 {
-                    return blockLayout.GetRegion(regionIndex);
+                    return blockLayout;
                 }
 
                 blockLayout = blockLayout.NextBlock;
             }
 
-            throw new NotImplementedException();
+            throw new ApplicationException($"Block not found. BlockId {blockId}");
         }
     }
 }

@@ -294,6 +294,35 @@ namespace PM.AutomaticManager
             }
             else
             {
+                if (value is null)
+                {
+                    // 1. Read pointer from region to remove;
+                    var blockIDBytes = persistentRegion.Read(sizeof(uint), offset: propertyInternalOffset);
+                    propertyInternalOffset += sizeof(uint);
+                    var regionIndex = persistentRegion.Read(sizeof(byte), offset: propertyInternalOffset)[0];
+
+                    var blockId = BitConverter.ToUInt32(blockIDBytes);
+                    // Dont have pointer
+                    if (blockId == 0)
+                    {
+                        // nothing to do, property already is null
+                        return;
+                    }
+                    // 2. remove region pointer from parent
+                    propertyInternalOffset -= sizeof(uint);
+                    persistentRegion.Write(
+                        GetBytesFromObject((UInt32)0)
+                        .Concat(GetBytesFromObject((byte)0))
+                        .ToArray(),
+                        offset: propertyInternalOffset);
+                    // 3. Get block to mark region as free region
+                    var blockToRemove = _allocator.GetBlock(blockId);
+                    // 4. Mark region as free
+                    blockToRemove.MarkRegionAsFree(regionIndex);
+
+                    return;
+                }
+
                 // Verify if the object already is a proxy object from PM.
                 if (CastleManager.TryGetCastleProxyInterceptor(value, out var pmInterceptor))
                 {
