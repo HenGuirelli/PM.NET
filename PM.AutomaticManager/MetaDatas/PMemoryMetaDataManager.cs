@@ -4,9 +4,9 @@ using PM.Core.PMemory;
 using PM.FileEngine;
 using System.Text;
 
-namespace PM.AutomaticManager
+namespace PM.AutomaticManager.MetaDatas
 {
-    public class PMemoryMetaDataManager
+    internal class PMemoryMetaDataManager
     {
         private readonly PAllocator _allocator;
         private PersistentRegion _metadataRegion;
@@ -64,17 +64,17 @@ namespace PM.AutomaticManager
         private void ReadTransactionMetadata(int initialMetadatastructureOffset)
         {
             var blockId = BitConverter.ToUInt32(_metadataRegion.Read(count: 4, offset: _nextMetadataStructureInternalOffset));
-            _nextMetadataStructureInternalOffset += sizeof(UInt32);
+            _nextMetadataStructureInternalOffset += sizeof(uint);
             var regionIndex = _metadataRegion.Read(count: 1, offset: _nextMetadataStructureInternalOffset)[0];
             _nextMetadataStructureInternalOffset += sizeof(byte);
             var offsetInnerRegion = BitConverter.ToUInt16(_metadataRegion.Read(count: 2, offset: _nextMetadataStructureInternalOffset));
-            _nextMetadataStructureInternalOffset += sizeof(UInt16);
+            _nextMetadataStructureInternalOffset += sizeof(ushort);
             var objectSize = BitConverter.ToUInt32(_metadataRegion.Read(count: 4, offset: _nextMetadataStructureInternalOffset));
-            _nextMetadataStructureInternalOffset += sizeof(UInt32);
+            _nextMetadataStructureInternalOffset += sizeof(uint);
             var transactionState = (TransactionState)_metadataRegion.Read(count: 1, offset: _nextMetadataStructureInternalOffset)[0];
             _nextMetadataStructureInternalOffset += sizeof(byte);
             var transactionBlockIDTarget = BitConverter.ToUInt32(_metadataRegion.Read(count: 4, offset: _nextMetadataStructureInternalOffset));
-            _nextMetadataStructureInternalOffset += sizeof(UInt32);
+            _nextMetadataStructureInternalOffset += sizeof(uint);
             var transactionRegionIndexTarget = _metadataRegion.Read(count: 1, offset: _nextMetadataStructureInternalOffset)[0];
             _nextMetadataStructureInternalOffset += sizeof(byte);
 
@@ -100,13 +100,13 @@ namespace PM.AutomaticManager
         private void ReadObjectMetadata()
         {
             var blockId = BitConverter.ToUInt32(_metadataRegion.Read(count: 4, offset: _nextMetadataStructureInternalOffset));
-            _nextMetadataStructureInternalOffset += sizeof(UInt32);
+            _nextMetadataStructureInternalOffset += sizeof(uint);
             var regionIndex = _metadataRegion.Read(count: 1, offset: _nextMetadataStructureInternalOffset)[0];
             _nextMetadataStructureInternalOffset += sizeof(byte);
             var offsetInnerRegion = BitConverter.ToUInt16(_metadataRegion.Read(count: 2, offset: _nextMetadataStructureInternalOffset));
-            _nextMetadataStructureInternalOffset += sizeof(UInt16);
+            _nextMetadataStructureInternalOffset += sizeof(ushort);
             var objectSize = BitConverter.ToUInt32(_metadataRegion.Read(count: 4, offset: _nextMetadataStructureInternalOffset));
-            _nextMetadataStructureInternalOffset += sizeof(UInt32);
+            _nextMetadataStructureInternalOffset += sizeof(uint);
             var stringBytes = new List<byte>();
             while (true)
             {
@@ -153,19 +153,19 @@ namespace PM.AutomaticManager
             }
             var originalBlockId = BitConverter.GetBytes(pmInterceptor!.PersistentRegion.BlockID);
             Array.Copy(sourceArray: originalBlockId, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: originalBlockId.Length);
-            bufferOffset += sizeof(UInt32);
+            bufferOffset += sizeof(uint);
             // region index
             var originalRegionIndex = pmInterceptor.PersistentRegion.RegionIndex;
             buffer[bufferOffset] = originalRegionIndex;
             bufferOffset += sizeof(byte);
             // offsetInnerRegion
-            var offsetInnerRegionBytes = BitConverter.GetBytes((UInt16)0); // Always zero
+            var offsetInnerRegionBytes = BitConverter.GetBytes((ushort)0); // Always zero
             Array.Copy(sourceArray: offsetInnerRegionBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: offsetInnerRegionBytes.Length);
-            bufferOffset += sizeof(UInt16);
+            bufferOffset += sizeof(ushort);
             // objectSize
             var objectSizeBytes = BitConverter.GetBytes(objectSize);
             Array.Copy(sourceArray: objectSizeBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: objectSizeBytes.Length);
-            bufferOffset += sizeof(UInt32);
+            bufferOffset += sizeof(uint);
             // TansactionState
             byte transactionStateBytes = 0; // Init always 0
             buffer[bufferOffset] = transactionStateBytes;
@@ -174,7 +174,7 @@ namespace PM.AutomaticManager
             // TransactionBlockIDTarget
             var transactionBlockIDTarget = BitConverter.GetBytes(transactionRegion.BlockID);
             Array.Copy(sourceArray: transactionBlockIDTarget, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: transactionBlockIDTarget.Length);
-            bufferOffset += sizeof(UInt32);
+            bufferOffset += sizeof(uint);
             // TransactionRegionIndexTarget
             buffer[bufferOffset] = transactionRegion.RegionIndex;
             bufferOffset += sizeof(byte);
@@ -188,7 +188,7 @@ namespace PM.AutomaticManager
             {
                 BlockID = transactionRegion.BlockID,
                 RegionIndex = transactionRegion.RegionIndex,
-                OffsetInnerRegion = (UInt16)0,
+                OffsetInnerRegion = 0,
                 ObjectSize = objectSize,
                 TransactionState = TransactionState.NotStarted,
                 TransactionblockIDTarget = pmInterceptor!.PersistentRegion.BlockID,
@@ -207,11 +207,11 @@ namespace PM.AutomaticManager
 
         internal PersistentRegion AllocRootObjectByType(Type type, string objectUserID, ObjectPropertiesInfoMapper objectPropertiesInfoMapper)
         {
-            var objectLength = (uint)objectPropertiesInfoMapper.GetTypeSize();
+            var objectLength = objectPropertiesInfoMapper.GetTypeSize();
             PersistentRegion objectRegion = _allocator.Alloc(objectLength);
             var blockId = BitConverter.GetBytes(objectRegion.BlockID);
             var regionIndex = objectRegion.RegionIndex;
-            UInt16 offsetInnerRegion = 0;
+            ushort offsetInnerRegion = 0;
             var offsetInnerRegionBytes = BitConverter.GetBytes(offsetInnerRegion); // Always zero
             var objectSizeBytes = BitConverter.GetBytes(objectLength);
 
@@ -223,13 +223,13 @@ namespace PM.AutomaticManager
             buffer[bufferOffset] = BitConverter.GetBytes(true)[0];
             bufferOffset += sizeof(byte);
             Array.Copy(sourceArray: blockId, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: blockId.Length);
-            bufferOffset += sizeof(UInt32);
+            bufferOffset += sizeof(uint);
             buffer[bufferOffset] = regionIndex;
             bufferOffset += sizeof(byte);
             Array.Copy(sourceArray: offsetInnerRegionBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: offsetInnerRegionBytes.Length);
-            bufferOffset += sizeof(UInt16);
+            bufferOffset += sizeof(ushort);
             Array.Copy(sourceArray: objectSizeBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: objectSizeBytes.Length);
-            bufferOffset += sizeof(UInt32);
+            bufferOffset += sizeof(uint);
             var idBytes = Encoding.UTF8.GetBytes(objectUserID);
             Array.Copy(sourceArray: idBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: idBytes.Length);
             // Put \0 character in end of string

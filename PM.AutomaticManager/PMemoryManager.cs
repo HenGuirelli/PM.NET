@@ -1,4 +1,5 @@
-﻿using PM.AutomaticManager.Proxies;
+﻿using PM.AutomaticManager.MetaDatas;
+using PM.AutomaticManager.Proxies;
 using PM.Core.PMemory;
 using PM.FileEngine;
 using Serilog;

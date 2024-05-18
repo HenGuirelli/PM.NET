@@ -1,4 +1,4 @@
-﻿namespace PM.AutomaticManager
+﻿namespace PM.AutomaticManager.MetaDatas
 {
     internal class MetaDataStructure
     {
