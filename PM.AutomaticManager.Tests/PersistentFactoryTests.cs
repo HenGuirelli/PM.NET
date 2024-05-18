@@ -40,6 +40,9 @@ namespace PM.AutomaticManager.Tests
             Assert.Equal(0, secondObj.IntVal1);
             secondObj.IntVal2 = int.MaxValue;
             Assert.Equal(int.MaxValue, secondObj.IntVal2);
+
+            decoded = PMemoryDecoder.DecodeHex(factory.Allocator.ReadOriginalFile(), dump: false);
+            _output.WriteLine(decoded);
         }
 
         [Fact]

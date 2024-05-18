@@ -45,6 +45,7 @@ namespace FileFormatExplain
 
                 if (nextBlockAddress == 0) break;
                 count++;
+                offsetTotal = (int)nextBlockAddress;
             }
 
 
