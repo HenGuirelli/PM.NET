@@ -37,7 +37,10 @@ namespace PM.AutomaticManager
                 Log.Information("Object user ID '{object}' found in PM. Start loading into memory...", objectUserID);
                 PMemoryManager.RegisterNewObjectPropertiesInfoMapper(type);
                 var persistentRegion = PMemoryManager.GetRegionByObjectUserID(objectUserID);
-                var interceptor = new PmInterceptor(persistentRegion, PMemoryManager, type);
+                var interceptor = new PmInterceptor(persistentRegion, PMemoryManager, type)
+                {
+                    IsRootObject = true
+                };
                 var obj = _generator.CreateClassProxy(type, interceptor);
                 Log.Information("Object user ID '{object}' load finished", objectUserID);
                 return obj;
@@ -46,7 +49,10 @@ namespace PM.AutomaticManager
             {
                 Log.Information("Object user ID '{object}' not found in PM. Start creation...", objectUserID);
                 var persistentRegion = PMemoryManager.AllocRootObjectByType(type, objectUserID);
-                var interceptor = new PmInterceptor(persistentRegion, PMemoryManager, type);
+                var interceptor = new PmInterceptor(persistentRegion, PMemoryManager, type)
+                {
+                    IsRootObject = true
+                };
                 var obj = _generator.CreateClassProxy(type, interceptor);
                 Log.Information("Object user ID '{object}' creating finished", objectUserID);
                 return obj;

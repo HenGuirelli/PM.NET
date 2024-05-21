@@ -11,6 +11,7 @@ namespace PM.AutomaticManager.Proxies
         static bool TrasactionOperation => TransactionPersistentRegion != null;
         [ThreadStatic]
         static private readonly Dictionary<string, object> _transactionInnerObjectsProxyCacheByPropertyName = new();
+        internal bool IsRootObject { get; set; }
 
         internal PersistentRegion PersistentRegion { get; }
         internal Type TargetType { get; }
@@ -34,7 +35,7 @@ namespace PM.AutomaticManager.Proxies
 
         public void Intercept(IInvocation invocation)
         {
-            if (TrasactionOperation)
+            if (TrasactionOperation && IsRootObject)
             {
                 TransactionIntercept(invocation);
             }
