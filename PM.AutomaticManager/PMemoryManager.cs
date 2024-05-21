@@ -12,7 +12,7 @@ namespace PM.AutomaticManager
     {
         internal PAllocator Allocator { get; }
 
-        private readonly PMemoryMetaDataManager _metaDataManager;
+        private readonly PMemoryMetadataManager _metaDataManager;
 
         // Caches
         static readonly Dictionary<Type, ObjectPropertiesInfoMapper> _propertiesMapper = new();
@@ -20,7 +20,7 @@ namespace PM.AutomaticManager
         public PMemoryManager(PAllocator allocator)
         {
             Allocator = allocator;
-            _metaDataManager = new PMemoryMetaDataManager(allocator);
+            _metaDataManager = new PMemoryMetadataManager(allocator);
         }
 
         internal TransactonRegionReturn CreateNewTransactionRegion(object obj, uint objectSize)
@@ -31,7 +31,7 @@ namespace PM.AutomaticManager
         internal PersistentRegion AllocRootObjectByType(Type type, string objectUserID)
         {
             ObjectPropertiesInfoMapper objectPropertiesInfoMapper = RegisterNewObjectPropertiesInfoMapper(type);
-            return _metaDataManager.AllocRootObjectByType(type, objectUserID, objectPropertiesInfoMapper);
+            return _metaDataManager.AllocRootObjectByType(objectUserID, objectPropertiesInfoMapper);
         }
 
         internal ObjectPropertiesInfoMapper RegisterNewObjectPropertiesInfoMapper(Type type)
@@ -429,18 +429,10 @@ namespace PM.AutomaticManager
         internal PersistentRegion GetRegionByObjectUserID(string objectUserID)
         {
             var metaDataStructure = _metaDataManager.GetByObjectUserID(objectUserID);
-            if (metaDataStructure.MetadataType == MetadataType.Object)
-            {
-                if (metaDataStructure.ObjectMetaDataStructure is null)
-                    throw new ApplicationException($"{nameof(metaDataStructure.ObjectMetaDataStructure)} cannot be null");
+            if (metaDataStructure is null)
+                throw new ApplicationException($"{objectUserID} not found");
 
-                var blockID = metaDataStructure.ObjectMetaDataStructure.BlockID;
-                var regionIndex = metaDataStructure.ObjectMetaDataStructure.RegionIndex;
-
-                return Allocator.GetRegion(blockID, regionIndex);
-            }
-
-            throw new NotImplementedException();
+            return Allocator.GetRegion(metaDataStructure.BlockID, metaDataStructure.RegionIndex);
         }
     }
 }

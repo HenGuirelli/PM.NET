@@ -1,4 +1,5 @@
-﻿using PM.AutomaticManager.Proxies;
+﻿using PM.AutomaticManager.MetaDatas;
+using PM.AutomaticManager.Proxies;
 using PM.FileEngine;
 
 namespace PM.AutomaticManager.Tansactions
@@ -69,7 +70,7 @@ namespace PM.AutomaticManager.Tansactions
 
         internal static void ApplyPendingTransaction(PAllocator allocator, TransactionMetaDataStructure transactionMetaDataStructure)
         {
-            var transactionRegion = allocator.GetRegion(transactionMetaDataStructure.TransactionblockIDTarget, transactionMetaDataStructure.TransactionRegionIndexTarget);
+            var transactionRegion = allocator.GetRegion(transactionMetaDataStructure.TransactionBlockIDTarget, transactionMetaDataStructure.TransactionRegionIndexTarget);
             var originalRegion = allocator.GetRegion(transactionMetaDataStructure.BlockID, transactionMetaDataStructure.RegionIndex);
 
             var content = transactionRegion.Read(count: transactionRegion.Size, offset: 0);

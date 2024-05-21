@@ -1,4 +1,5 @@
-﻿using PM.Core.PMemory;
+﻿using PM.AutomaticManager.MetaDatas;
+using PM.Core.PMemory;
 
 namespace PM.AutomaticManager
 {

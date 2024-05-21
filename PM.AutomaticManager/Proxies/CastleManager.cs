@@ -1,4 +1,5 @@
 using Castle.DynamicProxy;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace PM.AutomaticManager.Proxies
@@ -28,7 +29,7 @@ namespace PM.AutomaticManager.Proxies
             return invocation.GetConcreteMethod().ReturnType;
         }
 
-        public static bool TryGetCastleProxyInterceptor(object? obj, out PmInterceptor? pmInterceptor)
+        public static bool TryGetCastleProxyInterceptor(object? obj, [NotNullWhen(true)] out PmInterceptor? pmInterceptor)
         {
             pmInterceptor = null;
             if (obj == null)
