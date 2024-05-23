@@ -65,9 +65,6 @@ namespace PM.AutomaticManager.Tests
             _output.WriteLine(decoded);
         }
 
-        /// <summary>
-        /// fazer com theads e garantir isolamento
-        /// </summary>
         [Fact]
         public void OnTransaction_TrasactionValuesShouldRunOnlyInsideTransaction()
         {
