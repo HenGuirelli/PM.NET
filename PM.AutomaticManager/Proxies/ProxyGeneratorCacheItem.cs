@@ -1,4 +1,5 @@
 ﻿using Castle.DynamicProxy;
+using PM.AutomaticManager.Configs;
 using Serilog;
 using System.Diagnostics;
 
@@ -25,7 +26,7 @@ namespace PM.AutomaticManager.Proxies
                 while (true)
                 {
                     var totalTimeApplication = DateTime.Now - _startTimeApplication;
-                    Log.Information(
+                    Log.Verbose(
                         "Total time app:\t{TotalMilliseconds} " +
                         "Total time GC:\t{ElapsedMilliseconds}",
                         totalTimeApplication.TotalMilliseconds,
@@ -58,34 +59,36 @@ namespace PM.AutomaticManager.Proxies
 
         ~ProxyGeneratorCacheItem()
         {
-            //if (PmGlobalConfiguration.PersistentGCEnable)
-            //{
-            //    _totalTimeOnGC.Start();
-            //    try
-            //    {
-            //        var interceptor = CastleManager.GetInterceptor(Proxy);
+            if (PmGlobalConfiguration.PersistentGCEnable)
+            {
+                _totalTimeOnGC.Start();
+                try
+                {
+                    if (CastleManager.TryGetCastleProxyInterceptor(Proxy, out var interceptor))
+                    {
+                        if (!interceptor.IsRootObject && interceptor.FilePointerCount == 0)
+                        {
+                            Log.Information(
+                                "Removing persistent object at BlockId '{BlockId}' and RegionIndex '{RegionIndex}'",
+                                interceptor.PersistentRegion.BlockID, interceptor.PersistentRegion.RegionIndex);
+                            interceptor.PersistentRegion.Free();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error on destructor object");
+                }
 
-            //        if (interceptor!.FilePointerCount == 0 &&
-            //            interceptor!.FilePointer.EndsWith(PmExtensions.PmInternalFile))
-            //        {
-            //            Log.Verbose("Removing file {filepath} of object {@obj}",
-            //                interceptor!.FilePointer, Proxy);
-            //            FileHandlerManager.CloseAndRemoveFile(interceptor!.PmMemoryMappedFile);
-            //        }
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        Log.Error(ex, "Error on destructor object");
-            //    }
+                if (_pmProxyGenerator.GetCacheCount(_type) < _pmProxyGenerator.MinProxyCacheCount)
+                {
+                    GC.ReRegisterForFinalize(this);
+                    // Reuse proxy
+                    _pmProxyGenerator.EnqueueCache(_type, this);
+                }
 
-            //    if (_pmProxyGenerator.GetCacheCount(_type) < _pmProxyGenerator.MinProxyCacheCount)
-            //    {
-            //        GC.ReRegisterForFinalize(this);
-            //        _pmProxyGenerator.EnqueueCache(_type, this);
-            //    }
-
-            //    _totalTimeOnGC.Stop();
-            //}
+                _totalTimeOnGC.Stop();
+            }
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using PM.Common;
-using PM.FileEngine;
 using PM.FileEngine.Transactions;
 using Serilog;
 
@@ -81,12 +80,17 @@ namespace PM.Core.PMemory
             Log.Verbose(
                 "Writing {bytes} bytes in address={address} (region offset={offset} | Region={regionIndex} | Block={blockID})",
                 value, (offset ?? 0) + Pointer, offset, RegionIndex, _persistentBlockLayout.BlockOffset);
-            //_persistentMemory.WriteBytes(value, (offset ?? 0) + Pointer);
             _transactionFile.AddUpdateContentBlockLayout(
                 new UpdateContentBlockLayout(
                     startBlockOffset: (uint)((offset ?? 0) + Pointer),
                     contentSize: (uint)value.Length,
                     content: value));
+        }
+
+        public void Free()
+        {
+            _transactionFile.UpdateFreeBlocksLayout(
+                new UpdateFreeBlocksFromBlockLayout(BlockID, _persistentBlockLayout.FreeBlocks & ~(1ul << RegionIndex)));
         }
     }
 }

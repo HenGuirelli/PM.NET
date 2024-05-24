@@ -15,6 +15,7 @@ namespace PM.AutomaticManager.Proxies
 
         internal PersistentRegion PersistentRegion { get; }
         internal Type TargetType { get; }
+        public int FilePointerCount { get; internal set; }
 
         private readonly PMemoryManager _memoryManager;
         // ==================TODO: MEMORY LEAK HERE ===========================

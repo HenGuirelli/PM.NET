@@ -75,7 +75,7 @@ namespace PM.AutomaticManager.Tests
             PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
 
             var factory = new PersistentFactory();
-            var proxyObj = factory.CreateRootObject<RootClass>(nameof(OnTransaction_WithMultipleObjects_ShouldDoTransaction));
+            var proxyObj = factory.CreateRootObject<RootClass>(nameof(OnTransaction_TrasactionValuesShouldRunOnlyInsideTransaction));
 
             bool error = false;
 

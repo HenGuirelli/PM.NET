@@ -10,6 +10,7 @@ namespace PM.Tests.Common
     [Collection("PM.UnitTests")]
     public abstract class UnitTest
     {
+        public ITestOutputHelper Output { get; }
         static UnitTest()
         {
             PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
@@ -18,15 +19,16 @@ namespace PM.Tests.Common
 
         public UnitTest(ITestOutputHelper output)
         {
+            Output = output;
             Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Verbose()
-            .WriteTo.TestOutput(output, Serilog.Events.LogEventLevel.Verbose)
+            .MinimumLevel.Information()
+            .WriteTo.TestOutput(Output)
             .CreateLogger();
         }
 
         protected static void ClearFolder()
         {
-            foreach( var filename in Directory.GetFiles(PmGlobalConfiguration.PmInternalsFolder))
+            foreach (var filename in Directory.GetFiles(PmGlobalConfiguration.PmInternalsFolder))
             {
                 File.Delete(filename);
             }

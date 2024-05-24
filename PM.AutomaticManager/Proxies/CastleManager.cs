@@ -40,9 +40,9 @@ namespace PM.AutomaticManager.Proxies
             if (obj is IProxyTargetAccessor proxyTargetAccessor)
             {
                 // A proxy object must have only one interceptor of type PmInterceptor
-                var interceptor = (PmInterceptor)proxyTargetAccessor.GetInterceptors().Single(x => x is PmInterceptor);
+                var interceptor = (PmInterceptor?)proxyTargetAccessor.GetInterceptors().FirstOrDefault(x => x is PmInterceptor);
                 pmInterceptor = interceptor;
-                return true;
+                return pmInterceptor != null;
             }
 
             return false;
