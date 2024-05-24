@@ -42,7 +42,7 @@ namespace PM.AutomaticManager.Tests
         }
 
         [Fact]
-        public void A()
+        public void OnGcCollect_ShouldMarkAsFreeRegion()
         {
 #if DEBUG
             PersistentFactory.Purge();
@@ -51,7 +51,7 @@ namespace PM.AutomaticManager.Tests
             PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
 
             var factory = new PersistentFactory();
-            var proxyObj = factory.CreateRootObject<RootClass>(nameof(A));
+            var proxyObj = factory.CreateRootObject<RootClass>(nameof(OnGcCollect_ShouldMarkAsFreeRegion));
 
             proxyObj.InnerObject1 = new InnerClass1();
             proxyObj.InnerObject2 = new InnerClass1();
