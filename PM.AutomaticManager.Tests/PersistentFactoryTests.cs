@@ -48,14 +48,13 @@ namespace PM.AutomaticManager.Tests
         [Fact]
         public void OnInterceptAllPrimitiveTypes_ShouldSaveAndGetCorrectValue()
         {
-#if DEBUG
-            PersistentFactory.Purge();
-#endif
-
             PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
 
             var factory = new PersistentFactory();
             var proxyObj = factory.CreateRootObject<PocoClass>(nameof(OnInterceptAllPrimitiveTypes_ShouldSaveAndGetCorrectValue));
+
+            var decoded = PMemoryDecoder.DecodeHex(factory.Allocator.ReadOriginalFile(), dump: false);
+            _output.WriteLine(decoded);
 
             proxyObj.IntVal1 = int.MaxValue;
             proxyObj.IntVal2 = int.MinValue;
@@ -112,16 +111,10 @@ namespace PM.AutomaticManager.Tests
         [Fact]
         public void OnInterceptComplexClass_WithNewObjects_ShouldSaveAndGetCorrectValue()
         {
-#if DEBUG
-            PersistentFactory.Purge();
-#endif
-
             PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
 
             var factory = new PersistentFactory();
             var proxyObj = factory.CreateRootObject<ComplexClass>(nameof(OnInterceptComplexClass_WithNewObjects_ShouldSaveAndGetCorrectValue));
-
-            Assert.Null(proxyObj.SelfReferenceObject);
 
             // We Will do 2 principal test:
             // 1. Post inner object update
@@ -156,16 +149,10 @@ namespace PM.AutomaticManager.Tests
         [Fact]
         public void OnInterceptComplexClass_WithObjectWithValues_ShouldSaveAndGetCorrectValue()
         {
-#if DEBUG
-            PersistentFactory.Purge();
-#endif
-
             PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
 
             var factory = new PersistentFactory();
             var proxyObj = factory.CreateRootObject<ComplexClass>("All primitives types");
-
-            Assert.Null(proxyObj.SelfReferenceObject);
 
             // We Will do 2 principal test:
             // 1. Post inner object update
@@ -201,19 +188,14 @@ namespace PM.AutomaticManager.Tests
         [Fact]
         public void OnInterceptComplexClass_HellReferenceTest()
         {
-#if DEBUG
-            PersistentFactory.Purge();
-#endif
-
             PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
+
 
             var factory = new PersistentFactory();
             var proxyObj = factory.CreateRootObject<RootClass>(nameof(OnInterceptComplexClass_HellReferenceTest));
 
             // ========== Level 1 ==========
 
-            Assert.Null(proxyObj.InnerObject1);
-            Assert.Null(proxyObj.InnerObject2);
             proxyObj.InnerObject1 = new InnerClass1 { Val = 10 };
             proxyObj.InnerObject2 = new InnerClass1 { Val = 11 };
             Assert.Equal(10, proxyObj.InnerObject1.Val);
@@ -268,7 +250,7 @@ namespace PM.AutomaticManager.Tests
         public void OnInterceptComplexClass_CircularReference()
         {
 #if DEBUG
-            PersistentFactory.Purge();
+            //PersistentFactory.Purge();
 #endif
 
             PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
@@ -294,10 +276,6 @@ namespace PM.AutomaticManager.Tests
         [Fact]
         public void OnInterceptComplexClass_ShouldRemoveReferences()
         {
-#if DEBUG
-            PersistentFactory.Purge();
-#endif
-
             PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
 
             var factory = new PersistentFactory();

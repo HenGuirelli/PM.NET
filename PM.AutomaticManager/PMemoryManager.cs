@@ -228,8 +228,8 @@ namespace PM.AutomaticManager
                         offset: propertyInternalOffset);
                     // 3. Get block to mark region as free region
                     var blockToRemove = Allocator.GetBlock(blockId);
-                    // 4. Mark region as free
-                    blockToRemove.MarkRegionAsFree(regionIndex);
+                    // 4. Mark region as free --> UPDATE: Wait gc mark as free
+                    //blockToRemove.MarkRegionAsFree(regionIndex);
 
                     return;
                 }
@@ -411,11 +411,22 @@ namespace PM.AutomaticManager
                     var regionIndex = persistentRegion.Read(sizeof(byte), offset: propertyInternalOffset)[0];
                     var objRegion = Allocator.GetRegion(blockId, regionIndex);
 
-                    // Create proxy and return
-                    InnerObjectFactory innerObjectFactory = new(this);
-                    var obj = innerObjectFactory.CreateInnerObject(objRegion, property.PropertyType);
-                    returnIsProxyObject = true;
-                    return obj;
+                    if (_metaDataManager.TryGetRootObjectByBlockIdAndRegionIndex(blockId, regionIndex, out var objectMetaDataStructure))
+                    {
+                        // Referecing another root object (maybe self reference)
+                        PersistentFactory persistentFactory = new PersistentFactory();
+                        var obj = persistentFactory.CreateRootObject(property.PropertyType, objectMetaDataStructure.ObjectUserID);
+                        returnIsProxyObject = true;
+                        return obj;
+                    }
+                    else
+                    {
+                        // Create proxy and return
+                        InnerObjectFactory innerObjectFactory = new(this);
+                        var obj = innerObjectFactory.CreateInnerObject(objRegion, property.PropertyType);
+                        returnIsProxyObject = true;
+                        return obj;
+                    }
                 }
             }
             throw new NotImplementedException();

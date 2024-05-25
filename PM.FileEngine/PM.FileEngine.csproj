@@ -17,5 +17,8 @@
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
 			<_Parameter1>PM.AutomaticManager.Tests</_Parameter1>
 		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>PM.Defraggler.Tests</_Parameter1>
+		</AssemblyAttribute>
 	</ItemGroup>
 </Project>

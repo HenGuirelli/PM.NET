@@ -2,6 +2,7 @@
 using PM.AutomaticManager.Tansactions;
 using PM.Core.PMemory;
 using PM.FileEngine;
+using System.Diagnostics.CodeAnalysis;
 
 namespace PM.AutomaticManager.MetaDatas
 {
@@ -14,7 +15,7 @@ namespace PM.AutomaticManager.MetaDatas
 
         // Caches
         readonly Dictionary<string, MetadataStructure> _metaDataStructureByObjectUserID = new();
-        readonly Dictionary<MetadataType, MetadataStructure> _metaDataStructureByType = new();
+        readonly Dictionary<uint, Dictionary<byte, ObjectMetaDataStructure>> _rootObjectmetaDataStructureByBlockIdAndRegionID = new();
 
         public PMemoryMetadataManager(PAllocator allocator)
         {
@@ -42,12 +43,24 @@ namespace PM.AutomaticManager.MetaDatas
                     if (metadataStructure is ObjectMetaDataStructure objectMetaDataStructure)
                     {
                         _metaDataStructureByObjectUserID.Add(objectMetaDataStructure.ObjectUserID, metadataStructure);
+                        AddRootObjectmetaDataStructureByBlockIdAndRegionIDCache(objectMetaDataStructure);
                     }
 
-                    _metaDataStructureByType.Add(metadataStructure.Type, metadataStructure);
                     _nextMetadataStructureInternalOffset += metadataStructure.Size;
                 }
             }
+        }
+
+        private void AddRootObjectmetaDataStructureByBlockIdAndRegionIDCache(ObjectMetaDataStructure objectMetaDataStructure)
+        {
+            if (!_rootObjectmetaDataStructureByBlockIdAndRegionID.ContainsKey(objectMetaDataStructure.BlockID))
+            {
+                _rootObjectmetaDataStructureByBlockIdAndRegionID[objectMetaDataStructure.BlockID] = new();
+            }
+
+            Dictionary<byte, ObjectMetaDataStructure> blockIdDict = _rootObjectmetaDataStructureByBlockIdAndRegionID[objectMetaDataStructure.BlockID];
+
+            blockIdDict[objectMetaDataStructure.RegionIndex] = objectMetaDataStructure;
         }
 
         internal TransactonRegionReturn CreateNewTransactionRegion(object obj, uint objectSize)
@@ -74,8 +87,6 @@ namespace PM.AutomaticManager.MetaDatas
             trasactionStructure.WriteTo(_metadataRegion, _nextMetadataStructureInternalOffset);
             _nextMetadataStructureInternalOffset += trasactionStructure.Size;
 
-            _metaDataStructureByType.Add(trasactionStructure.Type, trasactionStructure);
-
             return new TransactonRegionReturn(trasactionStructure, transactionRegion);
         }
 
@@ -99,9 +110,23 @@ namespace PM.AutomaticManager.MetaDatas
             _nextMetadataStructureInternalOffset += objectStructure.Size;
 
             // Add to cache
+            AddRootObjectmetaDataStructureByBlockIdAndRegionIDCache(objectStructure);
             _metaDataStructureByObjectUserID.Add(objectUserID, objectStructure);
 
             return objectRegion;
+        }
+
+        // You can only access root objects by metadata
+        internal bool TryGetRootObjectByBlockIdAndRegionIndex(uint blockId, byte regionIndex, [NotNullWhen(true)] out ObjectMetaDataStructure? result)
+        {
+            if (_rootObjectmetaDataStructureByBlockIdAndRegionID.TryGetValue(blockId, out var objectByRegionIndex) &&
+                objectByRegionIndex.TryGetValue(regionIndex, out var @object))
+            {
+                result = @object;
+                return true;
+            }
+            result = null;
+            return false;
         }
 
         internal bool ObjectExists(string objectUserID)

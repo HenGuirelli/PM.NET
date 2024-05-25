@@ -14,23 +14,32 @@ namespace PM.AutomaticManager
     public class PersistentFactory : IPersistentFactory
     {
         private readonly PmProxyGenerator _generator = new(proxyCacheCount: PmGlobalConfiguration.ProxyCacheCount);
+        private readonly Dictionary<string, object> _rootObjectsCache = new();
 
-        public PAllocator Allocator { get; }
-        public PMemoryManager PMemoryManager { get; }
+        private static PAllocator _allocator;
+        private static PMemoryManager _pMemoryManager;
 
-        public PersistentFactory()
+        public PAllocator Allocator => _allocator;
+        public PMemoryManager PMemoryManager => _pMemoryManager;
+
+        static PersistentFactory()
         {
-            Allocator = new(
-                PmFactory.CreatePmCSharpDefinedTypes(PmGlobalConfiguration.PmMemoryFilePath),
-                PmFactory.CreatePmCSharpDefinedTypes(PmGlobalConfiguration.PmMemoryFileTransactionPath)
-            );
-            PMemoryManager = new(Allocator);
+            _allocator = new(
+               PmFactory.CreatePmCSharpDefinedTypes(PmGlobalConfiguration.PmMemoryFilePath),
+               PmFactory.CreatePmCSharpDefinedTypes(PmGlobalConfiguration.PmMemoryFileTransactionPath)
+           );
+            _pMemoryManager = new(_allocator);
         }
 
         public object CreateRootObject(Type type, string objectUserID)
         {
             if (string.IsNullOrWhiteSpace(objectUserID))
                 throw new ArgumentNullException($"{nameof(objectUserID)} cannot be null");
+
+            if (_rootObjectsCache.TryGetValue(objectUserID, out var rootObj))
+            {
+                return rootObj;
+            }
 
             if (PMemoryManager.ObjectExists(objectUserID))
             {
@@ -63,13 +72,5 @@ namespace PM.AutomaticManager
         {
             return (T)CreateRootObject(typeof(T), objectUserID);
         }
-
-#if DEBUG
-        internal static void Purge()
-        {
-            File.Delete(PmGlobalConfiguration.PmMemoryFilePath);
-            File.Delete(PmGlobalConfiguration.PmMemoryFileTransactionPath);
-        }
-#endif
     }
 }

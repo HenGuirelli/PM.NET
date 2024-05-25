@@ -68,10 +68,6 @@ namespace PM.AutomaticManager.Tests
         [Fact]
         public void OnTransaction_TrasactionValuesShouldRunOnlyInsideTransaction()
         {
-#if DEBUG
-            PersistentFactory.Purge();
-#endif
-
             PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
 
             var factory = new PersistentFactory();

@@ -13,8 +13,9 @@ namespace FileFormatExplain
 
             stringBuilder.AppendLine($"CommitByte={buffer[0].ToString("X2")}");
             stringBuilder.AppendLine($"StartBlocksOffset={BitConverter.ToUInt32(buffer, 1).ToString("X8")}");
+            stringBuilder.AppendLine($"Version={BitConverter.ToUInt32(buffer, 5).ToString("X8")}");
             var count = 0;
-            var offsetTotal = 5;
+            var offsetTotal = 9;
             while (true)
             {
                 stringBuilder.AppendLine($"========Block {count} (0x{offsetTotal.ToString("x8")})========");

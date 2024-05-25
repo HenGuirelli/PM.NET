@@ -66,7 +66,7 @@ namespace PM.AutomaticManager.Proxies
                 {
                     if (CastleManager.TryGetCastleProxyInterceptor(Proxy, out var interceptor))
                     {
-                        if (!interceptor.IsRootObject && interceptor.FilePointerCount == 0)
+                        if (!interceptor.IsRootObject && interceptor.FilePointerCount <= 0)
                         {
                             Log.Information(
                                 "Removing persistent object at BlockId '{BlockId}' and RegionIndex '{RegionIndex}'",

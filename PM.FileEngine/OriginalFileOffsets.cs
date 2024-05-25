@@ -4,5 +4,6 @@
     {
         public const int HeaderCommitByte = 0;
         public const int HeaderStartBlocksOffset = 1;
+        public const int HeaderVersionOffset = 5;
     }
 }

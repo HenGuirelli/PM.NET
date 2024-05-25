@@ -89,8 +89,7 @@ namespace PM.Core.PMemory
 
         public void Free()
         {
-            _transactionFile.UpdateFreeBlocksLayout(
-                new UpdateFreeBlocksFromBlockLayout(BlockID, _persistentBlockLayout.FreeBlocks & ~(1ul << RegionIndex)));
+            _persistentBlockLayout.MarkRegionAsFree(RegionIndex);
         }
     }
 }

@@ -27,12 +27,15 @@ namespace PM.Common
             if (!File.Exists(FilePath))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-                using var fs = new FileStream(
+                using (var fs = new FileStream(
                     FilePath,
                     FileMode.Create,
                     FileAccess.Write,
-                    FileShare.None);
-                fs.SetLength(_length);
+                    FileShare.None))
+                {
+                    fs.SetLength(_length);
+                    fs.Close();
+                }
             }
 
             _memoryMappedFile = MemoryMappedFile.CreateFromFile(FilePath);
@@ -75,12 +78,12 @@ namespace PM.Common
         {
             //try
             //{
-                Log.Verbose(
-                    "Writing on file={file}, size={size}, " +
-                    "buffer={buffer}, offset={offset}, count={count}",
-                    FilePath, Length,
-                    buffer, offset, count);
-                _memoryMappedViewStream!.Write(buffer, offset, count);
+            Log.Verbose(
+                "Writing on file={file}, size={size}, " +
+                "buffer={buffer}, offset={offset}, count={count}",
+                FilePath, Length,
+                buffer, offset, count);
+            _memoryMappedViewStream!.Write(buffer, offset, count);
             //}
             //catch (System.NotSupportedException ex)
             //    when (ex.Message.Contains("Unable to expand length of this stream beyond its capacity."))

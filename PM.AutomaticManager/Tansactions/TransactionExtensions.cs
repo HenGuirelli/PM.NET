@@ -1,4 +1,6 @@
-﻿namespace PM.AutomaticManager.Tansactions
+﻿using Serilog;
+
+namespace PM.AutomaticManager.Tansactions
 {
     public static class TransactionExtensions
     {
@@ -33,8 +35,9 @@
                     transaction.Commit();
                     state = transaction.State;
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Log.Error(ex, "Error running transaction");
                     transaction.RollBack();
                     state = transaction.State;
                     throw;

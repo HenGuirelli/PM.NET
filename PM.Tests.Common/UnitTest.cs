@@ -21,7 +21,7 @@ namespace PM.Tests.Common
         {
             Output = output;
             Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Information()
+            .MinimumLevel.Verbose()
             .WriteTo.TestOutput(Output)
             .CreateLogger();
         }

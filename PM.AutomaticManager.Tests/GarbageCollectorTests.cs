@@ -44,10 +44,6 @@ namespace PM.AutomaticManager.Tests
         [Fact]
         public void OnGcCollect_ShouldMarkAsFreeRegion()
         {
-#if DEBUG
-            PersistentFactory.Purge();
-#endif
-
             PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
 
             var factory = new PersistentFactory();

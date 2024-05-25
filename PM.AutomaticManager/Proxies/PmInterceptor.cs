@@ -10,12 +10,15 @@ namespace PM.AutomaticManager.Proxies
         static internal PersistentRegion? TransactionPersistentRegion;
         static bool TrasactionOperation => TransactionPersistentRegion != null;
         [ThreadStatic]
-        static private readonly Dictionary<string, object> _transactionInnerObjectsProxyCacheByPropertyName = new();
+        static private Dictionary<string, object> _transactionInnerObjectsProxyCacheByPropertyName = new();
         internal bool IsRootObject { get; set; }
 
         internal PersistentRegion PersistentRegion { get; }
         internal Type TargetType { get; }
-        public int FilePointerCount { get; internal set; }
+        // The FilePointerCount property starts with the value 1 because during creation
+        // the generated proxy is not added to the proxy cache, only on the first Get (lazy loading). 
+        // If it were 0, the garbage collector would immediately collect the proxy, erasing its persistent memory region.
+        public int FilePointerCount { get; internal set; } = 1;
 
         private readonly PMemoryManager _memoryManager;
         // ==================TODO: MEMORY LEAK HERE ===========================
@@ -52,16 +55,25 @@ namespace PM.AutomaticManager.Proxies
             var method = invocation.GetConcreteMethod();
             string methodName = method.Name;
             var methodNameWithouPrefix = GetPropertyName(method);
+            if (_transactionInnerObjectsProxyCacheByPropertyName is null) _transactionInnerObjectsProxyCacheByPropertyName = new();
+
             if (method.IsSpecialName && methodName.StartsWith("set_"))
             {
                 var value = CastleManager.GetValue(invocation);
                 _memoryManager.UpdateProperty(TransactionPersistentRegion!, TargetType, CastleManager.GetPropertyInfo(invocation), value);
 
-                // Set property as null. Remove from cache.
-                if (value is null && _transactionInnerObjectsProxyCacheByPropertyName.ContainsKey(methodNameWithouPrefix))
+                if (value is null && _transactionInnerObjectsProxyCacheByPropertyName.TryGetValue(methodNameWithouPrefix, out var oldValue))
                 {
+                    if (CastleManager.TryGetCastleProxyInterceptor(oldValue, out var interceptor))
+                        interceptor.FilePointerCount--;
                     _transactionInnerObjectsProxyCacheByPropertyName.Remove(methodNameWithouPrefix);
                 }
+
+                if (value != null && CastleManager.TryGetCastleProxyInterceptor(value, out var interceptor2))
+                {
+                    interceptor2.FilePointerCount++;
+                }
+
                 invocation.Proceed();
             }
             else if (method.IsSpecialName && methodName.StartsWith("get_"))
@@ -98,11 +110,18 @@ namespace PM.AutomaticManager.Proxies
                 var value = CastleManager.GetValue(invocation);
                 _memoryManager.UpdateProperty(PersistentRegion, TargetType, CastleManager.GetPropertyInfo(invocation), value);
 
-                // Set property as null. Remove from cache.
-                if (value is null && _innerObjectsProxyCacheByPropertyName.ContainsKey(methodNameWithouPrefix))
+                if (value is null && _innerObjectsProxyCacheByPropertyName.TryGetValue(methodNameWithouPrefix, out var oldValue))
                 {
+                    if (CastleManager.TryGetCastleProxyInterceptor(oldValue, out var interceptor))
+                        interceptor.FilePointerCount--;
                     _innerObjectsProxyCacheByPropertyName.Remove(methodNameWithouPrefix);
                 }
+
+                if (value != null && CastleManager.TryGetCastleProxyInterceptor(value, out var interceptor2))
+                {
+                    interceptor2.FilePointerCount++;
+                }
+
                 invocation.Proceed();
             }
             else if (method.IsSpecialName && methodName.StartsWith("get_"))

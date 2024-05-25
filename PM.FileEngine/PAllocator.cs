@@ -33,6 +33,7 @@ namespace PM.FileEngine
         private void CreateHeaderLayout()
         {
             PersistentMemory.WriteUInt(OriginalFileValues.HeaderStartBlocksOffset, OriginalFileOffsets.HeaderStartBlocksOffset);
+            PersistentMemory.WriteUInt(OriginalFileValues.HeaderVersionOffset, OriginalFileOffsets.HeaderVersionOffset);
             PersistentMemory.WriteByte((byte)OriginalFileValues.HeaderCommitByte, OriginalFileOffsets.HeaderCommitByte);
         }
 
