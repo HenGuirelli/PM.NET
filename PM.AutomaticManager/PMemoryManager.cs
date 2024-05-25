@@ -403,7 +403,7 @@ namespace PM.AutomaticManager
                     var blockId = BitConverter.ToUInt32(blockIDBytes);
                     if (blockId == 0)
                     {
-                        Log.Information("Attempt to get a object that have null pointer.");
+                        Log.Debug("Attempt to get a object that have null pointer.");
                         return null;
                     }
                     propertyInternalOffset += sizeof(uint);

@@ -66,7 +66,7 @@ namespace PM.Configs
             }
 
             Log.Logger = _loggerConfiguration.CreateLogger();
-            Log.Information("Serilog setup finished, target={target}", Target);
+            Log.Debug("Serilog setup finished, target={target}", Target);
         }
     }
 }

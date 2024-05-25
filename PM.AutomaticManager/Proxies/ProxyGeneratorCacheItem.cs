@@ -68,7 +68,7 @@ namespace PM.AutomaticManager.Proxies
                     {
                         if (!interceptor.IsRootObject && interceptor.FilePointerCount <= 0)
                         {
-                            Log.Information(
+                            Log.Debug(
                                 "Removing persistent object at BlockId '{BlockId}' and RegionIndex '{RegionIndex}'",
                                 interceptor.PersistentRegion.BlockID, interceptor.PersistentRegion.RegionIndex);
                             interceptor.PersistentRegion.Free();

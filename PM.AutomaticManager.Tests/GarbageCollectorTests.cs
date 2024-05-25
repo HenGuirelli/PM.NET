@@ -20,13 +20,13 @@ namespace PM.AutomaticManager.Tests
 
         public void WriteLine(string message)
         {
-            Messages += message;
+            Messages += message + "\n";
             _original.WriteLine(message);
         }
 
         public void WriteLine(string format, params object[] args)
         {
-            Messages += string.Format(format, args);
+            Messages += string.Format(format, args) + "\n"; ;
             _original.WriteLine(format, args);
         }
     }
@@ -36,7 +36,7 @@ namespace PM.AutomaticManager.Tests
         private readonly TestOutputHelperMock _outputMock;
 
         public GarbageCollectorTests(ITestOutputHelper output)
-            : base(new TestOutputHelperMock(output))
+            : base(new TestOutputHelperMock(output), Serilog.Events.LogEventLevel.Debug)
         {
             _outputMock = (TestOutputHelperMock)base.Output;
         }
@@ -70,6 +70,9 @@ namespace PM.AutomaticManager.Tests
             proxyObj.InnerObject1 = null;
             proxyObj.InnerObject2 = null;
 
+            GC.Collect();
+            GC.Collect();
+            Thread.Sleep(1000);
             GC.Collect();
             Thread.Sleep(1000);
 

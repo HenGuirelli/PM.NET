@@ -44,10 +44,10 @@ namespace PM
 
                             try
                             {
-                                Log.Information("Collect starting");
+                                Log.Debug("Collect starting");
                                 _pointers =
                                     _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
-                                Log.Information("Collect ending successfully");
+                                Log.Debug("Collect ending successfully");
                             }
                             catch (Exception ex)
                             {
@@ -55,9 +55,9 @@ namespace PM
                             }
                         }
                     });
-                    Log.Information("First collect starting");
+                    Log.Debug("First collect starting");
                     _pointers = _pmPointerCounter.Collect(PmGlobalConfiguration.PmInternalsFolder);
-                    Log.Information("First collect ending successfully");
+                    Log.Debug("First collect ending successfully");
                     _generator = new(_pointers);
 
                     _thread.Start();

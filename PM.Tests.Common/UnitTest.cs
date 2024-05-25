@@ -17,11 +17,11 @@ namespace PM.Tests.Common
             PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
         }
 
-        public UnitTest(ITestOutputHelper output)
+        public UnitTest(ITestOutputHelper output, Serilog.Events.LogEventLevel logEventLevel = Serilog.Events.LogEventLevel.Verbose)
         {
             Output = output;
             Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Verbose()
+            .MinimumLevel.Is(logEventLevel)
             .WriteTo.TestOutput(Output)
             .CreateLogger();
         }

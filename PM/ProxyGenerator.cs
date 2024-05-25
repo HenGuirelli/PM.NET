@@ -61,7 +61,7 @@ namespace PM
             if (MinProxyCacheCount == 0)
             {
                 var obj = Activator.CreateInstance(type);
-                var proxy= _generator.CreateClassProxyWithTarget(type, obj, _standardInterceptor);
+                var proxy = _generator.CreateClassProxyWithTarget(type, obj, _standardInterceptor);
                 var cacheItem = new CacheItem(this, proxy, type);
                 cacheItem.SetInterceptor(interceptor);
                 return cacheItem.Proxy;
@@ -158,7 +158,7 @@ namespace PM
                 while (true)
                 {
                     var totalTimeApplication = DateTime.Now - _startTimeApplication;
-                    Log.Information(
+                    Log.Debug(
                         "Total time app:\t{TotalMilliseconds} " +
                         "Total time GC:\t{ElapsedMilliseconds}",
                         totalTimeApplication.TotalMilliseconds,
