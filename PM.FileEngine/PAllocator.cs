@@ -60,24 +60,7 @@ namespace PM.FileEngine
             PersistentBlockLayout? lastBlock = null;
             while (true)
             {
-                var blockOffset = offset;
-                var regionsQuantity = PersistentMemory.ReadByte(offset);
-                offset += sizeof(byte);
-                var regionsSize = PersistentMemory.ReadUInt(offset);
-                offset += sizeof(uint);
-                var freeBlocks = PersistentMemory.ReadULong(offset);
-                offset += sizeof(ulong);
-                var nextBlockOffset = PersistentMemory.ReadUInt(offset);
-                offset = nextBlockOffset;
-
-                var block = new PersistentBlockLayout(regionsSize, regionsQuantity)
-                {
-                    FreeBlocks = freeBlocks,
-                    _nextBlockOffset = nextBlockOffset,
-                    PersistentMemory = PersistentMemory,
-                    TransactionFile = _transactionFile,
-                    BlockOffset = blockOffset
-                };
+                var block = PersistentBlockLayout.LoadBlockLayoutFromPm(offset, PersistentMemory, _transactionFile);
 
                 // First block
                 if (_firstPersistentBlockLayout is null) _firstPersistentBlockLayout = block;
@@ -89,11 +72,11 @@ namespace PM.FileEngine
                     lastBlock._nextBlockOffset = block.BlockOffset;
                 }
 
-                block.LoadFromPm();
+                block.LoadRegionsFromPm();
 
                 lastBlock = block;
 
-                if (nextBlockOffset == 0) break;
+                if (block.NextBlockOffset == 0) break;
             }
         }
 
@@ -156,7 +139,7 @@ namespace PM.FileEngine
                 TransactionFile = _transactionFile,
                 PersistentMemory = PersistentMemory
             };
-            block.LoadFromPm();
+            block.LoadRegionsFromPm();
 
             if (lastBlock != null)
             {

@@ -62,7 +62,7 @@ namespace PM.Core.PMemory
         /// 
         /// Also used as a index.
         /// </summary>
-        internal uint BlockOffset { get; set; }
+        public uint BlockOffset { get; internal set; }
 
         internal PmCSharpDefinedTypes? PersistentMemory { get; set; }
         internal TransactionFile? TransactionFile { get; set; }
@@ -93,7 +93,7 @@ namespace PM.Core.PMemory
             Regions = new PersistentRegion[RegionsQuantity];
         }
 
-        internal void LoadFromPm()
+        internal void LoadRegionsFromPm()
         {
             if (PersistentMemory is null) throw new ApplicationException($"Property {nameof(PersistentMemory)} cannot be null.");
             if (TransactionFile is null) throw new ApplicationException($"Property {nameof(TransactionFile)} cannot be null.");
@@ -117,6 +117,27 @@ namespace PM.Core.PMemory
             }
 
             if (NextBlock != null) NextBlockOffset = NextBlock.BlockOffset;
+        }
+
+        public static PersistentBlockLayout LoadBlockLayoutFromPm(uint offset, PmCSharpDefinedTypes persistentMemory, TransactionFile transactionFile)
+        {
+            uint blockOffset = offset;
+            var regionsQuantity = persistentMemory.ReadByte(offset);
+            offset += sizeof(byte);
+            var regionsSize = persistentMemory.ReadUInt(offset);
+            offset += sizeof(uint);
+            var freeBlocks = persistentMemory.ReadULong(offset);
+            offset += sizeof(ulong);
+            var nextBlockOffset = persistentMemory.ReadUInt(offset);
+
+            return new PersistentBlockLayout(regionsSize, regionsQuantity)
+            {
+                FreeBlocks = freeBlocks,
+                _nextBlockOffset = nextBlockOffset,
+                PersistentMemory = persistentMemory,
+                TransactionFile = transactionFile,
+                BlockOffset = blockOffset
+            };
         }
 
         private void SetNextBlockOffset(uint value)
