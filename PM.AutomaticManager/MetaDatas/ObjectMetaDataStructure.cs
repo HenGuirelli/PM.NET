@@ -6,10 +6,11 @@ namespace PM.AutomaticManager.MetaDatas
     internal class ObjectMetaDataStructure : MetadataStructure, IObjectReference
     {
         public override MetadataType Type => MetadataType.Object;
-        public override int Size => 13 + ObjectUserID.Length;
+        public override int Size => 13 + (ObjectUserID.Length + 1) + (ClassTypeName.Length + 1);
 
         public uint ObjectSize { get; set; }
         public string ObjectUserID { get; set; } = string.Empty;
+        public string ClassTypeName { get; set; } = string.Empty;
 
 
         protected override void ReadFrom(PersistentRegion metadataRegion)
@@ -17,18 +18,27 @@ namespace PM.AutomaticManager.MetaDatas
             base.ReadFrom(metadataRegion);
             ObjectSize = BitConverter.ToUInt32(metadataRegion.Read(count: sizeof(uint), offset: InternalOffset));
             InternalOffset += sizeof(uint);
+            ObjectUserID = ReadString(metadataRegion);
+            ClassTypeName = ReadString(metadataRegion);
+        }
+
+        private string ReadString(PersistentRegion metadataRegion)
+        {
             var stringBytes = new List<byte>();
             while (true)
             {
                 var @byte = metadataRegion.Read(count: sizeof(byte), offset: InternalOffset)[0];
 
-                if (@byte == 0) break;
+                if (@byte == 0)
+                {
+                    InternalOffset += sizeof(byte);
+                    break;
+                }
 
                 stringBytes.Add(@byte);
                 InternalOffset += sizeof(byte);
             }
-
-            ObjectUserID = Encoding.UTF8.GetString(stringBytes.ToArray());
+            return Encoding.UTF8.GetString(stringBytes.ToArray());
         }
 
         internal override void WriteTo(PersistentRegion metadataRegion, int offset)
@@ -45,7 +55,7 @@ namespace PM.AutomaticManager.MetaDatas
             var objectSizeBytes = BitConverter.GetBytes(ObjectSize);
 
             // 12 = metadata size + object user id length + \0 string byte
-            var buffer = new byte[13 + ObjectUserID.Length + 1];
+            var buffer = new byte[Size];
             var bufferOffset = 0;
             buffer[bufferOffset] = (byte)MetadataType.Object;
             bufferOffset += sizeof(byte);
@@ -59,10 +69,23 @@ namespace PM.AutomaticManager.MetaDatas
             bufferOffset += sizeof(ushort);
             Array.Copy(sourceArray: objectSizeBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: objectSizeBytes.Length);
             bufferOffset += sizeof(uint);
-            var idBytes = Encoding.UTF8.GetBytes(ObjectUserID.EndsWith('\0') ? ObjectUserID : ObjectUserID + '\0');
+            var idBytes = StringToByteArray(ObjectUserID);
             Array.Copy(sourceArray: idBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: idBytes.Length);
+            bufferOffset += idBytes.Length;
+            var classTypeBytes = StringToByteArray(ClassTypeName);
+            Array.Copy(sourceArray: classTypeBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: classTypeBytes.Length);
 
             return buffer;
+        }
+
+        private byte[] StringToByteArray(string value)
+        {
+            var bytes = Encoding.UTF8.GetBytes(value);
+            if (!value.EndsWith('\0'))
+            {
+                return bytes.Concat(new byte[] { 0 }).ToArray();
+            }
+            return bytes;
         }
     }
 }

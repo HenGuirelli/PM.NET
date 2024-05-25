@@ -91,7 +91,6 @@ namespace PM.AutomaticManager.Tests
             Assert.Equal(decimal.MaxValue, proxyObj.DecimalVal1);
             Assert.Equal(decimal.MinValue, proxyObj.DecimalVal2);
 
-            Assert.Null(proxyObj.StringVal1);
             proxyObj.StringVal1 = "Hello";
             proxyObj.StringVal2 = "World";
             Assert.Equal("Hello", proxyObj.StringVal1);

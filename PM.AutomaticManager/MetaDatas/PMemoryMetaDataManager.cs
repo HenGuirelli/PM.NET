@@ -103,7 +103,8 @@ namespace PM.AutomaticManager.MetaDatas
                 RegionIndex = regionIndex,
                 OffsetInnerRegion = 0,
                 ObjectSize = objectLength,
-                ObjectUserID = objectUserID
+                ObjectUserID = objectUserID,
+                ClassTypeName = objectPropertiesInfoMapper.ObjectType.FullName ?? throw new ApplicationException($"Type {objectPropertiesInfoMapper.ObjectType} need a FullName")
             };
 
             objectStructure.WriteTo(_metadataRegion, _nextMetadataStructureInternalOffset);

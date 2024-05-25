@@ -7,11 +7,11 @@ namespace PM.AutomaticManager
         // Dictionary of property and its offset
         private readonly Dictionary<PropertyInfo, int> _offsetByPRoperty = new();
         private readonly Dictionary<Type, uint> _typeSizeByType = new();
-        private readonly Type _type;
+        public Type ObjectType { get; }
 
         public ObjectPropertiesInfoMapper(Type type)
         {
-            _type = type;
+            ObjectType = type;
             PropertyInfo[] properties = type.GetProperties();
 
             var offset = 0;
@@ -64,7 +64,7 @@ namespace PM.AutomaticManager
 
         public uint GetTypeSize()
         {
-            return _typeSizeByType[_type];
+            return _typeSizeByType[ObjectType];
         }
     }
 }

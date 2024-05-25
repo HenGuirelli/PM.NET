@@ -73,6 +73,9 @@ namespace PM.AutomaticManager.Tests
             var factory = new PersistentFactory();
             var proxyObj = factory.CreateRootObject<RootClass>(nameof(OnTransaction_TrasactionValuesShouldRunOnlyInsideTransaction));
 
+            proxyObj.InnerObject1 = null;
+            proxyObj.InnerObject2 = null;
+
             bool error = false;
 
             var tTransaction = new Thread(() =>
