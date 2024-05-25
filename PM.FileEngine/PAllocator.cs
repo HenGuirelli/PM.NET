@@ -3,6 +3,8 @@ using PM.Core.PMemory;
 using PM.FileEngine.FileFields;
 using PM.FileEngine.Transactions;
 using Serilog;
+using System.Reflection;
+using System.Text;
 
 namespace PM.FileEngine
 {
@@ -32,9 +34,18 @@ namespace PM.FileEngine
 
         private void CreateHeaderLayout()
         {
-            PersistentMemory.WriteUInt(OriginalFileValues.HeaderStartBlocksOffset, OriginalFileOffsets.HeaderStartBlocksOffset);
+            var assemblyName = GetAssemblyName();
+            var assemblyameBytes = Encoding.UTF8.GetBytes(assemblyName).Concat(new byte[] { 0 }).ToArray();
+            PersistentMemory.WriteBytes(assemblyameBytes, offset: OriginalFileOffsets.HeaderAssemblyNameOffset);
+            PersistentMemory.WriteUInt((uint)(OriginalFileOffsets.HeaderAssemblyNameOffset + assemblyameBytes.Length), OriginalFileOffsets.HeaderStartBlocksOffset);
             PersistentMemory.WriteUInt(OriginalFileValues.HeaderVersionOffset, OriginalFileOffsets.HeaderVersionOffset);
             PersistentMemory.WriteByte((byte)OriginalFileValues.HeaderCommitByte, OriginalFileOffsets.HeaderCommitByte);
+        }
+
+        private static string GetAssemblyName()
+        {
+            Assembly currentAssembly = Assembly.GetExecutingAssembly();
+            return currentAssembly.GetName().FullName;
         }
 
         public bool IsHeaderLayoutCreated()
@@ -77,6 +88,7 @@ namespace PM.FileEngine
                 lastBlock = block;
 
                 if (block.NextBlockOffset == 0) break;
+                offset = block.NextBlockOffset;
             }
         }
 

@@ -14,8 +14,9 @@ namespace FileFormatExplain
             stringBuilder.AppendLine($"CommitByte={buffer[0].ToString("X2")}");
             stringBuilder.AppendLine($"StartBlocksOffset={BitConverter.ToUInt32(buffer, 1).ToString("X8")}");
             stringBuilder.AppendLine($"Version={BitConverter.ToUInt32(buffer, 5).ToString("X8")}");
+            var offsetTotal = ReadString(buffer, 9, out string result);
+            stringBuilder.AppendLine($"AssemblyName={result}");
             var count = 0;
-            var offsetTotal = 9;
             while (true)
             {
                 stringBuilder.AppendLine($"========Block {count} (0x{offsetTotal.ToString("x8")})========");
@@ -52,6 +53,22 @@ namespace FileFormatExplain
 
 
             return stringBuilder.ToString();
+        }
+
+        public static int ReadString(byte[] buffer, int initialOffset, out string result)
+        {
+            var bytes = new List<byte>();
+            while (true)
+            {
+                var @byte = buffer[initialOffset++];
+
+                if (@byte == 0) break;
+
+                bytes.Add(@byte);
+            }
+
+            result = Encoding.UTF8.GetString(bytes.ToArray());
+            return initialOffset;
         }
     }
 }
