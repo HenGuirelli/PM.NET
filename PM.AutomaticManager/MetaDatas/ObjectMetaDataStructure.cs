@@ -9,20 +9,12 @@ namespace PM.AutomaticManager.MetaDatas
         public override int Size => 13 + ObjectUserID.Length;
 
         public uint ObjectSize { get; set; }
-        private string _objectUserID = string.Empty;
-        public string ObjectUserID
-        {
-            get => _objectUserID;
-            set
-            {
-                _objectUserID = value.EndsWith('\0') ? value : value + '\0';
-            }
-        }
+        public string ObjectUserID { get; set; } = string.Empty;
 
 
-        protected override void ReadFrom(PersistentRegion metadataRegion, int offset)
+        protected override void ReadFrom(PersistentRegion metadataRegion)
         {
-            base.ReadFrom(metadataRegion, offset);
+            base.ReadFrom(metadataRegion);
             ObjectSize = BitConverter.ToUInt32(metadataRegion.Read(count: sizeof(uint), offset: InternalOffset));
             InternalOffset += sizeof(uint);
             var stringBytes = new List<byte>();
@@ -67,7 +59,7 @@ namespace PM.AutomaticManager.MetaDatas
             bufferOffset += sizeof(ushort);
             Array.Copy(sourceArray: objectSizeBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: objectSizeBytes.Length);
             bufferOffset += sizeof(uint);
-            var idBytes = Encoding.UTF8.GetBytes(ObjectUserID);
+            var idBytes = Encoding.UTF8.GetBytes(ObjectUserID.EndsWith('\0') ? ObjectUserID : ObjectUserID + '\0');
             Array.Copy(sourceArray: idBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: idBytes.Length);
 
             return buffer;

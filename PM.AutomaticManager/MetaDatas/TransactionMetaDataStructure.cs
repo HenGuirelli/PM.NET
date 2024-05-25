@@ -16,12 +16,12 @@ namespace PM.AutomaticManager.MetaDatas
         public int? InitialOffset { get; set; }
         public PersistentRegion? MetadataRegion { get; set; }
 
-        protected override void ReadFrom(PersistentRegion metadataRegion, int offset)
+        protected override void ReadFrom(PersistentRegion metadataRegion)
         {
-            InitialOffset = offset;
+            //InitialOffset = offset;
             MetadataRegion = metadataRegion;
 
-            base.ReadFrom(metadataRegion, offset);
+            base.ReadFrom(metadataRegion);
             TransactionState = (TransactionState)metadataRegion.Read(count: sizeof(byte), offset: InternalOffset)[0];
             InternalOffset += sizeof(byte);
             TransactionBlockIDTarget = BitConverter.ToUInt32(metadataRegion.Read(count: sizeof(uint), offset: InternalOffset));

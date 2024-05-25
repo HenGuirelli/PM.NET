@@ -14,8 +14,10 @@ namespace PM.AutomaticManager.MetaDatas
         public byte RegionIndex { get; set; }
         public UInt16 OffsetInnerRegion { get; set; }
 
-        protected virtual void ReadFrom(PersistentRegion metadataRegion, int offset)
+        protected virtual void ReadFrom(PersistentRegion metadataRegion)
         {
+            InternalOffset += sizeof(byte); // Skip MetadataType
+
             IsValid = Convert.ToBoolean(metadataRegion.Read(count: sizeof(byte), offset: InternalOffset)[0]);
             InternalOffset += sizeof(byte);
             BlockID = BitConverter.ToUInt32(metadataRegion.Read(count: sizeof(uint), offset: InternalOffset));
@@ -30,7 +32,7 @@ namespace PM.AutomaticManager.MetaDatas
         {
             var metadataType = metadataRegion.Read(count: 1, offset: offset)[0];
             var resultObj = CreateMetadataStructureObject(offset, (MetadataType)metadataType);
-            resultObj.ReadFrom(metadataRegion, offset);
+            resultObj.ReadFrom(metadataRegion);
             return resultObj;
         }
 
