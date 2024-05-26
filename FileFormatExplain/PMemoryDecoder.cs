@@ -14,8 +14,7 @@ namespace FileFormatExplain
             stringBuilder.AppendLine($"CommitByte={buffer[0].ToString("X2")}");
             stringBuilder.AppendLine($"StartBlocksOffset={BitConverter.ToUInt32(buffer, 1).ToString("X8")}");
             stringBuilder.AppendLine($"Version={BitConverter.ToUInt32(buffer, 5).ToString("X8")}");
-            var offsetTotal = ReadString(buffer, 9, out string result);
-            stringBuilder.AppendLine($"AssemblyName={result}");
+            var offsetTotal = 9;
             var count = 0;
             while (true)
             {
