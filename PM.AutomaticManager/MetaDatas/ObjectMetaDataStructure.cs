@@ -6,11 +6,12 @@ namespace PM.AutomaticManager.MetaDatas
     internal class ObjectMetaDataStructure : MetadataStructure, IObjectReference
     {
         public override MetadataType Type => MetadataType.Object;
-        public override int Size => 13 + (ObjectUserID.Length + 1) + (ClassTypeName.Length + 1);
+        public override int Size => 13 + (ObjectUserID.Length + 1) + (ClassTypeName.Length + 1) + (AssemblyFullName.Length + 1);
 
         public uint ObjectSize { get; set; }
         public string ObjectUserID { get; set; } = string.Empty;
         public string ClassTypeName { get; set; } = string.Empty;
+        public string AssemblyFullName { get; set; } = string.Empty;
 
 
         protected override void ReadFrom(PersistentRegion metadataRegion)
@@ -20,6 +21,7 @@ namespace PM.AutomaticManager.MetaDatas
             InternalOffset += sizeof(uint);
             ObjectUserID = ReadString(metadataRegion);
             ClassTypeName = ReadString(metadataRegion);
+            AssemblyFullName = ReadString(metadataRegion);
         }
 
         private string ReadString(PersistentRegion metadataRegion)
@@ -72,9 +74,12 @@ namespace PM.AutomaticManager.MetaDatas
             var idBytes = StringToByteArray(ObjectUserID);
             Array.Copy(sourceArray: idBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: idBytes.Length);
             bufferOffset += idBytes.Length;
+            var assemblyFullNameBytes = StringToByteArray(AssemblyFullName);
+            Array.Copy(sourceArray: assemblyFullNameBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: assemblyFullNameBytes.Length);
+            bufferOffset += assemblyFullNameBytes.Length;
             var classTypeBytes = StringToByteArray(ClassTypeName);
             Array.Copy(sourceArray: classTypeBytes, sourceIndex: 0, destinationArray: buffer, destinationIndex: bufferOffset, length: classTypeBytes.Length);
-
+            bufferOffset += classTypeBytes.Length;
             return buffer;
         }
 

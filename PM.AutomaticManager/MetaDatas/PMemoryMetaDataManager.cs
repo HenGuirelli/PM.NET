@@ -104,7 +104,10 @@ namespace PM.AutomaticManager.MetaDatas
                 OffsetInnerRegion = 0,
                 ObjectSize = objectLength,
                 ObjectUserID = objectUserID,
-                ClassTypeName = objectPropertiesInfoMapper.ObjectType.FullName ?? throw new ApplicationException($"Type {objectPropertiesInfoMapper.ObjectType} need a FullName")
+                ClassTypeName = objectPropertiesInfoMapper.ObjectType.FullName
+                    ?? throw new ApplicationException($"Type {objectPropertiesInfoMapper.ObjectType} need a FullName"),
+                AssemblyFullName = objectPropertiesInfoMapper.ObjectType.Assembly.FullName
+                    ?? throw new ApplicationException($"Asembly {objectPropertiesInfoMapper.ObjectType.Assembly} need a FullName")
             };
 
             objectStructure.WriteTo(_metadataRegion, _nextMetadataStructureInternalOffset);
