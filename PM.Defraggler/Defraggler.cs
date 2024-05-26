@@ -1,31 +1,21 @@
 ﻿using PM.Common;
+using PM.Defraggler.Defragglers;
 
 namespace PM.Defraggler
 {
     public class Defraggler
     {
-        private PmCSharpDefinedTypes _originalFile;
-        private PmCSharpDefinedTypes _transactionFile;
+        private IDefraggler _internalDefreggler;
 
         public Defraggler(PmCSharpDefinedTypes originalFile, PmCSharpDefinedTypes transactionFile)
         {
-            _originalFile = originalFile;
-            _transactionFile = transactionFile;
-
-            var version = GetFileVersion();
-            var defragglerFactory = new DefragglerFactory(filePath);
-            var internalDefreggler =
-        }
-
-        private object GetFileVersion()
-        {
-            _originalFile.read
+            var defragglerFactory = new DefragglerFactory(originalFile, transactionFile);
+            _internalDefreggler = defragglerFactory.Create();
         }
 
         public void Defrag()
         {
-            var allReferences = GetallReferences();
-            var treeReference = CreateTreeReference();
+            _internalDefreggler.Defrag();
         }
     }
 }

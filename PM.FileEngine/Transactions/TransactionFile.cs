@@ -14,6 +14,7 @@ namespace PM.FileEngine.Transactions
 
         public bool HasPendingTransactions => _pendingBlockLayout != null;
         public string FilePath => _pmTransactionFile.FilePath;
+        public PmCSharpDefinedTypes PmCSharpDefinedTypes => _pmTransactionFile;
 
         public TransactionFile(PmCSharpDefinedTypes pmTransactionFile, PAllocator pAllocator)
         {

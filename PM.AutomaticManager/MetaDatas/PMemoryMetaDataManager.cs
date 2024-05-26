@@ -11,7 +11,7 @@ namespace PM.AutomaticManager.MetaDatas
         private readonly PAllocator _allocator;
         private readonly PersistentRegion _metadataRegion;
         private int _nextMetadataStructureInternalOffset;
-        private readonly MetadataReader _metadataReader;
+        internal MetadataReader MetadataReader { get; }
 
         // Caches
         readonly Dictionary<string, MetadataStructure> _metaDataStructureByObjectUserID = new();
@@ -25,14 +25,14 @@ namespace PM.AutomaticManager.MetaDatas
                 // Reserve first block for metadata
                 // 25000 pointers capacity
                 _metadataRegion = allocator.Alloc(100_000);
-                _metadataReader = new MetadataReader(_metadataRegion);
+                MetadataReader = new MetadataReader(_metadataRegion);
             }
             else
             {
                 _metadataRegion = _allocator.FirstPersistentBlockLayout!.Regions[0];
-                _metadataReader = new MetadataReader(_metadataRegion);
+                MetadataReader = new MetadataReader(_metadataRegion);
 
-                while (_metadataReader.TryGetNext(out var metadataStructure))
+                while (MetadataReader.TryGetNext(out var metadataStructure))
                 {
                     if (metadataStructure is TransactionMetaDataStructure transactionMetaDataStructure &&
                         transactionMetaDataStructure.TransactionState == TransactionState.Commited)

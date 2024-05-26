@@ -16,13 +16,13 @@ namespace PM.FileEngine
         public bool HasAnyBlocks => _firstPersistentBlockLayout != null;
 
         PersistentBlockLayout? _firstPersistentBlockLayout;
-        private readonly TransactionFile _transactionFile;
+        internal TransactionFile TransactionFile { get; }
         private uint _headerStartblocksOffset;
 
         public PAllocator(PmCSharpDefinedTypes persistentMemory, PmCSharpDefinedTypes transactionFile)
         {
             PersistentMemory = persistentMemory;
-            _transactionFile = new TransactionFile(transactionFile, this);
+            TransactionFile = new TransactionFile(transactionFile, this);
 
             if (!IsHeaderLayoutCreated())
             {
@@ -71,7 +71,7 @@ namespace PM.FileEngine
             PersistentBlockLayout? lastBlock = null;
             while (true)
             {
-                var block = PersistentBlockLayout.LoadBlockLayoutFromPm(offset, PersistentMemory, _transactionFile);
+                var block = PersistentBlockLayout.LoadBlockLayoutFromPm(offset, PersistentMemory, TransactionFile);
 
                 // First block
                 if (_firstPersistentBlockLayout is null) _firstPersistentBlockLayout = block;
@@ -139,7 +139,7 @@ namespace PM.FileEngine
             }
             var regionQuantity = regionSize < 100 ? (byte)64 : (byte)4;
 
-            _transactionFile.AddNewBlockLayout(
+            TransactionFile.AddNewBlockLayout(
                 new AddBlockLayout(
                     startBlockOffset: startBlockOffset,
                     regionsQtty: regionQuantity,
@@ -148,7 +148,7 @@ namespace PM.FileEngine
             var block = new PersistentBlockLayout(regionSize, regionQuantity: regionQuantity)
             {
                 BlockOffset = startBlockOffset,
-                TransactionFile = _transactionFile,
+                TransactionFile = TransactionFile,
                 PersistentMemory = PersistentMemory
             };
             block.LoadRegionsFromPm();
@@ -202,7 +202,7 @@ namespace PM.FileEngine
 
         internal byte[] ReadTransactionFile()
         {
-            return ReadFile(_transactionFile.FilePath);
+            return ReadFile(TransactionFile.FilePath);
         }
 
         internal byte[] ReadOriginalFile()
