@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
+using PM.Common;
 using PM.Core;
 
 namespace Benchmarks
