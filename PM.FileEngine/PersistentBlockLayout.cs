@@ -227,5 +227,13 @@ namespace PM.Core.PMemory
 
             UpdateFreeBlocks();
         }
+
+        internal void UpdateNextBlockOffset()
+        {
+            if (TransactionFile is null) throw new ApplicationException($"Property {nameof(TransactionFile)} cannot be null.");
+
+            TransactionFile.AddRemoveBlockLayout(new RemoveBlockLayout(BlockOffset + Header_FreeBlockBitmapOffset, NextBlockOffset));
+            Log.Verbose("Update NextBlockOffset value={value} for block={blockID}", NextBlockOffset, BlockOffset);
+        }
     }
 }

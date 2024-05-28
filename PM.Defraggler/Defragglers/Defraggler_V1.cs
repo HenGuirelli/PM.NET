@@ -14,30 +14,88 @@ namespace PM.Defraggler.Defragglers
         private readonly PmCSharpDefinedTypes _originalFile;
         private readonly PAllocator _allocator;
         private readonly TransactionFile _transactionFile;
-        private readonly Assembly _assembly;
+        private readonly PMemoryMetadataManager _pMemoryMetadataManager;
         private uint _startBlockOffset;
+        private readonly HashSet<RegionsInUse> _allUsedRegions = new();
+        private readonly List<ObjectMetaDataStructure> _rootMetadataStrcutureObjects = new();
+        private readonly List<Node> _rootNodes = new();
 
-        private List<ObjectMetaDataStructure> _rootMetadataStrcutureObjects = new();
 
         public Defraggler_V1(PmCSharpDefinedTypes originalFile, PmCSharpDefinedTypes transactionFile)
         {
             _originalFile = originalFile;
             _allocator = new PAllocator(originalFile, transactionFile);
             _transactionFile = _allocator.TransactionFile;
-            _assembly = Assembly.Load(ReadAssemblyName());
+            _pMemoryMetadataManager = new PMemoryMetadataManager(_allocator);
         }
 
         public void Defrag()
         {
             _startBlockOffset = _originalFile.ReadUInt(1);
 
-            var allReferences = GetAllReferences();
+            GetAllUsedRegions();
             CreateTreeReference();
+
+            // Assert all used region is used
+            MarkIsolatedRegionsToFree();
+
+            // Merge two blocks with the same size
+            MergeBlocks();
+
+            // Verify if has block totally empty
+            TreatEmptyBlocks();
+
+        }
+
+        private void MergeBlocks()
+        {
+            // TODO: Merge blocks 
+        }
+
+        private void MarkIsolatedRegionsToFree()
+        {
+            foreach (var usedRegion in _allUsedRegions)
+            {
+                var hasReference = false;
+                foreach (var node in _rootNodes)
+                {
+                    if (node.GetChild(usedRegion) != null)
+                    {
+                        hasReference = true;
+                    }
+                }
+
+                if (!hasReference)
+                {
+                    var region = _allocator.GetRegion(usedRegion.BlockId, usedRegion.RegionIndex);
+                    region.Free();
+                }
+            }
+        }
+
+        private void TreatEmptyBlocks()
+        {
+            var blockLayout = _allocator.FirstPersistentBlockLayout;
+            var emptyBlocks = new List<PersistentBlockLayout>();
+
+            while (blockLayout != null)
+            {
+                if (blockLayout.FreeBlocks == 0)
+                {
+                    emptyBlocks.Add(blockLayout);
+                }
+
+                blockLayout = blockLayout.NextBlock;
+            }
+
+            foreach (var block in emptyBlocks)
+            {
+                _allocator.RemoveBlock(block);
+            }
         }
 
         private void CreateTreeReference()
         {
-
             if (_allocator.FirstPersistentBlockLayout is null) return;
 
             var firstRegion = _allocator.FirstPersistentBlockLayout.Regions[0];
@@ -62,22 +120,29 @@ namespace PM.Defraggler.Defragglers
         {
             var node = new Node();
 
-            var type = _assembly.GetType(root.ClassTypeName) ?? throw new ApplicationException($"type {root.ClassTypeName} not found for assembly {_assembly.FullName}");
+            var assembly = Assembly.Load(root.AssemblyFullName);
+            var type = assembly.GetType(root.ClassTypeName) ?? throw new ApplicationException($"type {root.ClassTypeName} not found for assembly {assembly.FullName}");
             var objectMapper = new ObjectPropertiesInfoMapper(type);
             foreach (var property in type.GetProperties())
             {
-                var propType = property.PropertyType;
-                if (!propType.IsPrimitive)
+                if (!property.PropertyType.IsPrimitive)
                 {
+                    var region = _allocator.GetRegion(root.BlockID, root.RegionIndex);
                     var propertyOffset = objectMapper.GetPropertyOffset(property);
-                    var blockID = _originalFile.ReadUInt(propertyOffset);
+                    var blockID = BitConverter.ToUInt32(region.Read(count: sizeof(uint), offset: propertyOffset));
+
+                    if (blockID == 0) continue; // null value
+
                     propertyOffset += sizeof(uint);
-                    var regionIndex = _originalFile.ReadByte(propertyOffset);
+                    var regionIndex = region.Read(count: 1, offset: propertyOffset)[0];
 
                     node.RegionsReference.Add(new RegionsInUse(blockID, regionIndex, property.PropertyType));
                 }
             }
+
             ReadChildren(node);
+
+            _rootNodes.Add(node);
         }
 
         private void ReadChildren(Node node)
@@ -96,6 +161,9 @@ namespace PM.Defraggler.Defragglers
                         var region = _allocator.GetRegion(regionReference.BlockId, regionReference.RegionIndex);
                         var propertyOffset = objectMapper.GetPropertyOffset(property);
                         var blockID = BitConverter.ToUInt32(region.Read(count: sizeof(uint), offset: propertyOffset));
+
+                        if (blockID == 0) continue; // null value
+
                         propertyOffset += sizeof(uint);
                         var regionIndex = region.Read(count: 1, offset: propertyOffset)[0];
 
@@ -106,11 +174,6 @@ namespace PM.Defraggler.Defragglers
 
                 node.AddChild(childrenNode);
             }
-        }
-
-        private string ReadAssemblyName()
-        {
-            return ReadString(_originalFile, 9);
         }
 
         private static string ReadString(PmCSharpDefinedTypes pmCsharpDefinedTypes, int offset)
@@ -132,28 +195,27 @@ namespace PM.Defraggler.Defragglers
         }
 
         // Get All used regions and bockIds
-        private HashSet<RegionsInUse> GetAllReferences()
+        private void GetAllUsedRegions()
         {
-            var result = new HashSet<RegionsInUse>();
-
             PersistentBlockLayout blockLayout = PersistentBlockLayout.LoadBlockLayoutFromPm(_startBlockOffset, _originalFile, _transactionFile);
             while (blockLayout != null)
             {
-                foreach (var regionInUse in GetSetBits(blockLayout.FreeBlocks))
+                if (!_pMemoryMetadataManager.IsMetadataBlock(blockLayout))
                 {
-                    result.Add(new RegionsInUse(blockLayout.BlockOffset, regionInUse, null));
+                    foreach (var regionInUse in GetSetBits(blockLayout.FreeBlocks))
+                    {
+                        _allUsedRegions.Add(new RegionsInUse(blockLayout.BlockOffset, regionInUse, null));
+                    }
                 }
                 if (blockLayout.NextBlockOffset == 0) break;
                 blockLayout = PersistentBlockLayout.LoadBlockLayoutFromPm(blockLayout.NextBlockOffset, _originalFile, _transactionFile);
             }
-
-            return result;
         }
 
         public static List<byte> GetSetBits(ulong number)
         {
             List<byte> setBits = new();
-            for (byte i = 0; i < sizeof(ulong); i++)
+            for (byte i = 0; i < sizeof(ulong) * 8; i++)
             {
                 if ((number & (1UL << i)) != 0)
                 {

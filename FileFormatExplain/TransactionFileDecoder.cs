@@ -24,9 +24,8 @@ namespace FileFormatExplain
             {
                 stringBuilder.AppendLine($"=================RemoveBlockLayout=================");
                 stringBuilder.AppendLine($"CommitByte={buffer[TransactionFileOffset.RemoveBlockCommitByte].ToString("X2")}");
-                stringBuilder.AppendLine($"BeforeBlockOffset={BitConverter.ToUInt32(buffer, TransactionFileOffset.RemoveBlockBeforeBlockOffset).ToString("X8")}");
-                stringBuilder.AppendLine($"RemovedBlockOffset={BitConverter.ToUInt32(buffer, TransactionFileOffset.RemoveBlockRemovedBlockOffset).ToString("X8")}");
-                stringBuilder.AppendLine($"AfterBlockOffset={BitConverter.ToUInt32(buffer, TransactionFileOffset.RemoveBlockAfterBlockOffset).ToString("X8")}");
+                stringBuilder.AppendLine($"BeforeBlockID={BitConverter.ToUInt32(buffer, TransactionFileOffset.BeforeBlockID).ToString("X8")}");
+                stringBuilder.AppendLine($"NextBlockID={BitConverter.ToUInt32(buffer, TransactionFileOffset.NextBlockID).ToString("X8")}");
             }
             if (buffer[3] == (byte)BlockLayoutType.UpdateContentBlock)
             {

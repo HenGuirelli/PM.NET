@@ -20,8 +20,8 @@ namespace PM.AutomaticManager.MetaDatas
             ObjectSize = BitConverter.ToUInt32(metadataRegion.Read(count: sizeof(uint), offset: InternalOffset));
             InternalOffset += sizeof(uint);
             ObjectUserID = ReadString(metadataRegion);
-            ClassTypeName = ReadString(metadataRegion);
             AssemblyFullName = ReadString(metadataRegion);
+            ClassTypeName = ReadString(metadataRegion);
         }
 
         private string ReadString(PersistentRegion metadataRegion)

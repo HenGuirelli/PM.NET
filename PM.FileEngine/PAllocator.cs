@@ -151,6 +151,36 @@ namespace PM.FileEngine
             return block;
         }
 
+        internal void RemoveBlock(PersistentBlockLayout persistentBlockLayout)
+        {
+            var previousBlock = GetPreviousBlockLayout(persistentBlockLayout);
+            if (previousBlock == null)
+            {
+                Log.Verbose("Persistent block {blockID} not not found previous block. Ignoring command..", persistentBlockLayout.BlockOffset);
+                return; // not found, nothing to do
+            }
+
+            TransactionFile.AddRemoveBlockLayout(new RemoveBlockLayout(previousBlock.BlockOffset, previousBlock.BlockOffset));
+        }
+
+        private PersistentBlockLayout? GetPreviousBlockLayout(PersistentBlockLayout persistentBlockLayout)
+        {
+            var block = FirstPersistentBlockLayout;
+            while (block != null)
+            {
+                if (block.NextBlock != null &&
+                    block.NextBlock.BlockOffset == persistentBlockLayout.BlockOffset)
+                {
+                    return block;
+                }
+
+                block = block.NextBlock;
+            }
+
+            return null;
+        }
+
+
         private PersistentBlockLayout? GetLastBlock()
         {
             if (_firstPersistentBlockLayout is null) return null;

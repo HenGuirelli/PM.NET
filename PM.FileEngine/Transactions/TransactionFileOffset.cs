@@ -12,9 +12,8 @@
         public const int AddBlockRegionSize = 10;
 
         public const int RemoveBlockCommitByte = 3;
-        public const int RemoveBlockBeforeBlockOffset = 5;
-        public const int RemoveBlockRemovedBlockOffset = 9;
-        public const int RemoveBlockAfterBlockOffset = 13;
+        public const int BeforeBlockID = 5;
+        public const int NextBlockID = 9;
 
         public const int UpdateContentBlockCommitByte = 4;
         public const int UpdateContentBlockStartBlockOffset = 5;

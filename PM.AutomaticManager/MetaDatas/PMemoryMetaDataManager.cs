@@ -16,6 +16,7 @@ namespace PM.AutomaticManager.MetaDatas
         // Caches
         readonly Dictionary<string, MetadataStructure> _metaDataStructureByObjectUserID = new();
         readonly Dictionary<uint, Dictionary<byte, ObjectMetaDataStructure>> _rootObjectmetaDataStructureByBlockIdAndRegionID = new();
+        readonly HashSet<UInt32> _metadataBlockIds = new();
 
         public PMemoryMetadataManager(PAllocator allocator)
         {
@@ -30,6 +31,8 @@ namespace PM.AutomaticManager.MetaDatas
             else
             {
                 _metadataRegion = _allocator.FirstPersistentBlockLayout!.Regions[0];
+
+                _metadataBlockIds.Add(_metadataRegion.BlockID);
                 MetadataReader = new MetadataReader(_metadataRegion);
 
                 while (MetadataReader.TryGetNext(out var metadataStructure))
@@ -142,6 +145,11 @@ namespace PM.AutomaticManager.MetaDatas
         {
             _metaDataStructureByObjectUserID.TryGetValue(objectUserID, out var metadataStructure);
             return metadataStructure;
+        }
+
+        internal bool IsMetadataBlock(PersistentBlockLayout blockLayout)
+        {
+            return _metadataBlockIds.Contains(blockLayout.BlockOffset);
         }
     }
 }

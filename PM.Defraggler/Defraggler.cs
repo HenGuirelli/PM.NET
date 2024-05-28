@@ -5,7 +5,7 @@ namespace PM.Defraggler
 {
     public class Defraggler
     {
-        private IDefraggler _internalDefreggler;
+        private readonly IDefraggler _internalDefreggler;
 
         public Defraggler(PmCSharpDefinedTypes originalFile, PmCSharpDefinedTypes transactionFile)
         {
