@@ -2,7 +2,7 @@
   "profiles": {
     "Benchmarks": {
       "commandName": "Project",
-      "commandLineArgs": "run --stream"
+      "commandLineArgs": "run writeReadProxyObject --pm-target=\"TraditionalMemoryMappedFile\""
     }
   }
 }
