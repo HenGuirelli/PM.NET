@@ -1,5 +1,4 @@
-﻿using BenchmarkDotNet.Configs;
-using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Running;
 using Benchmarks;
 using PM.AutomaticManager.Configs;
 using PM.Core;
@@ -47,14 +46,15 @@ class Program
                     .WithOptions(ConfigOptions.DisableOptimizationsValidator));
             }
 #else
-            if (target == PmTargets.PM)
-            {
-                BenchmarkRunner.Run<PmStreamsBenchmark>();
-            }
-            else if (target == PmTargets.TraditionalMemoryMappedFile)
-            {
-                BenchmarkRunner.Run<SSDPersistentObjectsBenchmark>();
-            }
+            //if (target == PmTargets.PM)
+            //{
+            //    BenchmarkRunner.Run<PmStreamsBenchmark>();
+            //}
+            //else if (target == PmTargets.TraditionalMemoryMappedFile)
+            //{
+            //    BenchmarkRunner.Run<SSDPersistentObjectsBenchmark>();
+            //}
+            BenchmarkRunner.Run<Test>();
 #endif
 
         }, targetOption);
