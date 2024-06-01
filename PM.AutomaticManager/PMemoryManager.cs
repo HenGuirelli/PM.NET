@@ -175,7 +175,15 @@ namespace PM.AutomaticManager
             return resultado;
         }
 
-        internal void UpdateProperty(PersistentRegion persistentRegion, Type targetType, PropertyInfo property, object? value)
+        /// <summary>
+        /// Update property value on PM
+        /// </summary>
+        /// <param name="persistentRegion">Region of object</param>
+        /// <param name="targetType">Type of object</param>
+        /// <param name="property">Updated property</param>
+        /// <param name="value">Value to write in region</param>
+        /// <returns>Return the new PersistentRegion created if property is a complex type and still do not have a proxy</returns>
+        internal PersistentRegion? UpdateProperty(PersistentRegion persistentRegion, Type targetType, PropertyInfo property, object? value)
         {
             if (!_propertiesMapper.TryGetValue(targetType, out var mapper))
             {
@@ -202,6 +210,7 @@ namespace PM.AutomaticManager
                     .Concat(regionIndexBytes)
                     .ToArray(),
                     offset: propertyInternalOffset);
+                return region;
             }
             else
             {
@@ -217,7 +226,7 @@ namespace PM.AutomaticManager
                     if (blockId == 0)
                     {
                         // nothing to do, property already is null
-                        return;
+                        return null;
                     }
                     // 2. remove region pointer from parent
                     propertyInternalOffset -= sizeof(uint);
@@ -227,11 +236,11 @@ namespace PM.AutomaticManager
                         .ToArray(),
                         offset: propertyInternalOffset);
                     // 3. Get block to mark region as free region
-                    var blockToRemove = Allocator.GetBlock(blockId);
+                    //var blockToRemove = Allocator.GetBlock(blockId);
                     // 4. Mark region as free --> UPDATE: Wait gc mark as free
                     //blockToRemove.MarkRegionAsFree(regionIndex);
 
-                    return;
+                    return null;
                 }
 
                 // Verify if the object already is a proxy object from PM.
@@ -244,7 +253,7 @@ namespace PM.AutomaticManager
                         .Concat(GetBytesFromObject(proxyObjectRegion.RegionIndex))
                         .ToArray(),
                         offset: propertyInternalOffset);
-                    return;
+                    return null;
                 }
 
                 // TODO: Add transaction
@@ -267,7 +276,14 @@ namespace PM.AutomaticManager
                         var objectValue = innerProperty.GetValue(value);
                         if (objectValue != null)
                         {
-                            UpdateProperty(region, property.PropertyType, innerProperty, objectValue);
+                            var regionCreatedToComplexProperty = UpdateProperty(region, property.PropertyType, innerProperty, objectValue)
+                                ?? throw new ApplicationException($"{nameof(UpdateProperty)} should return value on comlex property update");
+
+                            var regionAddressBytes =
+                                GetBytesFromObject(regionCreatedToComplexProperty.BlockID)
+                                .Concat(GetBytesFromObject(regionCreatedToComplexProperty.RegionIndex))
+                                .ToArray();
+                            Buffer.BlockCopy(regionAddressBytes, 0, objectBytes, i, regionAddressBytes.Length);
                         }
                         i += 5;
                     }
@@ -281,7 +297,10 @@ namespace PM.AutomaticManager
                     .Concat(regionIndexBytes)
                     .ToArray(),
                     offset: propertyInternalOffset);
+
+                return region;
             }
+            return null;
         }
 
         internal object? GetPropertyValue(PersistentRegion persistentRegion, Type targetType, PropertyInfo property, out bool returnIsProxyObject)

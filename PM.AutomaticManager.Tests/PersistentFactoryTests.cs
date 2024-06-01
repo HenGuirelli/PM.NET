@@ -175,10 +175,23 @@ namespace PM.AutomaticManager.Tests
             proxyObj.SelfReferenceObject = new ComplexClass
             {
                 IntVal1 = int.MaxValue,
-                IntVal2 = int.MinValue
+                IntVal2 = int.MinValue,
+                SelfReferenceObject = new ComplexClass
+                {
+                    IntVal1 = int.MaxValue,
+                    IntVal2 = int.MinValue,
+                    SelfReferenceObject = new ComplexClass
+                    {
+                        IntVal1 = 1,
+                        IntVal2 = -1
+                    }
+                }
             };
             Assert.Equal(int.MaxValue, proxyObj.SelfReferenceObject.IntVal1);
             Assert.Equal(int.MinValue, proxyObj.SelfReferenceObject.IntVal2);
+            Assert.NotNull(proxyObj.SelfReferenceObject.SelfReferenceObject.SelfReferenceObject);
+            Assert.Equal(1, proxyObj.SelfReferenceObject.SelfReferenceObject.SelfReferenceObject.IntVal1);
+            Assert.Equal(-1, proxyObj.SelfReferenceObject.SelfReferenceObject.SelfReferenceObject.IntVal2);
 
             var decoded = PMemoryDecoder.DecodeHex(factory.Allocator.ReadOriginalFile(), dump: false);
             _output.WriteLine(decoded);
