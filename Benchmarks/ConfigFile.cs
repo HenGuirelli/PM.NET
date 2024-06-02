@@ -14,7 +14,7 @@ namespace Benchmarks
         public string PersistentObjectsFilenameLiteDB { get; set; } = string.Empty;
         public string PersistentObjectsFilePathLevelDB { get; set; } = string.Empty;
         public string PostgresConnectionString { get; set; } = string.Empty;
-        public object PersistentObjectsFilenameSQLite { get; set; } = string.Empty;
+        public string PersistentObjectsFilenameSQLite { get; set; } = string.Empty;
     }
 
     internal class ConfigFile
@@ -42,7 +42,7 @@ namespace Benchmarks
 
         public string? PostgresConnectionString => _content.PostgresConnectionString!;
 
-        public object PersistentObjectsFilenameSQLite => _content.PersistentObjectsFilenameSQLite!;
+        public string PersistentObjectsFilenameSQLite => _content.PersistentObjectsFilenameSQLite!;
 
         public ConfigFile()
         {
