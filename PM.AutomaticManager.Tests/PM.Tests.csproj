@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FileFormatExplain\FileFormatExplain.csproj" />
-    <ProjectReference Include="..\PM.AutomaticManager\PM.AutomaticManager.csproj" />
+    <ProjectReference Include="..\PM.AutomaticManager\PM.csproj" />
     <ProjectReference Include="..\PM.Tests.Common\PM.Tests.Common.csproj" />
   </ItemGroup>
 

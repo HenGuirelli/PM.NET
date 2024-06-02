@@ -23,9 +23,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PM.FileEngine.Tests", "PM.F
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PM.Common", "PM.Common\PM.Common.csproj", "{843E9388-2E93-48C7-9FA1-E5590586134F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PM.AutomaticManager", "PM.AutomaticManager\PM.AutomaticManager.csproj", "{5D08EC73-81F0-4652-A42F-A7B6A992990A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PM", "PM.AutomaticManager\PM.csproj", "{5D08EC73-81F0-4652-A42F-A7B6A992990A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PM.AutomaticManager.Tests", "PM.AutomaticManager.Tests\PM.AutomaticManager.Tests.csproj", "{1E0EDED6-7A9D-40E9-B741-E52322408184}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PM.Tests", "PM.AutomaticManager.Tests\PM.Tests.csproj", "{1E0EDED6-7A9D-40E9-B741-E52322408184}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PM.Defraggler", "PM.Defraggler\PM.Defraggler.csproj", "{39A53749-F4F7-4C61-97D6-EDEF6F5984B1}"
 EndProject

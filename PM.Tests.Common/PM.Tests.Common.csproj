@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PM.AutomaticManager\PM.AutomaticManager.csproj" />
+    <ProjectReference Include="..\PM.AutomaticManager\PM.csproj" />
     <ProjectReference Include="..\PM.Common\PM.Common.csproj" />
     <ProjectReference Include="..\PM.Core\PM.Core.csproj" />
   </ItemGroup>
