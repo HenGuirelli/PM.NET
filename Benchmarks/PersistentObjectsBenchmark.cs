@@ -2,6 +2,8 @@
 using LevelDB;
 using LiteDB;
 using Npgsql;
+using PM.AutomaticManager;
+using PM.AutomaticManager.Configs;
 using System.Data.SQLite;
 using System.Text;
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -10,12 +12,14 @@ namespace Benchmarks
 {
     [MemoryDiagnoser]
     [RPlotExporter]
-    public abstract class PersistentObjectsBenchmark
+    public class PersistentObjectsBenchmark
     {
         private LiteDatabase _db;
         private DB _levelDb;
         private static NpgsqlConnection _pgConnection;
         private SQLiteConnection _sqliteConnection;
+        private PersistentFactory _persistentFactorySSD;
+        private RootObject _proxy;
 
         protected const string ValueToWrite = "TextValue";
 
@@ -23,7 +27,7 @@ namespace Benchmarks
         public void Setup()
         {
             var configFile = new ConfigFile();
-            CleanFolder(configFile.PersistentObjectsFilePathSSD!);
+            CleanFolder(configFile.PersistentObjectsFilePath!);
             CleanFolder(configFile.PersistentObjectsFilePathPm!);
 
             SetupPmDotnet(configFile);
@@ -57,7 +61,14 @@ namespace Benchmarks
             collection.EnsureIndex("Id");
         }
 
-        protected abstract void SetupPmDotnet(ConfigFile configFile);
+        private void SetupPmDotnet(ConfigFile configFile)
+        {
+            PmGlobalConfiguration.PmTarget = configFile.PmTarget;
+            PmGlobalConfiguration.PmInternalsFolder = configFile.PersistentObjectsFilePath!;
+
+            _persistentFactorySSD = new PersistentFactory();
+            _proxy = _persistentFactorySSD.CreateRootObject<RootObject>("RootObj");
+        }
 
         private void SetupSQLite(ConfigFile configFile)
         {
@@ -67,6 +78,21 @@ namespace Benchmarks
             {
                 cmd.ExecuteNonQuery();
             }
+        }
+        #endregion
+
+        #region PM.NET
+        [Benchmark]
+        public void ProxyObjects_Write()
+        {
+            _proxy.Text = ValueToWrite;
+        }
+
+        [Benchmark]
+        public void ProxyObjects_Read()
+        {
+            var rand = _proxy.Text;
+            GC.KeepAlive(rand);
         }
         #endregion
 

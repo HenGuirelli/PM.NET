@@ -34,27 +34,11 @@ class Program
         {
             PmGlobalConfiguration.PmTarget = target;
 #if DEBUG
-            if (target == PmTargets.PM)
-            {
-                BenchmarkRunner.Run<PmPersistentObjectsBenchmark>(
-                    DefaultConfig.Instance
-                    .WithOptions(ConfigOptions.DisableOptimizationsValidator));
-            }
-            else if (target == PmTargets.TraditionalMemoryMappedFile)
-            {
-                BenchmarkRunner.Run<SSDPersistentObjectsBenchmark>(
-                    DefaultConfig.Instance
-                    .WithOptions(ConfigOptions.DisableOptimizationsValidator));
-            }
+            BenchmarkRunner.Run<PersistentObjectsBenchmark>(
+                DefaultConfig.Instance
+                .WithOptions(ConfigOptions.DisableOptimizationsValidator));
 #else
-            //if (target == PmTargets.PM)
-            //{
-            //    BenchmarkRunner.Run<PmStreamsBenchmark>();
-            //}
-            //else if (target == PmTargets.TraditionalMemoryMappedFile)
-            //{
-            //    BenchmarkRunner.Run<SSDPersistentObjectsBenchmark>();
-            //}
+            // BenchmarkRunner.Run<PersistentObjectsBenchmark>();
             BenchmarkRunner.Run<Test>();
 #endif
 

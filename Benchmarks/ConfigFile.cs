@@ -1,5 +1,4 @@
-﻿using PM.AutomaticManager.Configs;
-using PM.Core;
+﻿using PM.Core;
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -15,6 +14,7 @@ namespace Benchmarks
         public string PersistentObjectsFilePathLevelDB { get; set; } = string.Empty;
         public string PostgresConnectionString { get; set; } = string.Empty;
         public string PersistentObjectsFilenameSQLite { get; set; } = string.Empty;
+        public string PmTarget { get; set; } = string.Empty;
     }
 
     public class ConfigFile
@@ -32,9 +32,9 @@ namespace Benchmarks
 
         public string? MemoryMappedStreamSSDStreamFilePath => Path.Combine(StreamSSDFilePath!, $"MemoryMappedStream{_processID}.pm");
         public string? MemoryMappedStreamPmStreamFilePath => Path.Combine(StreamPmFilePath!, $"MemoryMappedStream{_processID}.pm");
-        public string? PersistentObjectsFilePathSSD => Path.Combine(_content.PersistentObjectsFilePathSSD!, $"PersistentObjectsFilePath_{_processID}");
+        public string? PersistentObjectsFilePath => Path.Combine(_content.PersistentObjectsFilePathSSD!, $"PersistentObjectsFilePath_{_processID}");
         public string? PersistentObjectsFilePathPm => Path.Combine(_content.PersistentObjectsFilePathPm!, $"PersistentObjectsFilePath_{_processID}");
-        public PmTargets PmTarget => PmGlobalConfiguration.PmTarget;
+        public PmTargets PmTarget => (PmTargets)Enum.Parse(typeof(PmTargets), _content.PmTarget);
 
         public object PersistentObjectsFilenameLiteDB => _content.PersistentObjectsFilenameLiteDB!;
 
