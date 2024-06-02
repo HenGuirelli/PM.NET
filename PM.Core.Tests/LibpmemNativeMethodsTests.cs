@@ -1,4 +1,5 @@
-﻿using PM.Tests.Common;
+﻿using PM.Common;
+using PM.Tests.Common;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -19,7 +20,7 @@ namespace PM.Core.Tests
         {
             var filePath = CreateFilePath(nameof(OnMapPm));
             var fileSize = 4096;
-            
+
             ulong mappedLength = 0;
             int isPersistent = 0;
             var pointer = LibpmemNativeMethods.MapFile(
@@ -33,19 +34,19 @@ namespace PM.Core.Tests
             if (pointer == IntPtr.Zero)
                 throw new ApplicationException("Erro ao abrir pmem");
         }
-        
+
         [Fact]
         public void WriteAndReadFromPmem()
         {
             var filePath = CreateFilePath(nameof(WriteAndReadFromPmem));
             var fileSize = 4096;
-            
+
             ulong mappedLength = 0;
             int isPersistent = 0;
             var pointer = LibpmemNativeMethods.MapFile(
                 path: filePath,
                 length: fileSize,
-                flags: Flags.PMEM_FILE_CREATE, 
+                flags: Flags.PMEM_FILE_CREATE,
                 mode: Mode.Octal777,
                 mappedLength: ref mappedLength,
                 isPersistent: ref isPersistent);

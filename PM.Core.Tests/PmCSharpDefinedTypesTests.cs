@@ -1,4 +1,5 @@
-﻿using PM.Tests.Common;
+﻿using PM.Common;
+using PM.Tests.Common;
 using System;
 using Xunit;
 using Xunit.Abstractions;
@@ -19,7 +20,7 @@ namespace PM.Core.Tests
         {
             var pmPrimitives = CreatePrimitive(
                 nameof(OnWriteAndReadChar_ShouldExecWithoutException),
-                sizeof(char)*2);
+                sizeof(char) * 2);
             pmPrimitives.WriteChar(char.MaxValue);
             Assert.Equal(char.MaxValue, pmPrimitives.ReadChar());
             pmPrimitives.WriteChar(char.MinValue);
@@ -38,18 +39,18 @@ namespace PM.Core.Tests
             var pmPrimitives = CreatePrimitive(nameof(OnWriteAndReadDecimal_ShouldExecWithoutException));
             pmPrimitives.WriteDecimal(decimal.MaxValue);
             Assert.Equal(decimal.MaxValue, pmPrimitives.ReadDecimal());
-            
+
             pmPrimitives.WriteDecimal(decimal.MinValue);
             Assert.Equal(decimal.MinValue, pmPrimitives.ReadDecimal());
         }
-        
+
         [Fact]
         public void OnWriteAndReadDouble_ShouldExecWithoutException()
         {
             var pmPrimitives = CreatePrimitive(nameof(OnWriteAndReadDouble_ShouldExecWithoutException));
             pmPrimitives.WriteDouble(double.MaxValue);
             Assert.Equal(double.MaxValue, pmPrimitives.ReadDouble());
-            
+
             pmPrimitives.WriteDouble(double.MinValue);
             Assert.Equal(double.MinValue, pmPrimitives.ReadDouble());
         }
@@ -60,7 +61,7 @@ namespace PM.Core.Tests
             var pmPrimitives = CreatePrimitive(nameof(OnWriteAndReadFloat_ShouldExecWithoutException));
             pmPrimitives.WriteFloat(float.MaxValue);
             Assert.Equal(float.MaxValue, pmPrimitives.ReadFloat());
-            
+
             pmPrimitives.WriteFloat(float.MinValue);
             Assert.Equal(float.MinValue, pmPrimitives.ReadFloat());
         }
@@ -71,7 +72,7 @@ namespace PM.Core.Tests
             var pmPrimitives = CreatePrimitive(nameof(OnWriteAndReadLong_ShouldExecWithoutException));
             pmPrimitives.WriteLong(long.MaxValue);
             Assert.Equal(long.MaxValue, pmPrimitives.ReadLong());
-            
+
             pmPrimitives.WriteLong(long.MinValue);
             Assert.Equal(long.MinValue, pmPrimitives.ReadLong());
         }
@@ -82,7 +83,7 @@ namespace PM.Core.Tests
             var pmPrimitives = CreatePrimitive(nameof(OnWriteAndReadUInt_ShouldExecWithoutException));
             pmPrimitives.WriteUInt(uint.MaxValue);
             Assert.Equal(uint.MaxValue, pmPrimitives.ReadUInt());
-            
+
             pmPrimitives.WriteUInt(uint.MinValue);
             Assert.Equal(uint.MinValue, pmPrimitives.ReadUInt());
         }
@@ -93,7 +94,7 @@ namespace PM.Core.Tests
             var pmPrimitives = CreatePrimitive(nameof(OnWriteAndReadUShort_ShouldExecWithoutException));
             pmPrimitives.WriteUShort(ushort.MaxValue);
             Assert.Equal(ushort.MaxValue, pmPrimitives.ReadUShort());
-            
+
             pmPrimitives.WriteUShort(ushort.MinValue);
             Assert.Equal(ushort.MinValue, pmPrimitives.ReadUShort());
         }
@@ -104,7 +105,7 @@ namespace PM.Core.Tests
             var pmPrimitives = CreatePrimitive(nameof(OnWriteAndReadShort_ShouldExecWithoutException));
             pmPrimitives.WriteShort(short.MaxValue);
             Assert.Equal(short.MaxValue, pmPrimitives.ReadShort());
-            
+
             pmPrimitives.WriteShort(short.MinValue);
             Assert.Equal(short.MinValue, pmPrimitives.ReadShort());
         }
@@ -115,29 +116,29 @@ namespace PM.Core.Tests
             var pmPrimitives = CreatePrimitive(nameof(OnWriteAndReadSByte_ShouldExecWithoutException));
             pmPrimitives.WriteSByte(sbyte.MaxValue);
             Assert.Equal(sbyte.MaxValue, pmPrimitives.ReadSByte());
-            
+
             pmPrimitives.WriteSByte(sbyte.MinValue);
             Assert.Equal(sbyte.MinValue, pmPrimitives.ReadSByte());
         }
-        
+
         [Fact]
         public void OnWriteAndReadByte_ShouldExecWithoutException()
         {
             var pmPrimitives = CreatePrimitive(nameof(OnWriteAndReadByte_ShouldExecWithoutException));
             pmPrimitives.WriteByte(byte.MaxValue);
             Assert.Equal(byte.MaxValue, pmPrimitives.ReadByte());
-            
+
             pmPrimitives.WriteByte(byte.MinValue);
             Assert.Equal(byte.MinValue, pmPrimitives.ReadByte());
         }
-        
+
         [Fact]
         public void OnWriteAndReadBool_ShouldExecWithoutException()
         {
             var pmPrimitives = CreatePrimitive(nameof(OnWriteAndReadBool_ShouldExecWithoutException));
             pmPrimitives.WriteBool(true);
             Assert.True(pmPrimitives.ReadBool());
-            
+
             pmPrimitives.WriteBool(false);
             Assert.False(pmPrimitives.ReadBool());
         }

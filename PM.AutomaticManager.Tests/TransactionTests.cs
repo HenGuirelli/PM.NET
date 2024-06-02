@@ -3,7 +3,6 @@ using PM.AutomaticManager.Configs;
 using PM.AutomaticManager.Tansactions;
 using PM.AutomaticManager.Tests.TestObjects;
 using PM.Tests.Common;
-using PM.Transactions;
 using Xunit.Abstractions;
 
 namespace PM.AutomaticManager.Tests

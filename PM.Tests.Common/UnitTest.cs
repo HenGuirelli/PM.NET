@@ -1,5 +1,5 @@
-﻿using PM.Common;
-using PM.Configs;
+﻿using PM.AutomaticManager.Configs;
+using PM.Common;
 using PM.Core;
 using Serilog;
 using Xunit;
@@ -43,7 +43,7 @@ namespace PM.Tests.Common
         {
             if (PmGlobalConfiguration.PmTarget == PmTargets.PM)
             {
-                return new PmStream(CreateFilePath(mappedMemoryFilePath), size);
+                return new PmMemCopyStream(CreateFilePath(mappedMemoryFilePath), size);
             }
             return new TraditionalMemoryMappedStream(CreateFilePath(mappedMemoryFilePath), size);
         }
