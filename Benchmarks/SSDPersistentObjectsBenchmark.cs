@@ -1,6 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
 using LevelDB;
 using LiteDB;
+using Microsoft.Data.Sqlite;
 using Npgsql;
 using PM.AutomaticManager;
 using PM.AutomaticManager.Configs;
@@ -15,7 +16,6 @@ namespace Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-
         }
 
         [Benchmark]
@@ -37,6 +37,7 @@ namespace Benchmarks
         private LiteDatabase _db;
         private DB _levelDb;
         private static NpgsqlConnection _pgConnection;
+        private SqliteConnection _sqliteConnection;
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
         private const string ValueToWrite = "TextValue";
@@ -52,8 +53,10 @@ namespace Benchmarks
             SetupLiteDB(configFile);
             SetupLevelDB(configFile);
             SetupPostgreSQL(configFile);
+            SetupSQLite(configFile);
         }
 
+        #region Setups
         private static void SetupPostgreSQL(ConfigFile configFile)
         {
             _pgConnection = new NpgsqlConnection(configFile.PostgresConnectionString);
@@ -92,6 +95,17 @@ namespace Benchmarks
             _persistentFactorySSD = new PersistentFactory();
             _proxySSD = _persistentFactorySSD.CreateRootObject<RootObject>("RootObj");
         }
+
+        private void SetupSQLite(ConfigFile configFile)
+        {
+            _sqliteConnection = new SqliteConnection($"Data Source={configFile.PersistentObjectsFilenameSQLite!}");
+            _sqliteConnection.Open();
+            using (var cmd = new SqliteCommand("CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT NOT NULL)", _sqliteConnection))
+            {
+                cmd.ExecuteNonQuery();
+            }
+        }
+        #endregion
 
         #region ProxyObjects SSD
         [Benchmark]
@@ -166,6 +180,27 @@ namespace Benchmarks
             {
                 var result = cmd.ExecuteScalar();
 
+                GC.KeepAlive(result);
+            }
+        }
+        #endregion
+
+        #region SQLite
+        [Benchmark]
+        public void UpsertData_SQLite()
+        {
+            using (var cmd = new SqliteCommand("INSERT INTO test (id, name) VALUES (1, 'Test Name') ON CONFLICT(id) DO UPDATE SET name=excluded.name", _sqliteConnection))
+            {
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        [Benchmark]
+        public void ReadData_SQLite()
+        {
+            using (var cmd = new SqliteCommand("SELECT name FROM test WHERE id = 1", _sqliteConnection))
+            {
+                var result = cmd.ExecuteScalar();
                 GC.KeepAlive(result);
             }
         }

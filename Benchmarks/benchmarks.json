@@ -4,5 +4,6 @@
 	"PersistentObjectsFilePathSSD": "./benchmarks",
 	"PersistentObjectsFilePathPm": "/mnt/nvram1/henguirelli/benchmarks/PersistentObjects",
 	"PersistentObjectsFilenameLiteDB": "./liteDB.db",
-	"PostgresConnectionString": "Server=127.0.0.1;Port=5432;Database=postgres;User Id=postgres;Password=admin;"
+	"PostgresConnectionString": "Server=127.0.0.1;Port=5432;Database=postgres;User Id=postgres;Password=admin;",
+	"PersistentObjectsFilenameSQLite": "Data Source=./sqlite.db"
 }
