@@ -1,37 +1,18 @@
 ﻿using BenchmarkDotNet.Attributes;
 using PM.AutomaticManager;
 using PM.AutomaticManager.Configs;
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
 namespace Benchmarks
 {
-    public class RootObject
+    public class PmPersistentObjectsBenchmark : PersistentObjectsBenchmark
     {
-        public virtual string Text { get; set; }
-    }
-
-    [MemoryDiagnoser]
-    [RPlotExporter]
-    public class PmPersistentObjectsBenchmark
-    {
-        [Params(1, 2048, 4096, 8192, 16384, 32768, 65536)]
-        public int OperationQuantity;
-
         private PersistentFactory? _persistentFactorySSD;
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private RootObject _proxyPM;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        private RootObject _proxySSD;
 
-        private static readonly Random _random = new();
-
-        private const string ValueToWrite = "TextValue";
-
-        [GlobalSetup]
-        public void Setup()
+        protected override void SetupPmDotnet(ConfigFile configFile)
         {
-            var configFile = new ConfigFile();
-            CleanFolder(configFile.PersistentObjectsFilePathSSD!);
-            CleanFolder(configFile.PersistentObjectsFilePathPm!);
-
+            PmGlobalConfiguration.PmTarget = PM.Core.PmTargets.TraditionalMemoryMappedFile;
             if (configFile.PersistentObjectsFilePathSSD != null)
             {
                 PmGlobalConfiguration.PmInternalsFolder = configFile.PersistentObjectsFilePathSSD!;
@@ -42,37 +23,22 @@ namespace Benchmarks
             }
 
             _persistentFactorySSD = new PersistentFactory();
-            _proxyPM = _persistentFactorySSD.CreateRootObject<RootObject>("RootObj");
+            _proxySSD = _persistentFactorySSD.CreateRootObject<RootObject>("RootObj");
         }
 
-        #region ProxyObjects PM
+        #region ProxyObjects SSD
         [Benchmark]
-        public void ProxyObjects_Write_PM()
+        public void ProxyObjects_Write_SSD()
         {
-            _proxyPM.Text = ValueToWrite;
+            _proxySSD.Text = ValueToWrite;
         }
 
         [Benchmark]
-        public void ProxyObjects_Read_PM()
+        public void ProxyObjects_Read_SSD()
         {
-            var rand = _proxyPM.Text;
+            var rand = _proxySSD.Text;
             GC.KeepAlive(rand);
         }
         #endregion
-
-        private static void CleanFolder(string folder)
-        {
-            if (!Directory.Exists(folder))
-            {
-                Directory.CreateDirectory(folder);
-            }
-            else
-            {
-                foreach (var filename in Directory.GetFiles(folder))
-                {
-                    File.Delete(filename);
-                }
-            }
-        }
     }
 }

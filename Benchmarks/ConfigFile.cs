@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace Benchmarks
 {
-    internal class ConfigFileContent
+    public class ConfigFileContent
     {
         public string? StreamSSDFilePath { get; set; }
         public string? StreamPmFilePath { get; set; }
@@ -17,7 +17,7 @@ namespace Benchmarks
         public string PersistentObjectsFilenameSQLite { get; set; } = string.Empty;
     }
 
-    internal class ConfigFile
+    public class ConfigFile
     {
         private readonly ConfigFileContent _content;
         private readonly int _processID;
