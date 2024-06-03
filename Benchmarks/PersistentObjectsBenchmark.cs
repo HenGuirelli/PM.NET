@@ -98,7 +98,7 @@ namespace Benchmarks
 
         #region LiteDB
         [Benchmark]
-        public void UpsertData()
+        public void UpsertData_LiteDB()
         {
             var collection = _db.GetCollection("test");
             collection.Upsert(
@@ -109,7 +109,7 @@ namespace Benchmarks
         }
 
         [Benchmark]
-        public void ReadData()
+        public void ReadData_LiteDB()
         {
             var collection = _db.GetCollection("test");
             var result = collection.FindById(1).ToList();
