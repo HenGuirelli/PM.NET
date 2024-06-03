@@ -38,8 +38,7 @@ class Program
                 DefaultConfig.Instance
                 .WithOptions(ConfigOptions.DisableOptimizationsValidator));
 #else
-            // BenchmarkRunner.Run<PersistentObjectsBenchmark>();
-            BenchmarkRunner.Run<Test>();
+            BenchmarkRunner.Run<PersistentObjectsBenchmark>();
 #endif
 
         }, targetOption);
