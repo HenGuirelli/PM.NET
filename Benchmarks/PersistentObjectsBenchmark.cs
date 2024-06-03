@@ -5,7 +5,6 @@ using Npgsql;
 using PM.AutomaticManager;
 using PM.AutomaticManager.Configs;
 using System.Data.SQLite;
-using System.Text;
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
 namespace Benchmarks
@@ -21,7 +20,16 @@ namespace Benchmarks
         private PersistentFactory _persistentFactorySSD;
         private RootObject _proxy;
 
-        protected const string ValueToWrite = "TextValue";
+        private const int IntValueToWrite = int.MaxValue;
+        private const long LongValueToWrite = long.MaxValue;
+        private const short ShortValueToWrite = short.MaxValue;
+        private const byte ByteValueToWrite = byte.MaxValue;
+        private const double DoubleValueToWrite = double.MaxValue;
+        private const float FloatValueToWrite = float.MinValue;
+        private const decimal DecimalValueToWrite = decimal.MaxValue;
+        private const char CharValueToWrite = char.MaxValue;
+        private const bool BoolValueToWrite = true;
+        private const string StringValueToWrite = "Test String";
 
         [GlobalSetup]
         public void Setup()
@@ -42,7 +50,11 @@ namespace Benchmarks
         {
             _pgConnection = new NpgsqlConnection(configFile.PostgresConnectionString);
             _pgConnection.Open();
-            using (var cmd = new NpgsqlCommand("CREATE TABLE IF NOT EXISTS test (id SERIAL PRIMARY KEY, name TEXT NOT NULL)", _pgConnection))
+            using (var cmd = new NpgsqlCommand("DROP TABLE IF EXISTS test", _pgConnection))
+            {
+                cmd.ExecuteNonQuery();
+            }
+            using (var cmd = new NpgsqlCommand("CREATE TABLE test (id SERIAL PRIMARY KEY, int_val INTEGER, long_val BIGINT, short_val SMALLINT, byte_val SMALLINT, double_val DOUBLE PRECISION, float_val REAL, decimal_val DECIMAL, char_val CHAR(1), bool_val BOOLEAN, string_val TEXT)", _pgConnection))
             {
                 cmd.ExecuteNonQuery();
             }
@@ -52,12 +64,16 @@ namespace Benchmarks
         {
             var options = new Options { CreateIfMissing = true };
             _levelDb = new DB(options, configFile.PersistentObjectsFilePathLevelDB!);
+            _levelDb.Dispose();
+            Directory.Delete(configFile.PersistentObjectsFilePathLevelDB!, true);
+            _levelDb = new DB(options, configFile.PersistentObjectsFilePathLevelDB!);
         }
 
         private void SetupLiteDB(ConfigFile configFile)
         {
             _db = new LiteDatabase($"Filename={configFile.PersistentObjectsFilenameLiteDB!};Connection=shared");
             var collection = _db.GetCollection("test");
+            collection.DeleteAll();
             collection.EnsureIndex("Id");
         }
 
@@ -74,7 +90,11 @@ namespace Benchmarks
         {
             _sqliteConnection = new SQLiteConnection(configFile.PersistentObjectsFilenameSQLite!);
             _sqliteConnection.Open();
-            using (var cmd = new SQLiteCommand("CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT NOT NULL)", _sqliteConnection))
+            using (var cmd = new SQLiteCommand("DROP TABLE IF EXISTS test", _sqliteConnection))
+            {
+                cmd.ExecuteNonQuery();
+            }
+            using (var cmd = new SQLiteCommand("CREATE TABLE test (id INTEGER PRIMARY KEY, int_val INTEGER, long_val INTEGER, short_val INTEGER, byte_val INTEGER, double_val REAL, float_val REAL, decimal_val TEXT, char_val TEXT, bool_val INTEGER, string_val TEXT)", _sqliteConnection))
             {
                 cmd.ExecuteNonQuery();
             }
@@ -85,14 +105,42 @@ namespace Benchmarks
         [Benchmark]
         public void ProxyObjects_Write()
         {
-            _proxy.Text = ValueToWrite;
+            _proxy.IntVal = IntValueToWrite;
+            _proxy.LongVal = LongValueToWrite;
+            _proxy.ShortVal = ShortValueToWrite;
+            _proxy.ByteVal = ByteValueToWrite;
+            _proxy.DoubleVal = DoubleValueToWrite;
+            _proxy.FloatVal = FloatValueToWrite;
+            _proxy.DecimalVal = DecimalValueToWrite;
+            _proxy.CharVal = CharValueToWrite;
+            _proxy.BoolVal = BoolValueToWrite;
+            _proxy.StringVal = StringValueToWrite;
         }
 
         [Benchmark]
         public void ProxyObjects_Read()
         {
-            var rand = _proxy.Text;
-            GC.KeepAlive(rand);
+            var intVal = _proxy.IntVal;
+            var longVal = _proxy.LongVal;
+            var shortVal = _proxy.ShortVal;
+            var byteVal = _proxy.ByteVal;
+            var doubleVal = _proxy.DoubleVal;
+            var floatVal = _proxy.FloatVal;
+            var decimalVal = _proxy.DecimalVal;
+            var charVal = _proxy.CharVal;
+            var boolVal = _proxy.BoolVal;
+            var stringVal = _proxy.StringVal;
+
+            GC.KeepAlive(intVal);
+            GC.KeepAlive(longVal);
+            GC.KeepAlive(shortVal);
+            GC.KeepAlive(byteVal);
+            GC.KeepAlive(doubleVal);
+            GC.KeepAlive(floatVal);
+            GC.KeepAlive(decimalVal);
+            GC.KeepAlive(charVal);
+            GC.KeepAlive(boolVal);
+            GC.KeepAlive(stringVal);
         }
         #endregion
 
@@ -101,18 +149,28 @@ namespace Benchmarks
         public void UpsertData_LiteDB()
         {
             var collection = _db.GetCollection("test");
-            collection.Upsert(
-                new BsonDocument {
-                    { "_id", 1 },
-                    {  "Name", ValueToWrite }
-                });
+            var document = new BsonDocument
+            {
+                { "_id", 1 },
+                { "IntVal", IntValueToWrite },
+                { "LongVal", LongValueToWrite },
+                { "ShortVal", ShortValueToWrite },
+                { "ByteVal", (int)ByteValueToWrite },
+                { "DoubleVal", DoubleValueToWrite },
+                { "FloatVal", FloatValueToWrite },
+                { "DecimalVal", DecimalValueToWrite },
+                { "CharVal", CharValueToWrite.ToString() },
+                { "BoolVal", BoolValueToWrite },
+                { "StringVal", StringValueToWrite }
+            };
+            collection.Upsert(document);
         }
 
         [Benchmark]
         public void ReadData_LiteDB()
         {
             var collection = _db.GetCollection("test");
-            var result = collection.FindById(1).ToList();
+            var result = collection.FindById(1);
 
             GC.KeepAlive(result);
         }
@@ -122,18 +180,37 @@ namespace Benchmarks
         [Benchmark]
         public void UpsertData_LevelDB()
         {
-            var key = Encoding.UTF8.GetBytes("1");
-            var value = Encoding.UTF8.GetBytes(ValueToWrite);
+            var key = "1";
+
+            var rootObject = new RootObject
+            {
+                IntVal = IntValueToWrite,
+                LongVal = LongValueToWrite,
+                ShortVal = ShortValueToWrite,
+                ByteVal = ByteValueToWrite,
+                DoubleVal = DoubleValueToWrite,
+                FloatVal = FloatValueToWrite,
+                DecimalVal = DecimalValueToWrite,
+                CharVal = CharValueToWrite,
+                BoolVal = BoolValueToWrite,
+                StringVal = StringValueToWrite
+            };
+
+            var value = System.Text.Json.JsonSerializer.Serialize(rootObject);
             _levelDb.Put(key, value);
         }
 
         [Benchmark]
         public void ReadData_LevelDB()
         {
-            var key = Encoding.UTF8.GetBytes("1");
+            var key = "1";
             var value = _levelDb.Get(key);
 
-            GC.KeepAlive(value);
+            if (value != null)
+            {
+                var rootObject = System.Text.Json.JsonSerializer.Deserialize<RootObject>(value);
+                GC.KeepAlive(rootObject);
+            }
         }
         #endregion
 
@@ -141,8 +218,19 @@ namespace Benchmarks
         [Benchmark]
         public void UpsertData_PostgreSQL()
         {
-            using (var cmd = new NpgsqlCommand("INSERT INTO test (id, name) VALUES (1, 'Test Name') ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name", _pgConnection))
+            using (var cmd = new NpgsqlCommand("INSERT INTO test (id, int_val, long_val, short_val, byte_val, double_val, float_val, decimal_val, char_val, bool_val, string_val) VALUES (1, @intVal, @longVal, @shortVal, @byteVal, @doubleVal, @floatVal, @decimalVal, @charVal, @boolVal, @stringVal) ON CONFLICT (id) DO UPDATE SET int_val = EXCLUDED.int_val, long_val = EXCLUDED.long_val, short_val = EXCLUDED.short_val, byte_val = EXCLUDED.byte_val, double_val = EXCLUDED.double_val, float_val = EXCLUDED.float_val, decimal_val = EXCLUDED.decimal_val, char_val = EXCLUDED.char_val, bool_val = EXCLUDED.bool_val, string_val = EXCLUDED.string_val", _pgConnection))
             {
+                cmd.Parameters.AddWithValue("intVal", IntValueToWrite);
+                cmd.Parameters.AddWithValue("longVal", LongValueToWrite);
+                cmd.Parameters.AddWithValue("shortVal", ShortValueToWrite);
+                cmd.Parameters.AddWithValue("byteVal", ByteValueToWrite);
+                cmd.Parameters.AddWithValue("doubleVal", DoubleValueToWrite);
+                cmd.Parameters.AddWithValue("floatVal", FloatValueToWrite);
+                cmd.Parameters.AddWithValue("decimalVal", DecimalValueToWrite);
+                cmd.Parameters.AddWithValue("charVal", CharValueToWrite);
+                cmd.Parameters.AddWithValue("boolVal", BoolValueToWrite);
+                cmd.Parameters.AddWithValue("stringVal", StringValueToWrite);
+
                 cmd.ExecuteNonQuery();
             }
         }
@@ -150,11 +238,35 @@ namespace Benchmarks
         [Benchmark]
         public void ReadData_PostgreSQL()
         {
-            using (var cmd = new NpgsqlCommand("SELECT name FROM test WHERE id = 1", _pgConnection))
+            using (var cmd = new NpgsqlCommand("SELECT int_val, long_val, short_val, byte_val, double_val, float_val, decimal_val, char_val, bool_val, string_val FROM test WHERE id = 1", _pgConnection))
             {
-                var result = cmd.ExecuteScalar();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var intVal = reader.GetInt32(0);
+                        var longVal = reader.GetInt64(1);
+                        var shortVal = reader.GetInt16(2);
+                        var byteVal = reader.GetByte(3);
+                        var doubleVal = reader.GetDouble(4);
+                        var floatVal = reader.GetFloat(5);
+                        var decimalVal = reader.GetDecimal(6);
+                        var charVal = reader.GetChar(7);
+                        var boolVal = reader.GetBoolean(8);
+                        var stringVal = reader.GetString(9);
 
-                GC.KeepAlive(result);
+                        GC.KeepAlive(intVal);
+                        GC.KeepAlive(longVal);
+                        GC.KeepAlive(shortVal);
+                        GC.KeepAlive(byteVal);
+                        GC.KeepAlive(doubleVal);
+                        GC.KeepAlive(floatVal);
+                        GC.KeepAlive(decimalVal);
+                        GC.KeepAlive(charVal);
+                        GC.KeepAlive(boolVal);
+                        GC.KeepAlive(stringVal);
+                    }
+                }
             }
         }
         #endregion
@@ -163,8 +275,19 @@ namespace Benchmarks
         [Benchmark]
         public void UpsertData_SQLite()
         {
-            using (var cmd = new SQLiteCommand("INSERT INTO test (id, name) VALUES (1, 'Test Name') ON CONFLICT(id) DO UPDATE SET name=excluded.name", _sqliteConnection))
+            using (var cmd = new SQLiteCommand("INSERT INTO test (id, int_val, long_val, short_val, byte_val, double_val, float_val, decimal_val, char_val, bool_val, string_val) VALUES (1, @intVal, @longVal, @shortVal, @byteVal, @doubleVal, @floatVal, @decimalVal, @charVal, @boolVal, @stringVal) ON CONFLICT(id) DO UPDATE SET int_val = @intVal, long_val = @longVal, short_val = @shortVal, byte_val = @byteVal, double_val = @doubleVal, float_val = @floatVal, decimal_val = @decimalVal, char_val = @charVal, bool_val = @boolVal, string_val = @stringVal", _sqliteConnection))
             {
+                cmd.Parameters.AddWithValue("@intVal", IntValueToWrite);
+                cmd.Parameters.AddWithValue("@longVal", LongValueToWrite);
+                cmd.Parameters.AddWithValue("@shortVal", ShortValueToWrite);
+                cmd.Parameters.AddWithValue("@byteVal", ByteValueToWrite);
+                cmd.Parameters.AddWithValue("@doubleVal", DoubleValueToWrite);
+                cmd.Parameters.AddWithValue("@floatVal", FloatValueToWrite);
+                cmd.Parameters.AddWithValue("@decimalVal", DecimalValueToWrite.ToString());
+                cmd.Parameters.AddWithValue("@charVal", CharValueToWrite.ToString());
+                cmd.Parameters.AddWithValue("@boolVal", BoolValueToWrite ? 1 : 0);
+                cmd.Parameters.AddWithValue("@stringVal", StringValueToWrite);
+
                 cmd.ExecuteNonQuery();
             }
         }
@@ -172,10 +295,35 @@ namespace Benchmarks
         [Benchmark]
         public void ReadData_SQLite()
         {
-            using (var cmd = new SQLiteCommand("SELECT name FROM test WHERE id = 1", _sqliteConnection))
+            using (var cmd = new SQLiteCommand("SELECT int_val, long_val, short_val, byte_val, double_val, float_val, decimal_val, char_val, bool_val, string_val FROM test WHERE id = 1", _sqliteConnection))
             {
-                var result = cmd.ExecuteScalar();
-                GC.KeepAlive(result);
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var intVal = reader.GetInt32(0);
+                        var longVal = reader.GetInt64(1);
+                        var shortVal = reader.GetInt16(2);
+                        var byteVal = reader.GetByte(3);
+                        var doubleVal = reader.GetDouble(4);
+                        var floatVal = reader.GetFloat(5);
+                        var decimalVal = reader.GetString(6);
+                        var charVal = reader.GetString(7)[0];
+                        var boolVal = reader.GetInt32(8) == 1;
+                        var stringVal = reader.GetString(9);
+
+                        GC.KeepAlive(intVal);
+                        GC.KeepAlive(longVal);
+                        GC.KeepAlive(shortVal);
+                        GC.KeepAlive(byteVal);
+                        GC.KeepAlive(doubleVal);
+                        GC.KeepAlive(floatVal);
+                        GC.KeepAlive(decimalVal);
+                        GC.KeepAlive(charVal);
+                        GC.KeepAlive(boolVal);
+                        GC.KeepAlive(stringVal);
+                    }
+                }
             }
         }
         #endregion
