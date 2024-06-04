@@ -15,6 +15,9 @@ namespace Benchmarks
         public string PostgresConnectionString { get; set; } = string.Empty;
         public string PersistentObjectsFilenameSQLite { get; set; } = string.Empty;
         public string PmTarget { get; set; } = string.Empty;
+        public string PmMarshalStreamFilePath { get; set; } = string.Empty;
+        public string PmMemCopyStreamFilePath { get; set; } = string.Empty;
+        public string MemoryMappedStreamStreamFilePath { get; set; } = string.Empty;
     }
 
     public class ConfigFile
@@ -43,6 +46,10 @@ namespace Benchmarks
         public string? PostgresConnectionString => _content.PostgresConnectionString!;
 
         public string PersistentObjectsFilenameSQLite => _content.PersistentObjectsFilenameSQLite!;
+
+        public string PmMarshalStreamFilePath => _content.PmMarshalStreamFilePath;
+        public string PmMemCopyStreamFilePath => _content.PmMemCopyStreamFilePath;
+        public string MemoryMappedStreamStreamFilePath => _content.MemoryMappedStreamStreamFilePath;
 
         public ConfigFile()
         {

@@ -7,6 +7,9 @@
 	"PersistentObjectsFilenameLiteDB": "./liteDB.db",
 	"PostgresConnectionString": "Server=127.0.0.1;Port=5432;Database=postgres;User Id=postgres;Password=admin;",
 	"PersistentObjectsFilenameSQLite": "Data Source=./sqlite.db",
+	"PmMarshalStreamFilePath": "./benchmarks/PmMarshalStreamFilePath",
+	"PmMemCopyStreamFilePath": "./benchmarks/PmMemCopyStreamFilePath",
+	"MemoryMappedStreamStreamFilePath": "./benchmarks/PmMemCopyStreamFilePath",
 
 	"_PmTarget": "PM",
 	"_PersistentObjectsFilePath": "/mnt/nvram1/henguirelli/benchmarks/PersistentObjects",

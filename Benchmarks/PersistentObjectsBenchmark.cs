@@ -4,6 +4,8 @@ using LiteDB;
 using Npgsql;
 using PM.AutomaticManager;
 using PM.AutomaticManager.Configs;
+using PM.Common;
+using PM.Core;
 using System.Data.SQLite;
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -19,7 +21,9 @@ namespace Benchmarks
         private SQLiteConnection _sqliteConnection;
         private PersistentFactory _persistentFactorySSD;
         private RootObject _proxy;
-
+        private PmMarshalStream _pmMarshalStream;
+        private PmMemCopyStream _pmMemCpyStream;
+        private TraditionalMemoryMappedStream _memoryMappedStream;
         private const int IntValueToWrite = int.MaxValue;
         private const long LongValueToWrite = long.MaxValue;
         private const short ShortValueToWrite = short.MaxValue;
@@ -43,6 +47,9 @@ namespace Benchmarks
             SetupLevelDB(configFile);
             SetupPostgreSQL(configFile);
             SetupSQLite(configFile);
+            _pmMarshalStream = new PmMarshalStream(configFile.PmMarshalStreamFilePath!, 4096);
+            _pmMemCpyStream = new PmMemCopyStream(configFile.PmMemCopyStreamFilePath!, 4096);
+            _memoryMappedStream = new TraditionalMemoryMappedStream(configFile.MemoryMappedStreamStreamFilePath!, 4096);
         }
 
         #region Setups
@@ -98,6 +105,343 @@ namespace Benchmarks
             {
                 cmd.ExecuteNonQuery();
             }
+        }
+        #endregion
+
+        #region TraditionalMemoryMapped
+        [Benchmark]
+        public void TraditionalMemoryMapped_Write()
+        {
+            var offset = 0;
+
+            // Write int value
+            var intValue = BitConverter.GetBytes(IntValueToWrite);
+            _memoryMappedStream.Write(intValue, offset, intValue.Length);
+            offset += sizeof(int);
+
+            // Write long value
+            var longValue = BitConverter.GetBytes(LongValueToWrite);
+            _memoryMappedStream.Write(longValue, offset, longValue.Length);
+            offset += sizeof(long);
+
+            // Write short value
+            var shortValue = BitConverter.GetBytes(ShortValueToWrite);
+            _memoryMappedStream.Write(shortValue, offset, shortValue.Length);
+            offset += sizeof(short);
+
+            // Write byte value
+            var byteValue = new byte[] { ByteValueToWrite };
+            _memoryMappedStream.Write(byteValue, offset, byteValue.Length);
+            offset += sizeof(byte);
+
+            // Write double value
+            var doubleValue = BitConverter.GetBytes(DoubleValueToWrite);
+            _memoryMappedStream.Write(doubleValue, offset, doubleValue.Length);
+            offset += sizeof(double);
+
+            // Write float value
+            var floatValue = BitConverter.GetBytes(FloatValueToWrite);
+            _memoryMappedStream.Write(floatValue, offset, floatValue.Length);
+            offset += sizeof(float);
+
+            // Write char value
+            var charValue = BitConverter.GetBytes(CharValueToWrite);
+            _memoryMappedStream.Write(charValue, offset, charValue.Length);
+            offset += sizeof(char);
+
+            // Write bool value
+            var boolValue = BitConverter.GetBytes(BoolValueToWrite);
+            _memoryMappedStream.Write(boolValue, offset, boolValue.Length);
+            offset += sizeof(bool);
+        }
+
+        [Benchmark]
+        public void TraditionalMemoryMapped_Read()
+        {
+            var offset = 0;
+
+            // Read int value
+            var intBytes = new byte[sizeof(int)];
+            _memoryMappedStream.Read(intBytes, offset, intBytes.Length);
+            var IntValueToWrite = BitConverter.ToInt32(intBytes, 0);
+            offset += sizeof(int);
+
+            // Read long value
+            var longBytes = new byte[sizeof(long)];
+            _memoryMappedStream.Read(longBytes, offset, longBytes.Length);
+            var LongValueToWrite = BitConverter.ToInt64(longBytes, 0);
+            offset += sizeof(long);
+
+            // Read short value
+            var shortBytes = new byte[sizeof(short)];
+            _memoryMappedStream.Read(shortBytes, offset, shortBytes.Length);
+            var ShortValueToWrite = BitConverter.ToInt16(shortBytes, 0);
+            offset += sizeof(short);
+
+            // Read byte value
+            var byteBytes = new byte[sizeof(byte)];
+            _memoryMappedStream.Read(byteBytes, offset, byteBytes.Length);
+            var ByteValueToWrite = byteBytes[0];
+            offset += sizeof(byte);
+
+            // Read double value
+            var doubleBytes = new byte[sizeof(double)];
+            _memoryMappedStream.Read(doubleBytes, offset, doubleBytes.Length);
+            var DoubleValueToWrite = BitConverter.ToDouble(doubleBytes, 0);
+            offset += sizeof(double);
+
+            // Read float value
+            var floatBytes = new byte[sizeof(float)];
+            _memoryMappedStream.Read(floatBytes, offset, floatBytes.Length);
+            var FloatValueToWrite = BitConverter.ToSingle(floatBytes, 0);
+            offset += sizeof(float);
+
+            // Read char value
+            var charBytes = new byte[sizeof(char)];
+            _memoryMappedStream.Read(charBytes, offset, charBytes.Length);
+            var CharValueToWrite = BitConverter.ToChar(charBytes, 0);
+            offset += sizeof(char);
+
+            // Read bool value
+            var boolBytes = new byte[sizeof(bool)];
+            _memoryMappedStream.Read(boolBytes, offset, boolBytes.Length);
+            var BoolValueToWrite = BitConverter.ToBoolean(boolBytes, 0);
+            offset += sizeof(bool);
+
+            // Keep the variables alive
+            GC.KeepAlive(IntValueToWrite);
+            GC.KeepAlive(LongValueToWrite);
+            GC.KeepAlive(ShortValueToWrite);
+            GC.KeepAlive(ByteValueToWrite);
+            GC.KeepAlive(DoubleValueToWrite);
+            GC.KeepAlive(FloatValueToWrite);
+            GC.KeepAlive(CharValueToWrite);
+            GC.KeepAlive(BoolValueToWrite);
+        }
+        #endregion
+
+        #region MemCopy
+        [Benchmark]
+        public void MemCopy_Write()
+        {
+            var offset = 0;
+
+            // Write int value
+            var intValue = BitConverter.GetBytes(IntValueToWrite);
+            _pmMemCpyStream.Write(intValue, offset, intValue.Length);
+            offset += sizeof(int);
+
+            // Write long value
+            var longValue = BitConverter.GetBytes(LongValueToWrite);
+            _pmMemCpyStream.Write(longValue, offset, longValue.Length);
+            offset += sizeof(long);
+
+            // Write short value
+            var shortValue = BitConverter.GetBytes(ShortValueToWrite);
+            _pmMemCpyStream.Write(shortValue, offset, shortValue.Length);
+            offset += sizeof(short);
+
+            // Write byte value
+            var byteValue = new byte[] { ByteValueToWrite };
+            _pmMemCpyStream.Write(byteValue, offset, byteValue.Length);
+            offset += sizeof(byte);
+
+            // Write double value
+            var doubleValue = BitConverter.GetBytes(DoubleValueToWrite);
+            _pmMemCpyStream.Write(doubleValue, offset, doubleValue.Length);
+            offset += sizeof(double);
+
+            // Write float value
+            var floatValue = BitConverter.GetBytes(FloatValueToWrite);
+            _pmMemCpyStream.Write(floatValue, offset, floatValue.Length);
+            offset += sizeof(float);
+
+            // Write char value
+            var charValue = BitConverter.GetBytes(CharValueToWrite);
+            _pmMemCpyStream.Write(charValue, offset, charValue.Length);
+            offset += sizeof(char);
+
+            // Write bool value
+            var boolValue = BitConverter.GetBytes(BoolValueToWrite);
+            _pmMemCpyStream.Write(boolValue, offset, boolValue.Length);
+            offset += sizeof(bool);
+        }
+
+        [Benchmark]
+        public void MemCopy_Read()
+        {
+            var offset = 0;
+
+            // Read int value
+            var intBytes = new byte[sizeof(int)];
+            _pmMemCpyStream.Read(intBytes, offset, intBytes.Length);
+            var IntValueToWrite = BitConverter.ToInt32(intBytes, 0);
+            offset += sizeof(int);
+
+            // Read long value
+            var longBytes = new byte[sizeof(long)];
+            _pmMemCpyStream.Read(longBytes, offset, longBytes.Length);
+            var LongValueToWrite = BitConverter.ToInt64(longBytes, 0);
+            offset += sizeof(long);
+
+            // Read short value
+            var shortBytes = new byte[sizeof(short)];
+            _pmMemCpyStream.Read(shortBytes, offset, shortBytes.Length);
+            var ShortValueToWrite = BitConverter.ToInt16(shortBytes, 0);
+            offset += sizeof(short);
+
+            // Read byte value
+            var byteBytes = new byte[sizeof(byte)];
+            _pmMemCpyStream.Read(byteBytes, offset, byteBytes.Length);
+            var ByteValueToWrite = byteBytes[0];
+            offset += sizeof(byte);
+
+            // Read double value
+            var doubleBytes = new byte[sizeof(double)];
+            _pmMemCpyStream.Read(doubleBytes, offset, doubleBytes.Length);
+            var DoubleValueToWrite = BitConverter.ToDouble(doubleBytes, 0);
+            offset += sizeof(double);
+
+            // Read float value
+            var floatBytes = new byte[sizeof(float)];
+            _pmMemCpyStream.Read(floatBytes, offset, floatBytes.Length);
+            var FloatValueToWrite = BitConverter.ToSingle(floatBytes, 0);
+            offset += sizeof(float);
+
+            // Read char value
+            var charBytes = new byte[sizeof(char)];
+            _pmMemCpyStream.Read(charBytes, offset, charBytes.Length);
+            var CharValueToWrite = BitConverter.ToChar(charBytes, 0);
+            offset += sizeof(char);
+
+            // Read bool value
+            var boolBytes = new byte[sizeof(bool)];
+            _pmMemCpyStream.Read(boolBytes, offset, boolBytes.Length);
+            var BoolValueToWrite = BitConverter.ToBoolean(boolBytes, 0);
+            offset += sizeof(bool);
+
+            // Keep the variables alive
+            GC.KeepAlive(IntValueToWrite);
+            GC.KeepAlive(LongValueToWrite);
+            GC.KeepAlive(ShortValueToWrite);
+            GC.KeepAlive(ByteValueToWrite);
+            GC.KeepAlive(DoubleValueToWrite);
+            GC.KeepAlive(FloatValueToWrite);
+            GC.KeepAlive(CharValueToWrite);
+            GC.KeepAlive(BoolValueToWrite);
+        }
+        #endregion
+
+        #region MarshalStream
+        [Benchmark]
+        public void MarshalStream_Write()
+        {
+            var offset = 0;
+
+            // Write int value
+            var intValue = BitConverter.GetBytes(IntValueToWrite);
+            _pmMarshalStream.Write(intValue, offset, intValue.Length);
+            offset += sizeof(int);
+
+            // Write long value
+            var longValue = BitConverter.GetBytes(LongValueToWrite);
+            _pmMarshalStream.Write(longValue, offset, longValue.Length);
+            offset += sizeof(long);
+
+            // Write short value
+            var shortValue = BitConverter.GetBytes(ShortValueToWrite);
+            _pmMarshalStream.Write(shortValue, offset, shortValue.Length);
+            offset += sizeof(short);
+
+            // Write byte value
+            var byteValue = new byte[] { ByteValueToWrite };
+            _pmMarshalStream.Write(byteValue, offset, byteValue.Length);
+            offset += sizeof(byte);
+
+            // Write double value
+            var doubleValue = BitConverter.GetBytes(DoubleValueToWrite);
+            _pmMarshalStream.Write(doubleValue, offset, doubleValue.Length);
+            offset += sizeof(double);
+
+            // Write float value
+            var floatValue = BitConverter.GetBytes(FloatValueToWrite);
+            _pmMarshalStream.Write(floatValue, offset, floatValue.Length);
+            offset += sizeof(float);
+
+            // Write char value
+            var charValue = BitConverter.GetBytes(CharValueToWrite);
+            _pmMarshalStream.Write(charValue, offset, charValue.Length);
+            offset += sizeof(char);
+
+            // Write bool value
+            var boolValue = BitConverter.GetBytes(BoolValueToWrite);
+            _pmMarshalStream.Write(boolValue, offset, boolValue.Length);
+            offset += sizeof(bool);
+        }
+
+
+        [Benchmark]
+        public void MarshalStream_Read()
+        {
+            var offset = 0;
+
+            // Read int value
+            var intBytes = new byte[sizeof(int)];
+            _pmMarshalStream.Read(intBytes, offset, intBytes.Length);
+            var IntValueToWrite = BitConverter.ToInt32(intBytes, 0);
+            offset += sizeof(int);
+
+            // Read long value
+            var longBytes = new byte[sizeof(long)];
+            _pmMarshalStream.Read(longBytes, offset, longBytes.Length);
+            var LongValueToWrite = BitConverter.ToInt64(longBytes, 0);
+            offset += sizeof(long);
+
+            // Read short value
+            var shortBytes = new byte[sizeof(short)];
+            _pmMarshalStream.Read(shortBytes, offset, shortBytes.Length);
+            var ShortValueToWrite = BitConverter.ToInt16(shortBytes, 0);
+            offset += sizeof(short);
+
+            // Read byte value
+            var byteBytes = new byte[sizeof(byte)];
+            _pmMarshalStream.Read(byteBytes, offset, byteBytes.Length);
+            var ByteValueToWrite = byteBytes[0];
+            offset += sizeof(byte);
+
+            // Read double value
+            var doubleBytes = new byte[sizeof(double)];
+            _pmMarshalStream.Read(doubleBytes, offset, doubleBytes.Length);
+            var DoubleValueToWrite = BitConverter.ToDouble(doubleBytes, 0);
+            offset += sizeof(double);
+
+            // Read float value
+            var floatBytes = new byte[sizeof(float)];
+            _pmMarshalStream.Read(floatBytes, offset, floatBytes.Length);
+            var FloatValueToWrite = BitConverter.ToSingle(floatBytes, 0);
+            offset += sizeof(float);
+
+            // Read char value
+            var charBytes = new byte[sizeof(char)];
+            _pmMarshalStream.Read(charBytes, offset, charBytes.Length);
+            var CharValueToWrite = BitConverter.ToChar(charBytes, 0);
+            offset += sizeof(char);
+
+            // Read bool value
+            var boolBytes = new byte[sizeof(bool)];
+            _pmMarshalStream.Read(boolBytes, offset, boolBytes.Length);
+            var BoolValueToWrite = BitConverter.ToBoolean(boolBytes, 0);
+            offset += sizeof(bool);
+
+            // Keep the variables alive
+            GC.KeepAlive(IntValueToWrite);
+            GC.KeepAlive(LongValueToWrite);
+            GC.KeepAlive(ShortValueToWrite);
+            GC.KeepAlive(ByteValueToWrite);
+            GC.KeepAlive(DoubleValueToWrite);
+            GC.KeepAlive(FloatValueToWrite);
+            GC.KeepAlive(CharValueToWrite);
+            GC.KeepAlive(BoolValueToWrite);
         }
         #endregion
 
