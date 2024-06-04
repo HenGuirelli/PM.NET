@@ -9,7 +9,7 @@
 	"PersistentObjectsFilenameSQLite": "Data Source=./sqlite.db",
 	"PmMarshalStreamFilePath": "./benchmarks/PmMarshalStreamFilePath",
 	"PmMemCopyStreamFilePath": "./benchmarks/PmMemCopyStreamFilePath",
-	"MemoryMappedStreamStreamFilePath": "./benchmarks/PmMemCopyStreamFilePath",
+	"MemoryMappedStreamStreamFilePath": "./benchmarks/MemoryMappedStreamStreamFilePath",
 
 	"_PmTarget": "PM",
 	"_PersistentObjectsFilePath": "/mnt/nvram1/henguirelli/benchmarks/PersistentObjects",
