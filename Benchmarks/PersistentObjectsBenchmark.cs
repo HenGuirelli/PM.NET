@@ -47,8 +47,27 @@ namespace Benchmarks
             SetupLevelDB(configFile);
             SetupPostgreSQL(configFile);
             SetupSQLite(configFile);
+
+            string directoryPath = Path.GetDirectoryName(configFile.PmMarshalStreamFilePath);
+
+            // Check if the directory path is not null or empty
+            if (!string.IsNullOrEmpty(directoryPath))
+            {
+                // Check if the directory exists
+                if (!Directory.Exists(directoryPath))
+                {
+                    // Create the directory
+                    Directory.CreateDirectory(directoryPath);
+                }
+            }
+
+            File.Create(configFile.PmMarshalStreamFilePath!, 4096);
             _pmMarshalStream = new PmMarshalStream(configFile.PmMarshalStreamFilePath!, 4096);
+
+            File.Create(configFile.PmMemCopyStreamFilePath!, 4096);
             _pmMemCpyStream = new PmMemCopyStream(configFile.PmMemCopyStreamFilePath!, 4096);
+
+            File.Create(configFile.MemoryMappedStreamStreamFilePath!, 4096);
             _memoryMappedStream = new TraditionalMemoryMappedStream(configFile.MemoryMappedStreamStreamFilePath!, 4096);
         }
 
