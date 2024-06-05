@@ -2,18 +2,20 @@
 	"StreamSSDFilePath": "./benchmarks",
 	"StreamPmFilePath": "/mnt/nvram1/henguirelli/benchmarks",
 
-	"PmTarget": "TraditionalMemoryMappedFile",
-	"PersistentObjectsFilePath": "./benchmarks",
-	"PersistentObjectsFilenameLiteDB": "./liteDB.db",
-	"PostgresConnectionString": "Server=127.0.0.1;Port=5432;Database=postgres;User Id=postgres;Password=admin;",
-	"PersistentObjectsFilenameSQLite": "Data Source=./sqlite.db",
-	"PmMarshalStreamFilePath": "./benchmarks/PmMarshalStreamFilePath",
-	"PmMemCopyStreamFilePath": "./benchmarks/PmMemCopyStreamFilePath",
-	"MemoryMappedStreamStreamFilePath": "./benchmarks/MemoryMappedStreamStreamFilePath",
-
-	"_PmTarget": "PM",
-	"_PersistentObjectsFilePath": "/mnt/nvram1/henguirelli/benchmarks/PersistentObjects",
-	"_PersistentObjectsFilenameLiteDB": "/mnt/nvram1/henguirelli/benchmarks/liteDB.db",
+	"_PmTarget": "TraditionalMemoryMappedFile",
+	"_PersistentObjectsFilePath": "./benchmarks",
+	"_PersistentObjectsFilenameLiteDB": "./liteDB.db",
 	"_PostgresConnectionString": "Server=127.0.0.1;Port=5432;Database=postgres;User Id=postgres;Password=admin;",
-	"_PersistentObjectsFilenameSQLite": "Data Source=/mnt/nvram1/henguirelli/benchmarks/sqlite.db"
+	"_PersistentObjectsFilenameSQLite": "Data Source=./sqlite.db",
+
+	"PmTarget": "PM",
+	"PersistentObjectsFilePath": "/mnt/nvram1/henguirelli/benchmarks/PersistentObjects",
+	"PersistentObjectsFilenameLiteDB": "/mnt/nvram1/henguirelli/benchmarks/liteDB.db",
+	"PostgresConnectionString": "Server=127.0.0.1;Port=5432;Database=postgres;User Id=postgres;Password=admin;",
+	"PersistentObjectsFilenameSQLite": "Data Source=/mnt/nvram1/henguirelli/benchmarks/sqlite.db",
+
+
+	"__PmMarshalStreamFilePath": "./benchmarks/PmMarshalStreamFilePath",
+	"__PmMemCopyStreamFilePath": "./benchmarks/PmMemCopyStreamFilePath",
+	"__MemoryMappedStreamStreamFilePath": "./benchmarks/MemoryMappedStreamStreamFilePath"
 }
