@@ -21,7 +21,6 @@ namespace PM.Common
             }
         }
 
-        private readonly ReaderWriterLockSlim _lock = new();
 
         protected PmBasedStream(string path, long length)
         {
@@ -78,25 +77,17 @@ namespace PM.Common
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            try
-            {
-                _lock.EnterReadLock();
 
-                if (_position + count > _length)
-                {
-                    count = (int)(_length - _position);
-                }
-                if (count <= 0)
-                {
-                    return 0;
-                }
-                Marshal.Copy(InitialPointer + (nint)_position, buffer, offset, buffer.Length);
-                return count;
-            }
-            finally
+            if (_position + count > _length)
             {
-                _lock.ExitReadLock();
+                count = (int)(_length - _position);
             }
+            if (count <= 0)
+            {
+                return 0;
+            }
+            Marshal.Copy(InitialPointer + (nint)_position, buffer, offset, buffer.Length);
+            return count;
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -135,26 +126,17 @@ namespace PM.Common
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            try
-            {
-                _lock.EnterWriteLock();
+            var destination = InitialPointer + (nint)_position;
+            Log.Verbose(
+                "Writing on file={file}, size={size}, " +
+                "buffer={buffer}, offset={offset}, count={count}, " +
+                "destination={destination}",
+                FilePath, Length,
+                buffer, offset, count,
+                destination);
 
-                var destination = InitialPointer + (nint)_position;
-                Log.Verbose(
-                    "Writing on file={file}, size={size}, " +
-                    "buffer={buffer}, offset={offset}, count={count}, " +
-                    "destination={destination}",
-                    FilePath, Length,
-                    buffer, offset, count,
-                    destination);
-
-                InternalWrite(destination, buffer, offset, count);
-                _position += count;
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
+            InternalWrite(destination, buffer, offset, count);
+            _position += count;
         }
 
         protected abstract void InternalWrite(
@@ -166,51 +148,33 @@ namespace PM.Common
 
         public override void Resize(long size)
         {
-            try
-            {
-                _lock.EnterWriteLock();
-
-                base.Resize(size);
-                Drain();
-                Close();
-                MapFile(FilePath, size);
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
+            base.Resize(size);
+            Drain();
+            Close();
+            MapFile(FilePath, size);
         }
 
         public override void Close()
         {
-            try
+            base.Close();
+            IsClosed = true;
+
+            if (InitialPointer != IntPtr.Zero)
             {
-                _lock.EnterWriteLock();
-
-                base.Close();
-                IsClosed = true;
-
-                if (InitialPointer != IntPtr.Zero)
+                if (LibpmemNativeMethods.Unmap(InitialPointer, Length) == 0)
                 {
-                    if (LibpmemNativeMethods.Unmap(InitialPointer, Length) == 0)
-                    {
-                        Log.Verbose("PM unmapped pointer={pointer}, filepath={filepath}, size={size}",
-                            InitialPointer, FilePath, Length);
-                    }
-                    else
-                    {
-                        Log.Error("Error on Unmap memory area pointer={pointer}, size={size}",
-                            InitialPointer, Length);
-                    }
+                    Log.Verbose("PM unmapped pointer={pointer}, filepath={filepath}, size={size}",
+                        InitialPointer, FilePath, Length);
                 }
                 else
                 {
-                    Log.Verbose("Unable to close PM filepath={filepath}, size={size}. _pmPtr is Zero", FilePath, Length);
+                    Log.Error("Error on Unmap memory area pointer={pointer}, size={size}",
+                        InitialPointer, Length);
                 }
             }
-            finally
+            else
             {
-                _lock.ExitWriteLock();
+                Log.Verbose("Unable to close PM filepath={filepath}, size={size}. _pmPtr is Zero", FilePath, Length);
             }
         }
 
