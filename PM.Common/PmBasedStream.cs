@@ -93,10 +93,6 @@ namespace PM.Common
         public override long Seek(long offset, SeekOrigin origin)
         {
             base.LogSeek(offset, origin);
-            if (IsClosed)
-            {
-                throw new ObjectDisposedException($"file {FilePath} disposed");
-            }
 
             long newPosition = origin switch
             {
