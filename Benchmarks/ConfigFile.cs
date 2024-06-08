@@ -4,10 +4,8 @@ using System.Text.Json;
 
 namespace Benchmarks
 {
-    public class ConfigFileContent
+    public class PersistentObjectsBenchmarkConfig
     {
-        public string? StreamSSDFilePath { get; set; }
-        public string? StreamPmFilePath { get; set; }
         public string PersistentObjectsFilePathSSD { get; set; } = string.Empty;
         public string PersistentObjectsFilePathPm { get; set; } = string.Empty;
         public string PersistentObjectsFilenameLiteDB { get; set; } = string.Empty;
@@ -15,17 +13,26 @@ namespace Benchmarks
         public string PostgresConnectionString { get; set; } = string.Empty;
         public string PersistentObjectsFilenameSQLite { get; set; } = string.Empty;
         public string PmTarget { get; set; } = string.Empty;
-        public string PmMarshalStreamFilePath { get; set; } = string.Empty;
-        public string PmMemCopyStreamFilePath { get; set; } = string.Empty;
-        public string MemoryMappedStreamStreamFilePath { get; set; } = string.Empty;
+    }
+
+    public class PmStreamsBenchmarkConfig
+    {
+        public string? StreamSSDFilePath { get; set; }
+        public string? StreamPmFilePath { get; set; }
+    }
+
+    public class ConfigFileContent
+    {
+        public PmStreamsBenchmarkConfig PmStreamsBenchmark { get; set; } = new PmStreamsBenchmarkConfig();
+        public PersistentObjectsBenchmarkConfig PersistentObjectsBenchmark { get; set; } = new PersistentObjectsBenchmarkConfig();
     }
 
     public class ConfigFile
     {
         private readonly ConfigFileContent _content;
         private readonly int _processID;
-        public string? StreamSSDFilePath => _content?.StreamSSDFilePath;
-        public string? StreamPmFilePath => _content?.StreamPmFilePath;
+        public string? StreamSSDFilePath => _content.PmStreamsBenchmark.StreamSSDFilePath;
+        public string? StreamPmFilePath => _content.PmStreamsBenchmark.StreamPmFilePath;
 
         public string? PmMarshalSSDStreamFilePath => Path.Combine(StreamSSDFilePath!, $"PmMarshalStream{_processID}.pm");
         public string? PmMemCopySSDStreamFilePath => Path.Combine(StreamSSDFilePath!, $"PmMemCopyStreamFilePath{_processID}.pm");
@@ -35,21 +42,17 @@ namespace Benchmarks
 
         public string? MemoryMappedStreamSSDStreamFilePath => Path.Combine(StreamSSDFilePath!, $"MemoryMappedStream{_processID}.pm");
         public string? MemoryMappedStreamPmStreamFilePath => Path.Combine(StreamPmFilePath!, $"MemoryMappedStream{_processID}.pm");
-        public string? PersistentObjectsFilePath => Path.Combine(_content.PersistentObjectsFilePathSSD!, $"PersistentObjectsFilePath_{_processID}");
-        public string? PersistentObjectsFilePathPm => Path.Combine(_content.PersistentObjectsFilePathPm!, $"PersistentObjectsFilePath_{_processID}");
-        public PmTargets PmTarget => (PmTargets)Enum.Parse(typeof(PmTargets), _content.PmTarget);
+        public string? PersistentObjectsFilePath => Path.Combine(_content.PersistentObjectsBenchmark.PersistentObjectsFilePathSSD!, $"PersistentObjectsFilePath_{_processID}");
+        public string? PersistentObjectsFilePathPm => Path.Combine(_content.PersistentObjectsBenchmark.PersistentObjectsFilePathPm!, $"PersistentObjectsFilePath_{_processID}");
+        public PmTargets PmTarget => (PmTargets)Enum.Parse(typeof(PmTargets), _content.PersistentObjectsBenchmark.PmTarget);
 
-        public object PersistentObjectsFilenameLiteDB => _content.PersistentObjectsFilenameLiteDB!;
+        public object PersistentObjectsFilenameLiteDB => _content.PersistentObjectsBenchmark.PersistentObjectsFilenameLiteDB!;
 
-        public string? PersistentObjectsFilePathLevelDB => Path.Combine(_content.PersistentObjectsFilePathLevelDB!, $"PersistentObjectsFilePath_{_processID}");
+        public string? PersistentObjectsFilePathLevelDB => Path.Combine(_content.PersistentObjectsBenchmark.PersistentObjectsFilePathLevelDB!, $"PersistentObjectsFilePath_{_processID}");
 
-        public string? PostgresConnectionString => _content.PostgresConnectionString!;
+        public string? PostgresConnectionString => _content.PersistentObjectsBenchmark.PostgresConnectionString!;
 
-        public string PersistentObjectsFilenameSQLite => _content.PersistentObjectsFilenameSQLite!;
-
-        public string PmMarshalStreamFilePath => _content.PmMarshalStreamFilePath;
-        public string PmMemCopyStreamFilePath => _content.PmMemCopyStreamFilePath;
-        public string MemoryMappedStreamStreamFilePath => _content.MemoryMappedStreamStreamFilePath;
+        public string PersistentObjectsFilenameSQLite => _content.PersistentObjectsBenchmark.PersistentObjectsFilenameSQLite!;
 
         public ConfigFile()
         {
