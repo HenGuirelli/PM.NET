@@ -106,6 +106,13 @@ namespace Benchmarks
 
         #region PM.NET
         [Benchmark]
+        public void ProxyObjects_Creation()
+        {
+            var root = _persistentFactorySSD.CreateRootObject<RootObject>(Guid.NewGuid().ToString());
+            GC.KeepAlive(root);
+        }
+
+        [Benchmark]
         public void ProxyObjects_Write()
         {
             _proxy.IntVal = IntValueToWrite;
