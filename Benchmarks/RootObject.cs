@@ -1,5 +1,10 @@
 ﻿namespace Benchmarks
 {
+    public class InnerClass
+    {
+        public virtual int MyProperty { get; set; }
+    }
+
     public class RootObject
     {
         public virtual int IntVal { get; set; }
@@ -21,5 +26,6 @@
         public virtual bool BoolVal { get; set; }
 
         public virtual string StringVal { get; set; }
+        public virtual InnerClass InnerObject { get; set; }
     }
 }
