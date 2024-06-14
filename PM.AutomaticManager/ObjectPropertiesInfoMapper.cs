@@ -7,11 +7,24 @@ namespace PM.AutomaticManager
         // Dictionary of property and its offset
         private readonly Dictionary<PropertyInfo, int> _offsetByPRoperty = new();
         private readonly Dictionary<Type, uint> _typeSizeByType = new();
+
+        private static readonly Dictionary<Type, ObjectPropertiesInfoMapper> _objectPropertiesInfoMapperCache = new();
+
         public Type ObjectType { get; }
 
         public ObjectPropertiesInfoMapper(Type type)
         {
             ObjectType = type;
+
+            // Verify cache.
+            // This cache is very important because reflection is very slow
+            if (_objectPropertiesInfoMapperCache.TryGetValue(type, out var objectPropertiesInfoMapper))
+            {
+                _offsetByPRoperty = objectPropertiesInfoMapper._offsetByPRoperty;
+                _typeSizeByType = objectPropertiesInfoMapper._typeSizeByType;
+                return;
+            }
+
             PropertyInfo[] properties = type.GetProperties();
 
             var offset = 0;
