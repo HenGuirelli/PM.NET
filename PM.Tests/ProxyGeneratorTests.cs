@@ -1,6 +1,5 @@
-﻿using Castle.DynamicProxy;
-using Moq;
-using PM.Core;
+﻿using Moq;
+using PM.Configs;
 using PM.Proxies;
 using System;
 using System.Threading;
@@ -8,12 +7,53 @@ using Xunit;
 
 namespace PM.Tests
 {
+
+
+    public class InnerClass
+    {
+        public virtual int MyProperty { get; set; }
+    }
+
+    public class RootObject
+    {
+        public virtual int IntVal { get; set; }
+
+        public virtual long LongVal { get; set; }
+
+        public virtual short ShortVal { get; set; }
+
+        public virtual byte ByteVal { get; set; }
+
+        public virtual double DoubleVal { get; set; }
+
+        public virtual float FloatVal { get; set; }
+
+        public virtual decimal DecimalVal { get; set; }
+
+        public virtual char CharVal { get; set; }
+
+        public virtual bool BoolVal { get; set; }
+
+        public virtual string StringVal { get; set; }
+        public virtual InnerClass InnerObject { get; set; }
+    }
+
     public class DomainObj
     {
     }
 
     public class ProxyGeneratorTests
     {
+        [Fact]
+        public void AAA()
+        {
+            PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
+
+            IPersistentFactory _persistentFactorySSD = new PersistentFactory();
+            var _proxy = _persistentFactorySSD.CreateRootObject<RootObject>("RootObj");
+            _proxy.InnerObject = new InnerClass();
+        }
+
         [Fact]
         public void OnCreateClassProxy_ShouldCreateObject()
         {
