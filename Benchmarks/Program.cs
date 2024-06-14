@@ -1,41 +1,57 @@
-﻿using BenchmarkDotNet.Configs;
-using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Running;
 using Benchmarks;
+using PM.Configs;
+using PM.Core;
 using System.CommandLine;
 
 class Program
 {
     static async Task<int> Main(string[] args)
     {
-        var streamOption = new Option<bool>(
-            name: "--stream",
-            description: "Benchmark stream classes.",
-            getDefaultValue: () => true);
+        var targetOption = new Option<PmTargets>(
+            name: "--pm-target",
+            description: "Specify target to run",
+            getDefaultValue: () => PmTargets.PM);
 
         var rootCommand = new RootCommand("PM.NET Benchmarks");
 
-        var runCommand = new Command("run", "Run PM.NET benchmarks")
+        var runCommand = new Command("run", "Run PM.NET benchmarks");
+
+        var streamCommand = new Command("stream", "Benchmark stream classes");
+
+        var writeReadCommand = new Command("writeReadProxyObject", "Benchmark proxy objects created by PersistentFactory")
         {
-            streamOption
+            targetOption
         };
+
+        runCommand.AddCommand(streamCommand);
+        runCommand.AddCommand(writeReadCommand);
 
         rootCommand.AddCommand(runCommand);
 
-        runCommand.SetHandler((stream) =>
+        writeReadCommand.SetHandler((target) =>
         {
-            // run benchmarks
-            if (stream)
-            {
-                #if DEBUG
-                    BenchmarkRunner.Run<PmStreamsBenchmark>(
-                        DefaultConfig.Instance
-                        .WithOptions(ConfigOptions.DisableOptimizationsValidator));
-                # else
-                    BenchmarkRunner.Run<PmStreamsBenchmark>();
-                # endif
-            }
+            PmGlobalConfiguration.PmTarget = target;
+#if DEBUG
+            BenchmarkRunner.Run<PersistentObjectsBenchmark>(
+                DefaultConfig.Instance
+                .WithOptions(ConfigOptions.DisableOptimizationsValidator));
+#else
+            BenchmarkRunner.Run<PmStreamsBenchmark>();
+#endif
 
-        }, streamOption);
+        }, targetOption);
+
+        streamCommand.SetHandler(() =>
+        {
+#if DEBUG
+            BenchmarkRunner.Run<PmStreamsBenchmark>(
+                DefaultConfig.Instance
+                .WithOptions(ConfigOptions.DisableOptimizationsValidator));
+#else
+            BenchmarkRunner.Run<PmStreamsBenchmark>();
+#endif
+        });
 
         return await rootCommand.InvokeAsync(args);
     }
