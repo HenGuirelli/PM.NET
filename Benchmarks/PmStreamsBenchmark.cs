@@ -55,6 +55,8 @@ namespace Benchmarks
         }
 
         [Benchmark]
+        [WarmupCount(20)]
+        [IterationCount(300)]
         public void ProxyObjects_CreationRootObject()
         {
             var root = _persistentFactorySSD.CreateRootObject<RootObject>(Guid.NewGuid().ToString());
