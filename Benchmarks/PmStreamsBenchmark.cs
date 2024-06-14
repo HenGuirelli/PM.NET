@@ -63,15 +63,6 @@ namespace Benchmarks
             GC.KeepAlive(root);
         }
 
-        [Benchmark]
-        [WarmupCount(20)]
-        [IterationCount(300)]
-        public void ProxyObjects_CreationInnerObject()
-        {
-            _proxy.InnerObject = new RootObject();
-            _proxy = _proxy.InnerObject;
-        }
-
         private static void CleanFolder(string folder)
         {
             if (!Directory.Exists(folder))
