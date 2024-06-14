@@ -57,10 +57,9 @@ namespace Benchmarks
         [Benchmark]
         [WarmupCount(20)]
         [IterationCount(300)]
-        public void ProxyObjects_CreationRootObject()
+        public void ProxyObjects_CreationString()
         {
-            var root = _persistentFactorySSD.CreateRootObject<RootObject>(Guid.NewGuid().ToString());
-            GC.KeepAlive(root);
+            _proxy.StringVal = Guid.NewGuid().ToString();
         }
 
         private static void CleanFolder(string folder)
