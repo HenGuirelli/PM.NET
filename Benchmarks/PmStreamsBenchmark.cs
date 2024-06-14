@@ -4,11 +4,6 @@ using PM.Configs;
 
 namespace Benchmarks
 {
-    public class InnerClass
-    {
-        public virtual int MyProperty { get; set; }
-    }
-
     public class RootObject
     {
         public virtual int IntVal { get; set; }
@@ -30,7 +25,7 @@ namespace Benchmarks
         public virtual bool BoolVal { get; set; }
 
         public virtual string StringVal { get; set; }
-        public virtual InnerClass InnerObject { get; set; }
+        public virtual RootObject InnerObject { get; set; }
     }
 
     [MemoryDiagnoser]
@@ -67,9 +62,12 @@ namespace Benchmarks
         }
 
         [Benchmark]
+        [WarmupCount(20)]
+        [IterationCount(300)]
         public void ProxyObjects_CreationInnerObject()
         {
-            _proxy.InnerObject = new InnerClass();
+            _proxy.InnerObject = new RootObject();
+            _proxy = _proxy.InnerObject;
         }
 
         private static void CleanFolder(string folder)
