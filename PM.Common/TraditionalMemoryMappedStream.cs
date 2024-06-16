@@ -37,6 +37,10 @@ namespace PM.Common
                     fs.Close();
                 }
             }
+            else
+            {
+                _length = new FileInfo(FilePath).Length;
+            }
 
             _memoryMappedFile = MemoryMappedFile.CreateFromFile(FilePath);
             _memoryMappedViewStream =

@@ -41,13 +41,18 @@ namespace PM.Common
             int isPersistent = 0;
             ulong mappedLength = 0;
 
+            if (File.Exists(FilePath))
+            {
+                length = new FileInfo(FilePath).Length;
+            }
+
             InitialPointer = LibpmemNativeMethods.MapFile(
-                path: path,
-                length: length,
-                flags: Flags.PMEM_FILE_CREATE,
-                mode: Mode.Octal777,
-                mappedLength: ref mappedLength,
-                isPersistent: ref isPersistent);
+            path: path,
+            length: length,
+            flags: Flags.PMEM_FILE_CREATE,
+            mode: Mode.Octal777,
+            mappedLength: ref mappedLength,
+            isPersistent: ref isPersistent);
 
             if (InitialPointer == IntPtr.Zero)
             {
