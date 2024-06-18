@@ -1,6 +1,7 @@
 ﻿using PM.AutomaticManager.Configs;
 using PM.AutomaticManager.Factories;
 using PM.AutomaticManager.Proxies;
+using PM.Collections;
 using PM.FileEngine;
 using Serilog;
 
@@ -71,6 +72,11 @@ namespace PM.AutomaticManager
         public T CreateRootObject<T>(string objectUserID)
         {
             return (T)CreateRootObject(typeof(T), objectUserID);
+        }
+
+        public PmLinkedList<T> CreateLinkedList<T>(string objectUserId)
+        {
+            return new PmLinkedList<T>(objectUserId, PMemoryManager);
         }
     }
 }
