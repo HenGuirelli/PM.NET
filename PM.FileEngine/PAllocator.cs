@@ -212,7 +212,11 @@ namespace PM.FileEngine
             PersistentMemory.WriteUInt(block.NextBlockOffset, offset);
 
             Log.Debug(
-                "{RegionsQuantity}|{RegionsSize}|{FreeBlocks}|{NextBlockOffset}",
+                "NewBlock on offset {blockOffset}: RegionsQuantity={RegionsQuantity}|" +
+                "RegionsSize={RegionsSize}|" +
+                "FreeBlocks={FreeBlocks}|" +
+                "NextBlockOffset={NextBlockOffset}",
+                block.BlockOffset,
                 block.RegionsQuantity,
                 block.RegionsSize,
                 block.FreeBlocks,
