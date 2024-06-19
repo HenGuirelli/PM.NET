@@ -144,6 +144,10 @@ namespace PM.AutomaticManager.Proxies
                 invocation.Proceed();
                 invocation.ReturnValue = value;
             }
+            else // Common method
+            {
+                invocation.Proceed();
+            }
         }
 
         public static string GetPropertyName(MethodInfo method)
