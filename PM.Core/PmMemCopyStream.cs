@@ -1,4 +1,6 @@
-﻿namespace PM.Core
+﻿using PM.Common;
+
+namespace PM.Core
 {
     /// <summary>
     /// This class write on PM memory mapped file using

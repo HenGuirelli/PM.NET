@@ -42,7 +42,7 @@ namespace Benchmarks
 
         public string? MemoryMappedStreamSSDStreamFilePath => Path.Combine(StreamSSDFilePath!, $"MemoryMappedStream{_processID}.pm");
         public string? MemoryMappedStreamPmStreamFilePath => Path.Combine(StreamPmFilePath!, $"MemoryMappedStream{_processID}.pm");
-        public string? PersistentObjectsFilePath => Path.Combine(_content.PersistentObjectsBenchmark.PersistentObjectsFilePathSSD!, $"PersistentObjectsFilePath");
+        public string? PersistentObjectsFilePath => Path.Combine(_content.PersistentObjectsBenchmark.PersistentObjectsFilePathSSD!, $"PersistentObjectsFilePath_{_processID}");
         public string? PersistentObjectsFilePathPm => Path.Combine(_content.PersistentObjectsBenchmark.PersistentObjectsFilePathPm!, $"PersistentObjectsFilePath_{_processID}");
         public PmTargets PmTarget => (PmTargets)Enum.Parse(typeof(PmTargets), _content.PersistentObjectsBenchmark.PmTarget);
 

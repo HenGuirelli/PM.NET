@@ -1,12 +1,17 @@
 ﻿using PM.Tests.Common;
-using System.Security.Cryptography;
 using System.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PM.Core.Tests
 {
     public class PmMarshalStreamTests : UnitTest
     {
+        public PmMarshalStreamTests(ITestOutputHelper output)
+            : base(output)
+        {
+        }
+
         [Fact]
         public void OnWriteAndReadOnPmMarshalStream()
         {

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PM.AutomaticManager\PM.csproj" />
+    <ProjectReference Include="..\PM.Common\PM.Common.csproj" />
+    <ProjectReference Include="..\PM.FileEngine\PM.FileEngine.csproj" />
+  </ItemGroup>
+
+</Project>

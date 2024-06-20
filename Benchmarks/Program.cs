@@ -1,6 +1,7 @@
-﻿using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Running;
 using Benchmarks;
-using PM.Configs;
+using PM.AutomaticManager.Configs;
 using PM.Core;
 using System.CommandLine;
 
@@ -37,7 +38,7 @@ class Program
                 DefaultConfig.Instance
                 .WithOptions(ConfigOptions.DisableOptimizationsValidator));
 #else
-            BenchmarkRunner.Run<PmStreamsBenchmark>();
+            BenchmarkRunner.Run<PersistentObjectsBenchmark>();
 #endif
 
         }, targetOption);

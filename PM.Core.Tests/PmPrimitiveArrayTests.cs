@@ -1,11 +1,17 @@
 ﻿using System;
 using PM.Tests.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PM.Core.Tests
 {
     public class PmPrimitiveArrayTests : UnitTest
     {
+        public PmPrimitiveArrayTests(ITestOutputHelper output)
+            : base(output)
+        {
+        }
+
         [Fact]
         public void OnSetAndGet_ShouldRunWithoutException()
         {

@@ -1,22 +1,34 @@
-﻿using PM.Configs;
+﻿using PM.AutomaticManager.Configs;
+using PM.Common;
 using PM.Core;
-using System.IO;
+using Serilog;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PM.Tests.Common
 {
     [Collection("PM.UnitTests")]
     public abstract class UnitTest
     {
+        public ITestOutputHelper Output { get; }
         static UnitTest()
         {
             PmGlobalConfiguration.PmTarget = Constraints.PmTarget;
             PmGlobalConfiguration.PmInternalsFolder = Constraints.PmRootFolder;
         }
 
+        public UnitTest(ITestOutputHelper output, Serilog.Events.LogEventLevel logEventLevel = Serilog.Events.LogEventLevel.Verbose)
+        {
+            Output = output;
+            Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Is(logEventLevel)
+            .WriteTo.TestOutput(Output)
+            .CreateLogger();
+        }
+
         protected static void ClearFolder()
         {
-            foreach( var filename in Directory.GetFiles(PmGlobalConfiguration.PmInternalsFolder))
+            foreach (var filename in Directory.GetFiles(PmGlobalConfiguration.PmInternalsFolder))
             {
                 File.Delete(filename);
             }
@@ -27,11 +39,11 @@ namespace PM.Tests.Common
             return Path.Combine(PmGlobalConfiguration.PmInternalsFolder, filename);
         }
 
-        protected static MemoryMappedFileBasedStream CreatePmStream(string mappedMemoryFilePath, long size)
+        protected static MemoryMappedFileBasedStream CreatePmStream(string mappedMemoryFilePath, long size = 4096)
         {
             if (PmGlobalConfiguration.PmTarget == PmTargets.PM)
             {
-                return new PmStream(CreateFilePath(mappedMemoryFilePath), size);
+                return new PmMemCopyStream(CreateFilePath(mappedMemoryFilePath), size);
             }
             return new TraditionalMemoryMappedStream(CreateFilePath(mappedMemoryFilePath), size);
         }

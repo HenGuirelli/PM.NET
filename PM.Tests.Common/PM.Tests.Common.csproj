@@ -1,18 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="xunit.extensibility.core" Version="2.4.1" />
+    <PackageReference Include="Serilog.Sinks.XUnit" Version="3.0.5" />
+    <PackageReference Include="xunit.extensibility.core" Version="2.6.5" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PM.AutomaticManager\PM.csproj" />
+    <ProjectReference Include="..\PM.Common\PM.Common.csproj" />
     <ProjectReference Include="..\PM.Core\PM.Core.csproj" />
-    <ProjectReference Include="..\PM\PM.csproj" />
   </ItemGroup>
 
 </Project>

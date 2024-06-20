@@ -2,12 +2,18 @@ using System;
 using System.IO;
 using PM.Tests.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace PM.Core.Tests
 {
     public class PmTests : UnitTest
     {
         private static readonly Random _random = new();
+
+        public PmTests(ITestOutputHelper output)
+            : base(output)
+        {
+        }
 
         [Fact]
         public void OnLoadStoreByte_ShouldExecWithoutException()
