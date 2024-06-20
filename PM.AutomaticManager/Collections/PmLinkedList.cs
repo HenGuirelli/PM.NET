@@ -5,17 +5,10 @@ using System.Collections;
 
 namespace PM.Collections
 {
-    public class PmLinkedListNode<T> : IEquatable<PmLinkedListNode<T>>
+    public class PmLinkedListNode<T>
     {
         public virtual PmLinkedListNode<T> Next { get; set; }
         public virtual T Value { get; set; }
-
-        public bool Equals(PmLinkedListNode<T>? other)
-        {
-            if (other is null) return false;
-
-            return this.Value.Equals(other.Value);
-        }
     }
 
     public class PmLinkedListEnumerator<T> : IEnumerator<T>
@@ -65,17 +58,19 @@ namespace PM.Collections
         private readonly string _objectUserID;
         private readonly PMemoryManager _pMemoryManager;
         private readonly PAllocator _pAllocator;
+        private readonly IEqualityComparer<T>? _equalityComparer;
         private readonly ObjectPropertiesInfoMapper _objectPropertiesInfoMapper;
         private PmLinkedListNode<T>? _head;
         private PmLinkedListNode<T>? _lastNode;
         private PersistentRegion? _headRegion;
 
-        internal PmLinkedList(string objectUserID, PMemoryManager pMemoryManager)
+        internal PmLinkedList(string objectUserID, PMemoryManager pMemoryManager, IEqualityComparer<T>? equalityComparer = null)
         {
             _nodeType = typeof(PmLinkedListNode<T>);
             _objectUserID = objectUserID;
             _pMemoryManager = pMemoryManager;
             _pAllocator = pMemoryManager.Allocator;
+            _equalityComparer = equalityComparer;
             _objectPropertiesInfoMapper = new ObjectPropertiesInfoMapper(typeof(PmLinkedListNode<T>));
         }
 
@@ -111,23 +106,27 @@ namespace PM.Collections
 
             PersistentRegion newRegion = _pAllocator.Alloc(_objectPropertiesInfoMapper.GetTypeSize());
             var newNode = (PmLinkedListNode<T>)innerObjectFactory.CreateInnerObject(newRegion, _nodeType);
+            _lastNode.Next = newNode;
+            _lastNode = newNode;
             newNode.Value = value;
             // Set proxy object to argument 'value'
             value = newNode.Value;
-            _lastNode.Next = newNode;
-
-            _lastNode = _lastNode.Next;
         }
 
         public int Find(T value)
         {
-            if (_head is null) return -1;
-
-            PmLinkedListNode<T> current = _head;
+            PmLinkedListNode<T>? current = _head;
             int i = 0;
             while (current != null)
             {
-                if (current.Value != null && current.Value.Equals(value)) return i;
+                if (_equalityComparer != null)
+                {
+                    if (_equalityComparer.Equals(current.Value, value)) return i;
+                }
+                else
+                {
+                    if (value != null && current.Value!.Equals(value)) return i;
+                }
 
                 current = current.Next;
                 i++;
