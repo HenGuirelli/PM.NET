@@ -1,4 +1,5 @@
-﻿using PM.Tests.Common;
+﻿using PM.Collections;
+using PM.Tests.Common;
 using Serilog.Events;
 using Xunit.Abstractions;
 
@@ -12,16 +13,23 @@ namespace PM.Tests.Collections
         }
 
         [Fact]
-        public void On()
+        public void OnPut_ShouldAddElementToHashMap()
         {
             var pAllocator = new FileEngine.PAllocator(
-                    new PM.Common.PmCSharpDefinedTypes(CreatePmStream(nameof(On))),
-                    new PM.Common.PmCSharpDefinedTypes(CreatePmStream(nameof(On) + "_Transaction"))
+                    new PM.Common.PmCSharpDefinedTypes(CreatePmStream(nameof(OnPut_ShouldAddElementToHashMap))),
+                    new PM.Common.PmCSharpDefinedTypes(CreatePmStream(nameof(OnPut_ShouldAddElementToHashMap) + "_Transaction"))
                     );
-            IHashMapList<int> list = new PmHashMap<int, int>(
+            IHashMap<int, int> hashmap = new PmHashMap<int, int>(
                 "PmHashMap",
                 new AutomaticManager.PMemoryManager(pAllocator));
 
+            hashmap.Put(1, 1);
+            hashmap.Put(2, 1);
+            hashmap.Put(3, 3);
+
+            Assert.Equal(1, hashmap.Get(1));
+            Assert.Equal(1, hashmap.Get(2));
+            Assert.Equal(3, hashmap.Get(3));
         }
     }
 }

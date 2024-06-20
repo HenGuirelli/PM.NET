@@ -1,10 +1,5 @@
 ﻿namespace PM.Collections
 {
-    public interface IHashMap<TKey, TValue> : IEnumerable<PmKeyValuePair<TKey, TValue>>
-    {
-        void Put(TKey key, TValue value);
-    }
-
     public interface ILinkedList<T> : IEnumerable<T>
     {
         /// <summary>
