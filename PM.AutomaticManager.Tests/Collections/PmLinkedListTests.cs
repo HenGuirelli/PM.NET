@@ -61,7 +61,6 @@ namespace PM.Tests.Collections
             Assert.Equal(0, list.Find(val1));
         }
 
-
         [Fact]
         public void OnAppendAndFind_WhenComplexObjects_ShouldAppendAndFindValue()
         {

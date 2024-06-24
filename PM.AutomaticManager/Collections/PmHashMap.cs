@@ -1,7 +1,5 @@
 ﻿using PM.AutomaticManager;
-using System.Buffers;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace PM.Collections
@@ -12,6 +10,10 @@ namespace PM.Collections
         // TODO: not work if key is a complex object
         public bool Equals(PmKeyValuePair<TKey, TValue>? x, PmKeyValuePair<TKey, TValue>? y)
         {
+            if (x is null && y != null) return false;
+            if (y is null && x != null) return false;
+            if (x is null && y is null) return true;
+
             return x.Key.GetHashCode() == y.Key.GetHashCode();
         }
 
@@ -45,7 +47,7 @@ namespace PM.Collections
         {
             if (key is null) throw new ArgumentNullException(nameof(key));
 
-            var indexBucket = key.GetHashCode() % _size;
+            var indexBucket = GetIndexBucket(key);
             if (_buckets[indexBucket] == null) return default;
 
             var keyToFind = new PmKeyValuePair<TKey, TValue>(key, default!);
@@ -54,12 +56,18 @@ namespace PM.Collections
             return _buckets[indexBucket].ElementAt(linkedListIndex).Value;
         }
 
+        private int GetIndexBucket(TKey key)
+        {
+            if (key is null) throw new ArgumentNullException(nameof(key));
+            return Math.Abs(key.GetHashCode() % _size);
+        }
+
         public void Put(TKey key, TValue value)
         {
             if (key is null) throw new ArgumentNullException(nameof(key));
             if (value is null) throw new ArgumentNullException(nameof(value));
 
-            var indexBucket = key.GetHashCode() % _size;
+            var indexBucket = GetIndexBucket(key);
             if (_buckets[indexBucket] == null)
             {
                 _buckets[indexBucket] = new PmLinkedList<PmKeyValuePair<TKey, TValue>>(
@@ -69,6 +77,12 @@ namespace PM.Collections
             }
 
             var item = new PmKeyValuePair<TKey, TValue>(key, value);
+            var indexItemFindend = _buckets[indexBucket].Find(item);
+            if (indexItemFindend != -1)
+            {
+                _buckets[indexBucket].RemoveAt(indexItemFindend);
+            }
+
             _buckets[indexBucket].Append(ref item);
         }
 

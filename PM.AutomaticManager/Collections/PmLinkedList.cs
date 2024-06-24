@@ -1,4 +1,5 @@
 ﻿using PM.AutomaticManager;
+using PM.AutomaticManager.Tansactions;
 using PM.Core.PMemory;
 using PM.FileEngine;
 using System.Collections;
@@ -141,7 +142,17 @@ namespace PM.Collections
 
         public T GetValueAt(int index)
         {
-            throw new NotImplementedException();
+            if (_head is null) throw new ArgumentOutOfRangeException(nameof(index));
+
+            PmLinkedListNode<T> current = _head;
+            int i = 0;
+            while (current != null)
+            {
+                current = current.Next;
+                if (i == index) return current.Value;
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(index));
         }
 
         public void InsertAt(T value, int index)
@@ -161,7 +172,44 @@ namespace PM.Collections
 
         public void RemoveAt(int index)
         {
-            throw new NotImplementedException();
+            if (_head is null) throw new ArgumentOutOfRangeException(nameof(index));
+
+            if (index == 0)
+            {
+                var newHead = _head.Next;
+                _head.Transaction(_pMemoryManager, () =>
+                {
+                    if (newHead is null)
+                    {
+                        _head.Value = default;
+                        _head.Next = default;
+                    }
+                    else
+                    {
+                        _head.Value = newHead.Value;
+                        _head.Next = newHead.Next;
+                    }
+                });
+            }
+
+            PmLinkedListNode<T> nodeBeforeRemove = _head;
+            PmLinkedListNode<T> nodeToRemove = _head;
+            int i = 0;
+            while (nodeToRemove != null)
+            {
+                if (i + 1 == index)
+                {
+                    nodeBeforeRemove = nodeToRemove;
+                }
+
+                if (i == index)
+                {
+                    break;
+                }
+                nodeToRemove = nodeToRemove.Next;
+            }
+
+            nodeBeforeRemove.Next = nodeToRemove.Next;
         }
 
         public void RemoveByValue(T value)
