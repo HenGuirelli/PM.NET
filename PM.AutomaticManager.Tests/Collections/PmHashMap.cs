@@ -33,6 +33,25 @@ namespace PM.Tests.Collections
         }
 
         [Fact]
+        public void OnPut_LoadTest_ShouldAddElementToHashMap()
+        {
+            const int qty = 10000;
+
+            var pAllocator = new FileEngine.PAllocator(
+                    new PM.Common.PmCSharpDefinedTypes(CreatePmStream(nameof(OnPut_LoadTest_ShouldAddElementToHashMap))),
+                    new PM.Common.PmCSharpDefinedTypes(CreatePmStream(nameof(OnPut_LoadTest_ShouldAddElementToHashMap) + "_Transaction"))
+                    );
+            IHashMap<string, int> hashmap = new PmHashMap<string, int>(
+                "PmHashMap",
+                new AutomaticManager.PMemoryManager(pAllocator));
+
+            for (int i = 0; i < qty; i++)
+            {
+                hashmap.Put(Guid.NewGuid().ToString(), i);
+            }
+        }
+
+        [Fact]
         public void OnPut_WithStringKey_ShouldAddElementToHashMap()
         {
             var pAllocator = new FileEngine.PAllocator(
@@ -55,6 +74,7 @@ namespace PM.Tests.Collections
             hashmap.Put("Key 3", 4);
             Assert.Equal(4, hashmap.Get("Key 3"));
         }
+
         [Fact]
         public void OnPut_WithStringKeyAndOverride_ShouldReplaceElementToHashMap()
         {

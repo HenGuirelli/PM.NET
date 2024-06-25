@@ -26,7 +26,10 @@ namespace PM.Common
             base.Open();
             if (!File.Exists(FilePath))
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+                var directoryName = Path.GetDirectoryName(FilePath);
+                if (!string.IsNullOrWhiteSpace(directoryName))
+                    Directory.CreateDirectory(directoryName);
+
                 using (var fs = new FileStream(
                     FilePath,
                     FileMode.Create,

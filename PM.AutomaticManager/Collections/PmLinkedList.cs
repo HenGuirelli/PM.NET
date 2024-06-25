@@ -65,7 +65,7 @@ namespace PM.Collections
         private PmLinkedListNode<T>? _lastNode;
         private PersistentRegion? _headRegion;
 
-        internal PmLinkedList(string objectUserID, PMemoryManager pMemoryManager, IEqualityComparer<T>? equalityComparer = null)
+        public PmLinkedList(string objectUserID, PMemoryManager pMemoryManager, IEqualityComparer<T>? equalityComparer = null)
         {
             _nodeType = typeof(PmLinkedListNode<T>);
             _objectUserID = objectUserID;

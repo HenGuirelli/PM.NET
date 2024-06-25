@@ -20,6 +20,11 @@ class Program
 
         var streamCommand = new Command("stream", "Benchmark stream classes");
 
+        var collectionsCommand = new Command("collections", "Benchmark PM.NET collections")
+        {
+            targetOption
+        };
+
         var writeReadCommand = new Command("writeReadProxyObject", "Benchmark proxy objects created by PersistentFactory")
         {
             targetOption
@@ -27,6 +32,7 @@ class Program
 
         runCommand.AddCommand(streamCommand);
         runCommand.AddCommand(writeReadCommand);
+        runCommand.AddCommand(collectionsCommand);
 
         rootCommand.AddCommand(runCommand);
 
@@ -39,6 +45,20 @@ class Program
                 .WithOptions(ConfigOptions.DisableOptimizationsValidator));
 #else
             BenchmarkRunner.Run<PersistentObjectsBenchmark>();
+#endif
+
+        }, targetOption);
+
+
+        collectionsCommand.SetHandler((target) =>
+        {
+            PmGlobalConfiguration.PmTarget = target;
+#if DEBUG
+            BenchmarkRunner.Run<CollectionsBenchmark>(
+                DefaultConfig.Instance
+                .WithOptions(ConfigOptions.DisableOptimizationsValidator));
+#else
+            BenchmarkRunner.Run<CollectionsBenchmark>();
 #endif
 
         }, targetOption);

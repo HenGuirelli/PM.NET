@@ -9,7 +9,8 @@ namespace PM.Tests.Collections
 {
     public class PmLinkedListTests : UnitTest
     {
-        private ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
+        private static readonly Random _random = new Random();
 
         public PmLinkedListTests(ITestOutputHelper output, LogEventLevel logEventLevel = LogEventLevel.Verbose) : base(output, logEventLevel)
         {
@@ -59,6 +60,26 @@ namespace PM.Tests.Collections
             list.Append(ref val1);
 
             Assert.Equal(0, list.Find(val1));
+        }
+
+        [Fact]
+        public void OnAppend_LoadTest_ShouldAppend()
+        {
+            const int qty = 10000;
+
+            var pAllocator = new FileEngine.PAllocator(
+                    new PM.Common.PmCSharpDefinedTypes(CreatePmStream(nameof(OnAppend_LoadTest_ShouldAppend))),
+                    new PM.Common.PmCSharpDefinedTypes(CreatePmStream(nameof(OnAppend_LoadTest_ShouldAppend) + "_Transaction"))
+                    );
+            ILinkedList<int> list = new PmLinkedList<int>(
+                "PmList",
+                new AutomaticManager.PMemoryManager(pAllocator));
+
+            for (int i = 0; i < qty; i++)
+            {
+                var val1 = _random.Next();
+                list.Append(ref val1);
+            }
         }
 
         [Fact]
