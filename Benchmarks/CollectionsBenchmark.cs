@@ -26,8 +26,8 @@ namespace Benchmarks
         public void Setup()
         {
             var pAllocator = new PAllocator(
-                    new PmCSharpDefinedTypes(new TraditionalMemoryMappedStream($"0{nameof(CollectionsBenchmark)}_{DataLength}_TraditionalMemoryMappedStream", 4096)),
-                    new PmCSharpDefinedTypes(new TraditionalMemoryMappedStream($"0{nameof(CollectionsBenchmark)}_{DataLength}_TraditionalMemoryMappedStream_Transaction", 4096))
+                    new PmCSharpDefinedTypes(new TraditionalMemoryMappedStream($"1{nameof(CollectionsBenchmark)}_{DataLength}_TraditionalMemoryMappedStream", 4096)),
+                    new PmCSharpDefinedTypes(new TraditionalMemoryMappedStream($"1{nameof(CollectionsBenchmark)}_{DataLength}_TraditionalMemoryMappedStream_Transaction", 4096))
             );
 
             _hashMapStringInt = new PmHashMap<string, int>(Guid.NewGuid().ToString(), new PMemoryManager(pAllocator));

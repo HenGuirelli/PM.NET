@@ -44,6 +44,35 @@ namespace PM.Tests.Collections
         }
 
         [Fact]
+        public void OnRemoveAt_ShouldRemoveValueValue()
+        {
+            var pAllocator = new FileEngine.PAllocator(
+                    new PM.Common.PmCSharpDefinedTypes(CreatePmStream(5 + nameof(OnRemoveAt_ShouldRemoveValueValue))),
+                    new PM.Common.PmCSharpDefinedTypes(CreatePmStream(5 + nameof(OnRemoveAt_ShouldRemoveValueValue) + "_Transaction"))
+                    );
+            ILinkedList<int> list = new PmLinkedList<int>(
+                "PmList",
+                new AutomaticManager.PMemoryManager(pAllocator));
+
+            var content = PMemoryDecoder.DecodeHex(pAllocator.ReadOriginalFile(), dump: false, ignoreFreeRegions: true);
+
+            var itensQty = 10;
+            for (var i = 0; i < itensQty; i++)
+            {
+                var val1 = i;
+                list.Append(ref val1);
+            }
+
+            Assert.Equal(10, list.Count());
+            list.RemoveAt(itensQty - 1); // Remove last element
+            Assert.Equal(9, list.Count());
+            list.RemoveAt(0); // Remove first element
+            Assert.Equal(8, list.Count());
+            list.RemoveAt(3); // Remove element in middle
+            Assert.Equal(7, list.Count());
+        }
+
+        [Fact]
         public void OnFind_ShouldFindValue()
         {
             var pAllocator = new FileEngine.PAllocator(

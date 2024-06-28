@@ -190,6 +190,8 @@ namespace PM.Collections
                         _head.Next = newHead.Next;
                     }
                 });
+                _head = newHead;
+                return;
             }
 
             PmLinkedListNode<T> nodeBeforeRemove = _head;
@@ -206,6 +208,8 @@ namespace PM.Collections
                 {
                     break;
                 }
+
+                i++;
                 nodeToRemove = nodeToRemove.Next;
             }
 

@@ -120,6 +120,7 @@ namespace PM.AutomaticManager.Proxies
                 if (value != null && CastleManager.TryGetCastleProxyInterceptor(value, out var interceptor2))
                 {
                     interceptor2.FilePointerCount++;
+                    _innerObjectsProxyCacheByPropertyName[methodNameWithouPrefix] = value;
                 }
 
                 invocation.Proceed();
