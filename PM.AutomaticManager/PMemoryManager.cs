@@ -49,57 +49,6 @@ namespace PM.AutomaticManager
             return objectPropertiesInfoMapper;
         }
 
-        private byte[] GetObjectBuffer(object objeto)
-        {
-            // Cria um array de bytes para armazenar os bytes concatenados
-            byte[] bytes = new byte[0];
-
-            // Obtém todas as propriedades do objeto
-            PropertyInfo[] propriedades = objeto.GetType().GetProperties();
-
-            // Itera sobre as propriedades
-            foreach (var propriedade in propriedades)
-            {
-                // Obtém o valor da propriedade
-                object valorPropriedade = propriedade.GetValue(objeto);
-
-                // Se for um valor primitivo, converte para bytes e concatena
-                if (propriedade.PropertyType.IsPrimitive)
-                {
-                    byte[] bytesValor = GetBytesFromObject(valorPropriedade);
-                    bytes = ConcatenarBytes(bytes, bytesValor);
-                }
-                // Se for uma string, converte para bytes UTF-8 e concatena
-                else if (propriedade.PropertyType == typeof(string))
-                {
-                    byte[] bytesString = Encoding.UTF8.GetBytes((string)valorPropriedade);
-                    bytes = ConcatenarBytes(bytes, bytesString);
-                }
-                // Se for um vetor, trata de acordo com a implementação definida
-                else if (propriedade.PropertyType.IsArray)
-                {
-                    throw new NotImplementedException();
-                    Array array = (Array)valorPropriedade;
-                    // Para o array, pode-se concatenar os bytes dos elementos do array de alguma forma específica.
-                    // Aqui, estamos convertendo cada elemento para uma string e concatenando.
-                    foreach (var item in array)
-                    {
-                        byte[] bytesItem = Encoding.UTF8.GetBytes(item.ToString());
-                        bytes = ConcatenarBytes(bytes, bytesItem);
-                    }
-                }
-                // Se for um objeto complexo, chama recursivamente o método para obter os bytes
-                else
-                {
-                    throw new NotImplementedException();
-                    byte[] bytesObjeto = GetObjectBuffer(valorPropriedade);
-                    bytes = ConcatenarBytes(bytes, bytesObjeto);
-                }
-            }
-
-            return bytes;
-        }
-
         static byte[] GetBytesFromObject(object valor)
         {
             Type type = valor.GetType();
@@ -165,14 +114,6 @@ namespace PM.AutomaticManager
             }
 
             throw new ArgumentException($"Object type not supported {type.Name}");
-        }
-
-        static byte[] ConcatenarBytes(byte[] bytes1, byte[] bytes2)
-        {
-            byte[] resultado = new byte[bytes1.Length + bytes2.Length];
-            Buffer.BlockCopy(bytes1, 0, resultado, 0, bytes1.Length);
-            Buffer.BlockCopy(bytes2, 0, resultado, bytes1.Length, bytes2.Length);
-            return resultado;
         }
 
         /// <summary>

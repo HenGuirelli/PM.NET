@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="PMemory\MemoryLayoutTransactions\MemoryLayoutTransaction.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Serilog" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
     <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
@@ -26,9 +22,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PM.Common\PM.Common.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="PMemory\MemoryLayoutTransactions\" />
   </ItemGroup>
 </Project>
