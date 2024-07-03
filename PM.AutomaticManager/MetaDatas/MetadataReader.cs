@@ -5,7 +5,7 @@ namespace PM.AutomaticManager.MetaDatas
     internal class MetadataReader
     {
         private readonly PersistentRegion _metadataRegion;
-        private int _nextMetadataStructureInternalOffset;
+        private uint _nextMetadataStructureInternalOffset;
 
         public MetadataReader(PersistentRegion metadataRegion)
         {
@@ -17,7 +17,7 @@ namespace PM.AutomaticManager.MetaDatas
         {
             try
             {
-                metadataStructure = MetadataStructure.CreateFrom(_metadataRegion, _nextMetadataStructureInternalOffset);
+                metadataStructure = MetadataStructure.CreateFrom(_metadataRegion, (int)_nextMetadataStructureInternalOffset);
                 _nextMetadataStructureInternalOffset += metadataStructure.Size;
                 return true;
             }

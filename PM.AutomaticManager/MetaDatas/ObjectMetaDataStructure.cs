@@ -6,7 +6,7 @@ namespace PM.AutomaticManager.MetaDatas
     internal class ObjectMetaDataStructure : MetadataStructure, IObjectReference
     {
         public override MetadataType Type => MetadataType.Object;
-        public override int Size => 13 + (ObjectUserID.Length + 1) + (ClassTypeName.Length + 1) + (AssemblyFullName.Length + 1);
+        public override uint Size => (uint)(13 + (ObjectUserID.Length + 1) + (ClassTypeName.Length + 1) + (AssemblyFullName.Length + 1));
 
         public uint ObjectSize { get; set; }
         public string ObjectUserID { get; set; } = string.Empty;
@@ -17,6 +17,8 @@ namespace PM.AutomaticManager.MetaDatas
         protected override void ReadFrom(PersistentRegion metadataRegion)
         {
             base.ReadFrom(metadataRegion);
+            OffsetInnerRegion = BitConverter.ToUInt16(metadataRegion.Read(count: sizeof(ushort), offset: InternalOffset));
+            InternalOffset += sizeof(ushort);
             ObjectSize = BitConverter.ToUInt32(metadataRegion.Read(count: sizeof(uint), offset: InternalOffset));
             InternalOffset += sizeof(uint);
             ObjectUserID = ReadString(metadataRegion);

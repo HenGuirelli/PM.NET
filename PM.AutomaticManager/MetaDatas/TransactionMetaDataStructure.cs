@@ -6,7 +6,7 @@ namespace PM.AutomaticManager.MetaDatas
     internal class TransactionMetaDataStructure : MetadataStructure, IObjectReference
     {
         public override MetadataType Type => MetadataType.Transaction;
-        public override int Size => 19;
+        public override uint Size => 19;
 
         public uint ObjectSize { get; set; }
         public TransactionState TransactionState { get; set; }
@@ -22,6 +22,8 @@ namespace PM.AutomaticManager.MetaDatas
             MetadataRegion = metadataRegion;
 
             base.ReadFrom(metadataRegion);
+            OffsetInnerRegion = BitConverter.ToUInt16(metadataRegion.Read(count: sizeof(ushort), offset: InternalOffset));
+            InternalOffset += sizeof(ushort);
             TransactionState = (TransactionState)metadataRegion.Read(count: sizeof(byte), offset: InternalOffset)[0];
             InternalOffset += sizeof(byte);
             TransactionBlockIDTarget = BitConverter.ToUInt32(metadataRegion.Read(count: sizeof(uint), offset: InternalOffset));

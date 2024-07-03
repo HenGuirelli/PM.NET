@@ -2,7 +2,7 @@
 {
     internal enum MetadataType
     {
-        Pointer = 1,
+        OtherMetadataRegionPointer = 1,
         Object = 2,
         Transaction = 3,
     }

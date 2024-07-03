@@ -1,4 +1,5 @@
 ﻿using FileFormatExplain;
+using PM.AutomaticManager.Configs;
 using PM.Collections;
 using PM.Tests.Common;
 using Serilog.Events;
@@ -15,6 +16,7 @@ namespace PM.Tests.Collections
         public PmLinkedListTests(ITestOutputHelper output, LogEventLevel logEventLevel = LogEventLevel.Verbose) : base(output, logEventLevel)
         {
             _output = output;
+            DeleteAllFilesFromFolder(PmGlobalConfiguration.PmInternalsFolder);
         }
 
         [Fact]

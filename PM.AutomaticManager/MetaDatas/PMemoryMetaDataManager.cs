@@ -6,17 +6,43 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace PM.AutomaticManager.MetaDatas
 {
+    internal class MetadataPersistentRegion
+    {
+        public PersistentRegion PersistentRegion { get; }
+        public uint FreeBytesQty { get; private set; }
+        public uint UsedBytesQty
+        {
+            get => _usedBytesQty;
+            set
+            {
+                _usedBytesQty = value;
+                FreeBytesQty -= value;
+            }
+        }
+        private uint _usedBytesQty;
+        public uint Offset => UsedBytesQty;
+
+        public MetadataPersistentRegion(PersistentRegion persistentRegion, uint usedBytesQty)
+        {
+            PersistentRegion = persistentRegion;
+            _usedBytesQty = usedBytesQty;
+            FreeBytesQty = persistentRegion.Size - usedBytesQty;
+        }
+    }
+
     internal class PMemoryMetadataManager
     {
         private readonly PAllocator _allocator;
-        private readonly PersistentRegion _metadataRegion;
-        private int _nextMetadataStructureInternalOffset;
-        internal MetadataReader MetadataReader { get; }
+        private readonly List<MetadataPersistentRegion> _metadataRegions = new();
+        private List<MetadataReader> _metadataReaders = new();
 
         // Caches
         readonly Dictionary<string, MetadataStructure> _metaDataStructureByObjectUserID = new();
         readonly Dictionary<uint, Dictionary<byte, ObjectMetaDataStructure>> _rootObjectmetaDataStructureByBlockIdAndRegionID = new();
         readonly HashSet<UInt32> _metadataBlockIds = new();
+
+        // 25000 pointers capacity
+        public uint MetadataRegionSize { get; set; } = 100_000;
 
         public PMemoryMetadataManager(PAllocator allocator)
         {
@@ -24,33 +50,58 @@ namespace PM.AutomaticManager.MetaDatas
             if (!allocator.HasAnyBlocks)
             {
                 // Reserve first block for metadata
-                // 25000 pointers capacity
-                _metadataRegion = allocator.Alloc(100_000);
-                MetadataReader = new MetadataReader(_metadataRegion);
+                var metadataRegion = allocator.Alloc(MetadataRegionSize);
+                _metadataRegions.Add(new MetadataPersistentRegion(metadataRegion, usedBytesQty: 0));
+                _metadataBlockIds.Add(metadataRegion.BlockID);
+                _metadataReaders.Add(new MetadataReader(metadataRegion));
             }
             else
             {
-                _metadataRegion = _allocator.FirstPersistentBlockLayout!.Regions[0];
+                var metadataRegion = _allocator.FirstPersistentBlockLayout!.Regions[0];
 
-                _metadataBlockIds.Add(_metadataRegion.BlockID);
-                MetadataReader = new MetadataReader(_metadataRegion);
+                var metadataReader = new MetadataReader(metadataRegion);
+                _metadataReaders.Add(metadataReader);
 
-                while (MetadataReader.TryGetNext(out var metadataStructure))
+                Queue<OtherMetadataRegionPointerStructure> othersMetadataRegions = new();
+                do
                 {
-                    if (metadataStructure is TransactionMetaDataStructure transactionMetaDataStructure &&
-                        transactionMetaDataStructure.TransactionState == TransactionState.Commited)
+                    _metadataBlockIds.Add(metadataRegion.BlockID);
+                    var metadataPersistentRegion = new MetadataPersistentRegion(metadataRegion, usedBytesQty: 0);
+                    _metadataRegions.Add(metadataPersistentRegion);
+                    uint regionUsedSize = 0;
+                    while (metadataReader.TryGetNext(out var metadataStructure))
                     {
-                        TransactionManager.ApplyPendingTransaction(_allocator, transactionMetaDataStructure);
+                        if (metadataStructure is TransactionMetaDataStructure transactionMetaDataStructure &&
+                            transactionMetaDataStructure.TransactionState == TransactionState.Commited)
+                        {
+                            TransactionManager.ApplyPendingTransaction(_allocator, transactionMetaDataStructure);
+                        }
+
+                        if (metadataStructure is ObjectMetaDataStructure objectMetaDataStructure)
+                        {
+                            _metaDataStructureByObjectUserID.Add(objectMetaDataStructure.ObjectUserID, metadataStructure);
+                            AddRootObjectmetaDataStructureByBlockIdAndRegionIDCache(objectMetaDataStructure);
+                        }
+
+                        if (metadataStructure is OtherMetadataRegionPointerStructure otherMetadataRegionPointerStructure)
+                        {
+                            othersMetadataRegions.Enqueue(otherMetadataRegionPointerStructure);
+                        }
+
+                        metadataPersistentRegion.UsedBytesQty += metadataStructure.Size;
+                        regionUsedSize += metadataStructure.Size;
                     }
 
-                    if (metadataStructure is ObjectMetaDataStructure objectMetaDataStructure)
+                    if (othersMetadataRegions.TryDequeue(out var otherMetadataRegionPointerStructureDequed))
                     {
-                        _metaDataStructureByObjectUserID.Add(objectMetaDataStructure.ObjectUserID, metadataStructure);
-                        AddRootObjectmetaDataStructureByBlockIdAndRegionIDCache(objectMetaDataStructure);
+                        metadataRegion = _allocator.GetRegion(otherMetadataRegionPointerStructureDequed.BlockID, otherMetadataRegionPointerStructureDequed.RegionIndex);
+                        metadataReader = new MetadataReader(metadataRegion);
                     }
-
-                    _nextMetadataStructureInternalOffset += metadataStructure.Size;
-                }
+                    else
+                    {
+                        metadataReader = null;
+                    }
+                } while (metadataReader != null);
             }
         }
 
@@ -87,8 +138,9 @@ namespace PM.AutomaticManager.MetaDatas
 
 
             // Write on regions and add to caches
-            trasactionStructure.WriteTo(_metadataRegion, _nextMetadataStructureInternalOffset);
-            _nextMetadataStructureInternalOffset += trasactionStructure.Size;
+            var metadataRegion = GetFreeMetadataPersistentRegion(trasactionStructure.Size);
+            trasactionStructure.WriteTo(metadataRegion.PersistentRegion, (int)metadataRegion.Offset);
+            metadataRegion.UsedBytesQty += trasactionStructure.Size;
 
             return new TransactonRegionReturn(trasactionStructure, transactionRegion);
         }
@@ -113,8 +165,9 @@ namespace PM.AutomaticManager.MetaDatas
                     ?? throw new ApplicationException($"Asembly {objectPropertiesInfoMapper.ObjectType.Assembly} need a FullName")
             };
 
-            objectStructure.WriteTo(_metadataRegion, _nextMetadataStructureInternalOffset);
-            _nextMetadataStructureInternalOffset += objectStructure.Size;
+            var metadataRegion = GetFreeMetadataPersistentRegion(objectStructure.Size);
+            objectStructure.WriteTo(metadataRegion.PersistentRegion, (int)metadataRegion.Offset);
+            metadataRegion.UsedBytesQty += objectStructure.Size;
 
             // Add to cache
             AddRootObjectmetaDataStructureByBlockIdAndRegionIDCache(objectStructure);
@@ -139,6 +192,38 @@ namespace PM.AutomaticManager.MetaDatas
         internal bool ObjectExists(string objectUserID)
         {
             return _metaDataStructureByObjectUserID.ContainsKey(objectUserID);
+        }
+
+        internal MetadataPersistentRegion GetFreeMetadataPersistentRegion(uint requiredSize)
+        {
+            foreach (var metadataRegion in _metadataRegions)
+            {
+                if (metadataRegion.FreeBytesQty >= OtherMetadataRegionPointerStructure.SizeBytes + requiredSize) return metadataRegion;
+            }
+
+            // Id reaches here, need create one more region of metadatas
+
+            var metadataRegionToCreatePointer = GetFreeMetadataRegiontoCreatePointer();
+            var newMetadataPointerRegion = _allocator.Alloc(MetadataRegionSize);
+            var metadataPointerStructure = new OtherMetadataRegionPointerStructure
+            {
+                BlockID = newMetadataPointerRegion.BlockID,
+                RegionIndex = newMetadataPointerRegion.RegionIndex,
+            };
+            metadataPointerStructure.WriteTo(metadataRegionToCreatePointer.PersistentRegion, (int)metadataRegionToCreatePointer.Offset);
+            metadataRegionToCreatePointer.UsedBytesQty += metadataPointerStructure.Size;
+
+            return new MetadataPersistentRegion(newMetadataPointerRegion, 0);
+        }
+
+        private MetadataPersistentRegion GetFreeMetadataRegiontoCreatePointer()
+        {
+            foreach (var metadataRegion in _metadataRegions)
+            {
+                if (metadataRegion.FreeBytesQty >= OtherMetadataRegionPointerStructure.SizeBytes) return metadataRegion;
+            }
+
+            throw new ApplicationException($"Not enought space to create a new metadata region");
         }
 
         internal MetadataStructure? GetByObjectUserID(string objectUserID)

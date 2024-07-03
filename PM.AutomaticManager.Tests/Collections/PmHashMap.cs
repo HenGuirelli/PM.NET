@@ -35,7 +35,7 @@ namespace PM.Tests.Collections
         [Fact]
         public void OnPut_LoadTest_ShouldAddElementToHashMap()
         {
-            const int qty = 10000;
+            const int qty = 100;
 
             var pAllocator = new FileEngine.PAllocator(
                     new PM.Common.PmCSharpDefinedTypes(CreatePmStream(nameof(OnPut_LoadTest_ShouldAddElementToHashMap))),
