@@ -284,7 +284,6 @@ namespace PM.AutomaticManager.Tests
             _output.WriteLine(decoded);
         }
 
-
         [Fact]
         public void OnInterceptComplexClass_ShouldRemoveReferences()
         {
@@ -298,6 +297,26 @@ namespace PM.AutomaticManager.Tests
             proxyObj.SelfReferenceObject = null!;
 
             Assert.Null(proxyObj.SelfReferenceObject);
+
+            var decoded = PMemoryDecoder.DecodeHex(factory.Allocator.ReadOriginalFile(), dump: false);
+            _output.WriteLine(decoded);
+        }
+
+        [Fact]
+        public void OnCreateRootObject_ShouldHaveVirtuallyNoLimitToRootObjects()
+        {
+            PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
+
+            var prefixFileName = CreateFilePath(nameof(OnCreateRootObject_ShouldHaveVirtuallyNoLimitToRootObjects));
+            var factory = new PersistentFactory();
+
+            //var maxMetadataObjectQty = factory.PMemoryManager.MetaDataManager.MetadataRegionSize;
+            var maxMetadataObjectQty = 25_000;
+
+            for (int i = 0; i < maxMetadataObjectQty; i++)
+            {
+                var proxyObj = factory.CreateRootObject<ComplexClass>(prefixFileName + Guid.NewGuid().ToString());
+            }
 
             var decoded = PMemoryDecoder.DecodeHex(factory.Allocator.ReadOriginalFile(), dump: false);
             _output.WriteLine(decoded);

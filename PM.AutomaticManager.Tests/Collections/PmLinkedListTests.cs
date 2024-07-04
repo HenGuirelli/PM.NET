@@ -1,5 +1,4 @@
 ﻿using FileFormatExplain;
-using PM.AutomaticManager.Configs;
 using PM.Collections;
 using PM.Tests.Common;
 using Serilog.Events;
@@ -16,7 +15,6 @@ namespace PM.Tests.Collections
         public PmLinkedListTests(ITestOutputHelper output, LogEventLevel logEventLevel = LogEventLevel.Verbose) : base(output, logEventLevel)
         {
             _output = output;
-            DeleteAllFilesFromFolder(PmGlobalConfiguration.PmInternalsFolder);
         }
 
         [Fact]
@@ -48,9 +46,14 @@ namespace PM.Tests.Collections
         [Fact]
         public void OnRemoveAt_ShouldRemoveValueValue()
         {
+            var filename = nameof(OnRemoveAt_ShouldRemoveValueValue);
+            var transactionFilename = nameof(OnRemoveAt_ShouldRemoveValueValue) + "_Transaction";
+            DeleteFile(filename);
+            DeleteFile(transactionFilename);
+
             var pAllocator = new FileEngine.PAllocator(
-                    new PM.Common.PmCSharpDefinedTypes(CreatePmStream(5 + nameof(OnRemoveAt_ShouldRemoveValueValue))),
-                    new PM.Common.PmCSharpDefinedTypes(CreatePmStream(5 + nameof(OnRemoveAt_ShouldRemoveValueValue) + "_Transaction"))
+                    new PM.Common.PmCSharpDefinedTypes(CreatePmStream(filename)),
+                    new PM.Common.PmCSharpDefinedTypes(CreatePmStream(transactionFilename))
                     );
             ILinkedList<int> list = new PmLinkedList<int>(
                 "PmList",

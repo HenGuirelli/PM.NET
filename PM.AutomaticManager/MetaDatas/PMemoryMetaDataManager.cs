@@ -16,17 +16,20 @@ namespace PM.AutomaticManager.MetaDatas
             set
             {
                 _usedBytesQty = value;
-                FreeBytesQty -= value;
+                FreeBytesQty = _metadataStructureSize - _usedBytesQty;
             }
         }
         private uint _usedBytesQty;
+        private readonly uint _metadataStructureSize;
+
         public uint Offset => UsedBytesQty;
 
-        public MetadataPersistentRegion(PersistentRegion persistentRegion, uint usedBytesQty)
+        public MetadataPersistentRegion(PersistentRegion persistentRegion, uint metadataStructureSize, uint usedBytesQty)
         {
             PersistentRegion = persistentRegion;
             _usedBytesQty = usedBytesQty;
-            FreeBytesQty = persistentRegion.Size - usedBytesQty;
+            _metadataStructureSize = metadataStructureSize;
+            FreeBytesQty = metadataStructureSize - usedBytesQty;
         }
     }
 
@@ -51,7 +54,7 @@ namespace PM.AutomaticManager.MetaDatas
             {
                 // Reserve first block for metadata
                 var metadataRegion = allocator.Alloc(MetadataRegionSize);
-                _metadataRegions.Add(new MetadataPersistentRegion(metadataRegion, usedBytesQty: 0));
+                _metadataRegions.Add(new MetadataPersistentRegion(metadataRegion, MetadataRegionSize, usedBytesQty: 0));
                 _metadataBlockIds.Add(metadataRegion.BlockID);
                 _metadataReaders.Add(new MetadataReader(metadataRegion));
             }
@@ -66,7 +69,7 @@ namespace PM.AutomaticManager.MetaDatas
                 do
                 {
                     _metadataBlockIds.Add(metadataRegion.BlockID);
-                    var metadataPersistentRegion = new MetadataPersistentRegion(metadataRegion, usedBytesQty: 0);
+                    var metadataPersistentRegion = new MetadataPersistentRegion(metadataRegion, MetadataRegionSize, usedBytesQty: 0);
                     _metadataRegions.Add(metadataPersistentRegion);
                     uint regionUsedSize = 0;
                     while (metadataReader.TryGetNext(out var metadataStructure))
@@ -201,7 +204,7 @@ namespace PM.AutomaticManager.MetaDatas
                 if (metadataRegion.FreeBytesQty >= OtherMetadataRegionPointerStructure.SizeBytes + requiredSize) return metadataRegion;
             }
 
-            // Id reaches here, need create one more region of metadatas
+            // If reaches here, need create one more region of metadatas
 
             var metadataRegionToCreatePointer = GetFreeMetadataRegiontoCreatePointer();
             var newMetadataPointerRegion = _allocator.Alloc(MetadataRegionSize);
@@ -213,7 +216,9 @@ namespace PM.AutomaticManager.MetaDatas
             metadataPointerStructure.WriteTo(metadataRegionToCreatePointer.PersistentRegion, (int)metadataRegionToCreatePointer.Offset);
             metadataRegionToCreatePointer.UsedBytesQty += metadataPointerStructure.Size;
 
-            return new MetadataPersistentRegion(newMetadataPointerRegion, 0);
+            var metadataPersistentRegion = new MetadataPersistentRegion(newMetadataPointerRegion, MetadataRegionSize, 0);
+            _metadataRegions.Add(metadataPersistentRegion);
+            return metadataPersistentRegion;
         }
 
         private MetadataPersistentRegion GetFreeMetadataRegiontoCreatePointer()

@@ -12,7 +12,7 @@ namespace PM.AutomaticManager
     {
         internal PAllocator Allocator { get; }
 
-        private readonly PMemoryMetadataManager _metaDataManager;
+        internal PMemoryMetadataManager MetaDataManager { get; set; }
 
         // Caches
         static readonly Dictionary<Type, ObjectPropertiesInfoMapper> _propertiesMapper = new();
@@ -20,18 +20,18 @@ namespace PM.AutomaticManager
         public PMemoryManager(PAllocator allocator)
         {
             Allocator = allocator;
-            _metaDataManager = new PMemoryMetadataManager(allocator);
+            MetaDataManager = new PMemoryMetadataManager(allocator);
         }
 
         internal TransactonRegionReturn CreateNewTransactionRegion(object obj, uint objectSize)
         {
-            return _metaDataManager.CreateNewTransactionRegion(obj, objectSize);
+            return MetaDataManager.CreateNewTransactionRegion(obj, objectSize);
         }
 
         internal PersistentRegion AllocRootObjectByType(Type type, string objectUserID)
         {
             ObjectPropertiesInfoMapper objectPropertiesInfoMapper = RegisterNewObjectPropertiesInfoMapper(type);
-            return _metaDataManager.AllocRootObjectByType(objectUserID, objectPropertiesInfoMapper);
+            return MetaDataManager.AllocRootObjectByType(objectUserID, objectPropertiesInfoMapper);
         }
 
         internal ObjectPropertiesInfoMapper RegisterNewObjectPropertiesInfoMapper(Type type)
@@ -371,7 +371,7 @@ namespace PM.AutomaticManager
                     var regionIndex = persistentRegion.Read(sizeof(byte), offset: propertyInternalOffset)[0];
                     var objRegion = Allocator.GetRegion(blockId, regionIndex);
 
-                    if (_metaDataManager.TryGetRootObjectByBlockIdAndRegionIndex(blockId, regionIndex, out var objectMetaDataStructure))
+                    if (MetaDataManager.TryGetRootObjectByBlockIdAndRegionIndex(blockId, regionIndex, out var objectMetaDataStructure))
                     {
                         // Referecing another root object (maybe self reference)
                         PersistentFactory persistentFactory = new PersistentFactory();
@@ -394,12 +394,12 @@ namespace PM.AutomaticManager
 
         internal bool ObjectExists(string objectUserID)
         {
-            return _metaDataManager.ObjectExists(objectUserID);
+            return MetaDataManager.ObjectExists(objectUserID);
         }
 
         internal PersistentRegion GetRegionByObjectUserID(string objectUserID)
         {
-            var metaDataStructure = _metaDataManager.GetByObjectUserID(objectUserID);
+            var metaDataStructure = MetaDataManager.GetByObjectUserID(objectUserID);
             if (metaDataStructure is null)
                 throw new ApplicationException($"{objectUserID} not found");
 
