@@ -15,6 +15,12 @@ namespace Benchmarks
         public string PmTarget { get; set; } = string.Empty;
     }
 
+    public class CreationObjectBenchmarkConfig
+    {
+        public string PersistentObjectsFilePath { get; set; } = string.Empty;
+        public string PmTarget { get; set; } = string.Empty;
+    }
+
     public class PmStreamsBenchmarkConfig
     {
         public string? StreamSSDFilePath { get; set; }
@@ -25,6 +31,7 @@ namespace Benchmarks
     {
         public PmStreamsBenchmarkConfig PmStreamsBenchmark { get; set; } = new PmStreamsBenchmarkConfig();
         public PersistentObjectsBenchmarkConfig PersistentObjectsBenchmark { get; set; } = new PersistentObjectsBenchmarkConfig();
+        public CreationObjectBenchmarkConfig CreationObjectBenchmark { get; set; } = new CreationObjectBenchmarkConfig();
     }
 
     public class ConfigFile
@@ -53,6 +60,9 @@ namespace Benchmarks
         public string? PostgresConnectionString => _content.PersistentObjectsBenchmark.PostgresConnectionString!;
 
         public string PersistentObjectsFilenameSQLite => _content.PersistentObjectsBenchmark.PersistentObjectsFilenameSQLite!;
+
+        public string CreationObjectBenchmarkPersistentObjectsFilePath => _content.CreationObjectBenchmark.PersistentObjectsFilePath;
+        public PmTargets CreationObjectBenchmarkPmTarget => (PmTargets)Enum.Parse(typeof(PmTargets), _content.CreationObjectBenchmark.PmTarget);
 
         public ConfigFile()
         {
