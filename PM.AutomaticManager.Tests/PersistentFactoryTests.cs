@@ -310,7 +310,9 @@ namespace PM.AutomaticManager.Tests
             var prefixFileName = CreateFilePath(nameof(OnCreateRootObject_ShouldHaveVirtuallyNoLimitToRootObjects));
             var factory = new PersistentFactory();
 
-            //var maxMetadataObjectQty = factory.PMemoryManager.MetaDataManager.MetadataRegionSize;
+            // RegionSize default value is 100000
+            // Each object of 'ComplexClass' is 236 bytes
+            // 423 objects is enought to full region and create a new one.
             var maxMetadataObjectQty = 25_000;
 
             for (int i = 0; i < maxMetadataObjectQty; i++)

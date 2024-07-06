@@ -2,6 +2,7 @@
 using PM.AutomaticManager.Tansactions;
 using PM.Core.PMemory;
 using PM.FileEngine;
+using Serilog;
 using System.Diagnostics.CodeAnalysis;
 
 namespace PM.AutomaticManager.MetaDatas
@@ -99,6 +100,7 @@ namespace PM.AutomaticManager.MetaDatas
                     {
                         metadataRegion = _allocator.GetRegion(otherMetadataRegionPointerStructureDequed.BlockID, otherMetadataRegionPointerStructureDequed.RegionIndex);
                         metadataReader = new MetadataReader(metadataRegion);
+                        _metadataRegions.Add(metadataPersistentRegion);
                     }
                     else
                     {
@@ -205,7 +207,7 @@ namespace PM.AutomaticManager.MetaDatas
             }
 
             // If reaches here, need create one more region of metadatas
-
+            Log.Debug("All metadata regions is full, creating new one");
             var metadataRegionToCreatePointer = GetFreeMetadataRegiontoCreatePointer();
             var newMetadataPointerRegion = _allocator.Alloc(MetadataRegionSize);
             var metadataPointerStructure = new OtherMetadataRegionPointerStructure
@@ -216,6 +218,7 @@ namespace PM.AutomaticManager.MetaDatas
             metadataPointerStructure.WriteTo(metadataRegionToCreatePointer.PersistentRegion, (int)metadataRegionToCreatePointer.Offset);
             metadataRegionToCreatePointer.UsedBytesQty += metadataPointerStructure.Size;
 
+            Log.Debug("New metadata region created. BlockId={blockid}, Region Index={regionIndex}", newMetadataPointerRegion.BlockID, newMetadataPointerRegion.RegionIndex);
             var metadataPersistentRegion = new MetadataPersistentRegion(newMetadataPointerRegion, MetadataRegionSize, 0);
             _metadataRegions.Add(metadataPersistentRegion);
             return metadataPersistentRegion;
