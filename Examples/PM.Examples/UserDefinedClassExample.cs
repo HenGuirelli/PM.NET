@@ -1,3 +1,4 @@
+using PM.Configs;
 using PM.Examples.UserDefinedClassExampleDomainClasses;
 using PM.Tests.Common;
 using System;
@@ -6,11 +7,72 @@ using Xunit;
 
 namespace PM.Examples
 {
+    public class ComplexClass
+    {
+        public virtual PocoClass PocoObject { get; set; }
+        public virtual ComplexClass SelfReferenceObject { get; set; }
+
+
+        public virtual int IntVal1 { get; set; }
+        public virtual int IntVal2 { get; set; }
+    }
+
+    public class PocoClass
+    {
+        public virtual int IntVal1 { get; set; }
+        public virtual int IntVal2 { get; set; }
+
+        public virtual long LongVal1 { get; set; }
+        public virtual long LongVal2 { get; set; }
+
+        public virtual short ShortVal1 { get; set; }
+        public virtual short ShortVal2 { get; set; }
+
+        public virtual byte ByteVal1 { get; set; }
+        public virtual byte ByteVal2 { get; set; }
+
+        public virtual double DoubleVal1 { get; set; }
+        public virtual double DoubleVal2 { get; set; }
+
+        public virtual float FloatVal1 { get; set; }
+        public virtual float FloatVal2 { get; set; }
+
+        public virtual decimal DecimalVal1 { get; set; }
+        public virtual decimal DecimalVal2 { get; set; }
+
+        public virtual string StringVal1 { get; set; }
+        public virtual string StringVal2 { get; set; }
+
+        public virtual char CharVal1 { get; set; }
+        public virtual char CharVal2 { get; set; }
+
+        public virtual bool BoolVal1 { get; set; }
+        public virtual bool BoolVal2 { get; set; }
+    }
+
     public class UserDefinedClassExample : UnitTest
     {
         public UserDefinedClassExample()
         {
             ClearFolder();
+        }
+
+
+
+        [Fact]
+        public void OnCreateRootObject_ShouldHaveVirtuallyNoLimitToRootObjects()
+        {
+            PmGlobalConfiguration.PmTarget = Core.PmTargets.TraditionalMemoryMappedFile;
+
+            var prefixFileName = CreateFilePath(nameof(OnCreateRootObject_ShouldHaveVirtuallyNoLimitToRootObjects));
+            IPersistentFactory factory = new PersistentFactory();
+
+            var maxMetadataObjectQty = 25_000;
+
+            for (int i = 0; i < maxMetadataObjectQty; i++)
+            {
+                var proxyObj = factory.CreateRootObject<ComplexClass>(prefixFileName + Guid.NewGuid().ToString());
+            }
         }
 
         [Fact]

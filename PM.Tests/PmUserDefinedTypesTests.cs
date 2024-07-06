@@ -1,4 +1,3 @@
-using PM.Core;
 using PM.Factories;
 using PM.PmContent;
 using PM.Tests.Common;
