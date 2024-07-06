@@ -17,7 +17,19 @@ namespace Benchmarks
         [GlobalSetup]
         public void Setup()
         {
-            PmGlobalConfiguration.PmTarget = PM.Core.PmTargets.PM;
+            var configFile = new ConfigFile();
+            SetupPmDotnet(configFile);
+        }
+
+        private void SetupPmDotnet(ConfigFile configFile)
+        {
+            PmGlobalConfiguration.PmTarget = configFile.PmTarget;
+            PmGlobalConfiguration.PmInternalsFolder = configFile.PersistentObjectsFilePath!;
+
+            Console.WriteLine("=====CONFIG=====");
+            Console.WriteLine("PmTarget= " + PmGlobalConfiguration.PmTarget);
+            Console.WriteLine("PmInternalsFolder= " + PmGlobalConfiguration.PmInternalsFolder);
+
             _prefixFileName = nameof(CreationObjectBenchmark);
             _factory = new PersistentFactory();
         }
