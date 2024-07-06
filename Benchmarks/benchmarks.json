@@ -1,4 +1,12 @@
 ﻿{
+	"CreationObjectBenchmark": {
+		"PmTarget": "TraditionalMemoryMappedFile",
+		"PersistentObjectsFilePath": "./benchmarks",
+
+		"_PmTarget": "PM",
+		"_PersistentObjectsFilePath": "/mnt/nvram1/henguirelli/benchmarks/PersistentObjects"
+	},
+
 	"PersistentObjectsBenchmark": {
 		"_PmTarget": "TraditionalMemoryMappedFile",
 		"_PersistentObjectsFilePath": "./benchmarks",

@@ -23,8 +23,8 @@ namespace Benchmarks
 
         private void SetupPmDotnet(ConfigFile configFile)
         {
-            PmGlobalConfiguration.PmTarget = configFile.PmTarget;
-            PmGlobalConfiguration.PmInternalsFolder = configFile.PersistentObjectsFilePath!;
+            PmGlobalConfiguration.PmTarget = configFile.CreationObjectBenchmarkPmTarget;
+            PmGlobalConfiguration.PmInternalsFolder = configFile.CreationObjectBenchmarkPersistentObjectsFilePath!;
 
             Console.WriteLine("=====CONFIG=====");
             Console.WriteLine("PmTarget= " + PmGlobalConfiguration.PmTarget);
