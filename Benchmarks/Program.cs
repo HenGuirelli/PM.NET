@@ -1,4 +1,7 @@
-﻿using BenchmarkDotNet.Running;
+﻿#if DEBUG
+using BenchmarkDotNet.Configs;
+#endif
+using BenchmarkDotNet.Running;
 using Benchmarks;
 using PM.Configs;
 using PM.Core;
@@ -24,8 +27,14 @@ class Program
             targetOption
         };
 
+        var objectCreationCommand = new Command("objectCreation", "Benchmark proxy objects created by PersistentFactory")
+        {
+            targetOption
+        };
+
         runCommand.AddCommand(streamCommand);
         runCommand.AddCommand(writeReadCommand);
+        runCommand.AddCommand(objectCreationCommand);
 
         rootCommand.AddCommand(runCommand);
 
@@ -33,13 +42,25 @@ class Program
         {
             PmGlobalConfiguration.PmTarget = target;
 #if DEBUG
-            BenchmarkRunner.Run<PersistentObjectsBenchmark>(
+            BenchmarkRunner.Run<PmStreamsBenchmark>(
                 DefaultConfig.Instance
                 .WithOptions(ConfigOptions.DisableOptimizationsValidator));
 #else
             BenchmarkRunner.Run<PmStreamsBenchmark>();
 #endif
 
+        }, targetOption);
+
+        objectCreationCommand.SetHandler((target) =>
+        {
+            PmGlobalConfiguration.PmTarget = target;
+#if DEBUG
+            BenchmarkRunner.Run<CreationObjectBenchmark>(
+                DefaultConfig.Instance
+                .WithOptions(ConfigOptions.DisableOptimizationsValidator));
+#else
+            BenchmarkRunner.Run<CreationObjectBenchmark>();
+#endif
         }, targetOption);
 
         streamCommand.SetHandler(() =>

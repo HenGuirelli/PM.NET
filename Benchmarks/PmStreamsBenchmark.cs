@@ -27,7 +27,6 @@ namespace Benchmarks
         public virtual string StringVal { get; set; }
         public virtual RootObject InnerObject { get; set; }
     }
-
     [MemoryDiagnoser]
     [RPlotExporter]
     public class PmStreamsBenchmark
