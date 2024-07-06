@@ -2,7 +2,7 @@
   "profiles": {
     "Benchmarks": {
       "commandName": "Project",
-      "commandLineArgs": "run collections --pm-target=\"TraditionalMemoryMappedFile\""
+      "commandLineArgs": "run objectCreation --pm-target=\"TraditionalMemoryMappedFile\""
     }
   }
 }

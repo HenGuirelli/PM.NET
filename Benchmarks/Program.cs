@@ -25,13 +25,19 @@ class Program
             targetOption
         };
 
-        var writeReadCommand = new Command("writeReadProxyObject", "Benchmark proxy objects created by PersistentFactory")
+        var writeReadCommand = new Command("writeReadProxyObject", "Benchmark write and read operations of proxy objects created by PersistentFactory")
+        {
+            targetOption
+        };
+
+        var objectCreationCommand = new Command("objectCreation", "Benchmark proxy objects created by PersistentFactory")
         {
             targetOption
         };
 
         runCommand.AddCommand(streamCommand);
         runCommand.AddCommand(writeReadCommand);
+        runCommand.AddCommand(objectCreationCommand);
         runCommand.AddCommand(collectionsCommand);
 
         rootCommand.AddCommand(runCommand);
@@ -49,6 +55,18 @@ class Program
 
         }, targetOption);
 
+
+        objectCreationCommand.SetHandler((target) =>
+        {
+            PmGlobalConfiguration.PmTarget = target;
+#if DEBUG
+            BenchmarkRunner.Run<CreationObjectBenchmark>(
+                DefaultConfig.Instance
+                .WithOptions(ConfigOptions.DisableOptimizationsValidator));
+#else
+            BenchmarkRunner.Run<CreationObjectBenchmark>();
+#endif
+        }, targetOption);
 
         collectionsCommand.SetHandler((target) =>
         {

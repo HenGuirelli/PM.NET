@@ -7,6 +7,7 @@ using PM.FileEngine;
 
 namespace Benchmarks
 {
+
     [MemoryDiagnoser]
     [RPlotExporter]
     public class CollectionsBenchmark
