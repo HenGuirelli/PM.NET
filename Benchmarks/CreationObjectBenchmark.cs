@@ -24,6 +24,8 @@ namespace Benchmarks
 
         private void CleanFiles(ConfigFile configFile)
         {
+            if (!Directory.Exists(configFile.CreationObjectBenchmarkPersistentObjectsFilePath)) return;
+
             foreach (var file in Directory.GetFiles(configFile.CreationObjectBenchmarkPersistentObjectsFilePath))
             {
                 File.Delete(file);
