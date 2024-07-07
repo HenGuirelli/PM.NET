@@ -1,7 +1,5 @@
 ﻿using PM.Configs;
 using PM.Core;
-using PM.Factories;
-using System.Reflection;
 
 namespace PM.Managers
 {
@@ -41,6 +39,11 @@ namespace PM.Managers
 
         static PointersToPersistentObjects()
         {
+            if (!Directory.Exists(PmGlobalConfiguration.PmInternalsFolder))
+            {
+                Directory.CreateDirectory(PmGlobalConfiguration.PmInternalsFolder);
+            }
+
             var pm = FileHandlerManager.CreateHandler(FilePath, (sizeof(ulong) + sizeof(byte)) * 2);
             _pmCSharpDefinedTypes = new PmCSharpDefinedTypes(pm.FileBasedStream);
 
