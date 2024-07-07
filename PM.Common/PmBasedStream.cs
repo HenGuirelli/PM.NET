@@ -126,7 +126,7 @@ namespace PM.Common
             Log.Verbose(
                 "Writing on file={file}, size={size}, " +
                 "buffer={buffer}, offset={offset}, count={count}, " +
-                "InitialPointer={initialPointer}, position={position}" +
+                "InitialPointer={initialPointer}, position={position}, " +
                 "destination={destination}",
                 FilePath, Length,
                 buffer, offset, count,
