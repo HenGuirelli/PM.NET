@@ -13,6 +13,7 @@ namespace Benchmarks
     {
         private string _prefixFileName;
         private IPersistentFactory _factory;
+        private const int OperationCount = 10000;
 
         [GlobalSetup]
         public void Setup()
@@ -48,8 +49,11 @@ namespace Benchmarks
         [Benchmark]
         public void CreateRootObject()
         {
-            var proxyObj = _factory.CreateRootObject<ComplexClass>(_prefixFileName + Guid.NewGuid().ToString());
-            GC.KeepAlive(proxyObj);
+            for (int i = 0; i < OperationCount; i++)
+            {
+                var proxyObj = _factory.CreateRootObject<ComplexClass>(_prefixFileName + Guid.NewGuid().ToString());
+                GC.KeepAlive(proxyObj);
+            }
         }
     }
 
