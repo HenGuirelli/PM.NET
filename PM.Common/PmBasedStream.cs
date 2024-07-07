@@ -104,11 +104,11 @@ namespace PM.Common
                 SeekOrigin.Begin => offset,
                 SeekOrigin.Current => _position + offset,
                 SeekOrigin.End => _length + offset,
-                _ => throw new ArgumentOutOfRangeException(nameof(origin))
+                _ => throw new ArgumentOutOfRangeException(nameof(offset), $"offset: {offset}, originn: {origin}")
             };
             if (newPosition < 0 || newPosition > _length)
             {
-                throw new ArgumentOutOfRangeException(nameof(offset));
+                throw new ArgumentOutOfRangeException(nameof(offset), $"offset: {offset}, originn: {origin}");
             }
             _position = newPosition;
             return _position;

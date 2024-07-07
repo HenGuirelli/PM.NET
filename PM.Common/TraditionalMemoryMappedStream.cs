@@ -80,29 +80,14 @@ namespace PM.Common
             _memoryMappedViewStream!.SetLength(value);
         }
 
-        private int _recursionCount = 0;
         public override void Write(byte[] buffer, int offset, int count)
         {
-            //try
-            //{
             Log.Verbose(
                 "Writing on file={file}, size={size}, " +
                 "buffer={buffer}, offset={offset}, count={count}",
                 FilePath, Length,
                 buffer, offset, count);
             _memoryMappedViewStream!.Write(buffer, offset, count);
-            //}
-            //catch (System.NotSupportedException ex)
-            //    when (ex.Message.Contains("Unable to expand length of this stream beyond its capacity."))
-            //{
-            //    if (_recursionCount == 1) throw;
-
-            //    Resize(_length * 2);
-
-            //    _recursionCount++;
-            //    Write(buffer, offset, count);
-            //    _recursionCount = 0;
-            //}
         }
 
         public override void Resize(long size)
