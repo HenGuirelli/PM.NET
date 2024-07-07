@@ -6,8 +6,8 @@ namespace PM.AutomaticManager.Configs
     {
         public static PmTargets PmTarget { get; set; } = PmTargets.PM;
         public static int CollectFileInterval { get; set; } = 120000;
-        public static string PmMemoryFilePath { get; set; } = Path.Combine(PmInternalsFolder, "PM.NET.FileMemory.pm");
-        public static string PmMemoryFileTransactionPath { get; set; } = Path.Combine(PmInternalsFolder, "PM.NET.FileMemory.Transaction.pm");
+        public static string PmMemoryFilePath => Path.Combine(PmInternalsFolder, "PM.NET.FileMemory.pm");
+        public static string PmMemoryFileTransactionPath => Path.Combine(PmInternalsFolder, "PM.NET.FileMemory.Transaction.pm");
 
         #region PmInternalsFolder
         private static string? _pmInternalsFolder;
