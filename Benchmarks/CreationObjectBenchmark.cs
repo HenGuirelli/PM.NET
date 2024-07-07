@@ -8,12 +8,12 @@ namespace Benchmarks
 {
     [MemoryDiagnoser]
     [RPlotExporter]
-    [SimpleJob(RunStrategy.ColdStart, launchCount: 1, warmupCount: 0, iterationCount: 2000)]
+    [SimpleJob(RunStrategy.ColdStart, launchCount: 1, warmupCount: 0, iterationCount: 1)]
     public class CreationObjectBenchmark
     {
         private string _prefixFileName;
         private IPersistentFactory _factory;
-        private const int OperationCount = 10000;
+        private const int OperationCount = 20000;
 
         [GlobalSetup]
         public void Setup()
