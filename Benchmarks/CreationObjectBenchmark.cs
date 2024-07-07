@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Engines;
 using PM;
 using PM.Configs;
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -7,10 +8,9 @@ namespace Benchmarks
 {
     [MemoryDiagnoser]
     [RPlotExporter]
+    [SimpleJob(RunStrategy.ColdStart, launchCount: 1, warmupCount: 0, iterationCount: 2000)]
     public class CreationObjectBenchmark
     {
-        [Params(2, 2048, 4096)]
-        public int CreationsQty;
         private string _prefixFileName;
         private IPersistentFactory _factory;
 
@@ -18,7 +18,16 @@ namespace Benchmarks
         public void Setup()
         {
             var configFile = new ConfigFile();
+            CleanFiles(configFile);
             SetupPmDotnet(configFile);
+        }
+
+        private void CleanFiles(ConfigFile configFile)
+        {
+            foreach (var file in Directory.GetFiles(configFile.CreationObjectBenchmarkPersistentObjectsFilePath))
+            {
+                File.Delete(file);
+            }
         }
 
         private void SetupPmDotnet(ConfigFile configFile)
@@ -35,13 +44,10 @@ namespace Benchmarks
         }
 
         [Benchmark]
-        public void Creation()
+        public void CreateRootObject()
         {
-            for (int i = 0; i < CreationsQty; i++)
-            {
-                var proxyObj = _factory.CreateRootObject<ComplexClass>(_prefixFileName + Guid.NewGuid().ToString());
-                GC.KeepAlive(proxyObj);
-            }
+            var proxyObj = _factory.CreateRootObject<ComplexClass>(_prefixFileName + Guid.NewGuid().ToString());
+            GC.KeepAlive(proxyObj);
         }
     }
 
