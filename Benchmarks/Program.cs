@@ -60,6 +60,9 @@ class Program
         {
             PmGlobalConfiguration.PmTarget = target;
 #if DEBUG
+            var a = new CreationObjectBenchmark();
+            a.Setup();
+            a.Creation();
             BenchmarkRunner.Run<CreationObjectBenchmark>(
                 DefaultConfig.Instance
                 .WithOptions(ConfigOptions.DisableOptimizationsValidator));

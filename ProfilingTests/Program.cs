@@ -16,6 +16,6 @@ var _persistentFactorySSD = new PersistentFactory();
 int OperationCount = 20000;
 for (int i = 0; i < OperationCount; i++)
 {
-    var _proxy = _persistentFactorySSD.CreateRootObject<RootObject>(Guid.NewGuid().ToString());
+    var _proxy = _persistentFactorySSD.CreateRootObject<ComplexClass>("CreationObjectBenchmark" + Guid.NewGuid().ToString());
     GC.KeepAlive(_proxy);
 }
