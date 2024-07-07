@@ -41,11 +41,6 @@ namespace PM.Common
             int isPersistent = 0;
             ulong mappedLength = 0;
 
-            if (File.Exists(FilePath))
-            {
-                length = new FileInfo(FilePath).Length;
-            }
-
             InitialPointer = LibpmemNativeMethods.MapFile(
             path: path,
             length: length,
