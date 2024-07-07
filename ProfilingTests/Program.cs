@@ -2,33 +2,20 @@
 using PM.AutomaticManager;
 using PM.AutomaticManager.Configs;
 using ProfilingTests;
+using Serilog;
 
-const int IntValueToWrite = int.MaxValue;
-const long LongValueToWrite = long.MaxValue;
-const short ShortValueToWrite = short.MaxValue;
-const byte ByteValueToWrite = byte.MaxValue;
-const double DoubleValueToWrite = double.MaxValue;
-const float FloatValueToWrite = float.MinValue;
-const decimal DecimalValueToWrite = decimal.MaxValue;
-const char CharValueToWrite = char.MaxValue;
-const bool BoolValueToWrite = true;
+Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Verbose()
+            .WriteTo.Console()
+            .CreateLogger();
 
-PmGlobalConfiguration.PmTarget = PM.Core.PmTargets.TraditionalMemoryMappedFile;
-PmGlobalConfiguration.PmInternalsFolder = "./ProflingTests";
+PmGlobalConfiguration.PmTarget = PM.Core.PmTargets.PM;
+PmGlobalConfiguration.PmInternalsFolder = "/mnt/nvram1/henguirelli/benchmarks/";
 
 var _persistentFactorySSD = new PersistentFactory();
-var _proxy = _persistentFactorySSD.CreateRootObject<RootObject>("RootObj");
-
 
 while (true)
 {
-    _proxy.IntVal = IntValueToWrite;
-    _proxy.LongVal = LongValueToWrite;
-    _proxy.ShortVal = ShortValueToWrite;
-    _proxy.ByteVal = ByteValueToWrite;
-    _proxy.DoubleVal = DoubleValueToWrite;
-    _proxy.FloatVal = FloatValueToWrite;
-    _proxy.DecimalVal = DecimalValueToWrite;
-    _proxy.CharVal = CharValueToWrite;
-    _proxy.BoolVal = BoolValueToWrite;
+    var _proxy = _persistentFactorySSD.CreateRootObject<RootObject>(Guid.NewGuid().ToString());
+    GC.KeepAlive(_proxy);
 }
